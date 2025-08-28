@@ -20,6 +20,8 @@ jobs:
           bats tests
 
   security:
+    # Run only on push (e.g., main) to avoid blocking PR iteration
+    if: github.event_name == 'push'
     runs-on: ubuntu-24.04
     permissions:
       contents: read

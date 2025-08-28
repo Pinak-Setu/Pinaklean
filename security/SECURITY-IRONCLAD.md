@@ -1,0 +1,1 @@
+Refer to parent repo baseline at ~/security/SECURITY-IRONCLAD.md for policy. Copy inline if central repo not available.

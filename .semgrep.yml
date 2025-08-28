@@ -1,0 +1,8 @@
+rules:
+- id: unsafe-rm-rf
+  patterns:
+  - pattern: rm -rf
+  - pattern-not: rm -rf "$file_path"
+  message: Use quoted variable and guardrails with rm -rf.
+  languages: [bash]
+  severity: WARNING

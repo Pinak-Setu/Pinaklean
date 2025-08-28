@@ -1,0 +1,363 @@
+#!/usr/bin/env zsh
+
+# Pinaklean — safe macOS cleanup toolkit for developers
+# - Safe-by-default with guardrails and dry-run
+# - Creates a snapshot archive before deletion
+# - Focused on user and developer caches
+
+set -euo pipefail
+
+APP_NAME="Pinaklean"
+VERSION="0.1.0"
+DRY_RUN=false
+MODE="--safe" # or --aggressive
+BACKUP_DIR="$HOME/pinaklean_backups"
+
+# PATH for common executables
+export PATH="/usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/opt/homebrew/bin:/opt/local/bin:$PATH"
+
+print_usage() {
+  cat <<'USAGE'
+Pinaklean — safe macOS cleanup toolkit for developers
+
+Usage: pinaklean [--dry-run] [--safe|--aggressive]
+
+Options:
+  --dry-run       Print actions without deleting anything
+  --safe          Default mode; may request confirmations
+  --aggressive    Skip confirmations (still applies guardrails)
+  -h, --help      Show this help
+USAGE
+}
+
+notify() {
+  local message="${1:-}"
+  if command -v terminal-notifier >/dev/null 2>&1; then
+    terminal-notifier -title "$APP_NAME" -message "$message" || true
+  elif command -v osascript >/dev/null 2>&1; then
+    osascript -e 'display notification '"$message"' with title '"$APP_NAME"'' || true
+  else
+    printf "%s\n" "$message"
+  fi
+}
+
+confirm() {
+  # In aggressive mode auto-confirm
+  if [[ "$MODE" = "--aggressive" ]]; then
+    return 0
+  fi
+  local prompt="$1"
+  read -r "?${prompt} [y/N] " ans
+  [[ "$ans" = "y" || "$ans" = "Y" ]]
+}
+
+# Graceful checks for optional tools
+has_cmd() { command -v "$1" >/dev/null 2>&1; }
+
+cleanup_docker() {
+  echo "\nCleaning Docker..."
+  if [[ "$DRY_RUN" = true ]]; then
+    echo "Dry run: Would run: docker system prune --force"
+    return 0
+  fi
+  if has_cmd docker; then
+    if [[ -d "$HOME/Library/Containers/com.docker.docker" ]]; then
+      echo "Running: docker system prune --force"
+      docker system prune --force || true
+    else
+      echo "Docker data directory not found. Skipping Docker cleanup."
+    fi
+  else
+    echo "Docker command not found. Skipping Docker cleanup."
+  fi
+}
+
+cleanup_homebrew() {
+  echo "\nCleaning Homebrew..."
+  if [[ "$DRY_RUN" = true ]]; then
+    echo "Dry run: Would run: brew cleanup"
+    return 0
+  fi
+  if has_cmd brew; then
+    echo "Running: brew cleanup"
+    brew cleanup || true
+  else
+    echo "Homebrew command not found. Skipping Homebrew cleanup."
+  fi
+}
+
+cleanup_pip() {
+  echo "\nCleaning Pip cache..."
+  if [[ "$DRY_RUN" = true ]]; then
+    echo "Dry run: Would run: pip cache purge"
+    return 0
+  fi
+  if has_cmd pip; then
+    echo "Running: pip cache purge"
+    pip cache purge || true
+  else
+    echo "Pip command not found. Skipping Pip cache cleanup."
+  fi
+}
+
+# Parse args
+if [[ "${1:-}" = "-h" || "${1:-}" = "--help" ]]; then
+  print_usage
+  exit 0
+fi
+
+for arg in "$@"; do
+  case "$arg" in
+    --dry-run) DRY_RUN=true ;;
+    --safe|--aggressive) MODE="$arg" ;;
+  esac
+done
+
+# Space accounting (best-effort)
+before_space=$(df -h / | awk 'NR==2{print $4}')
+
+# Auto-bump to aggressive when used space crosses threshold (GB)
+MAX_USED_GB=120
+if has_cmd bc; then
+  current_used_bytes=$(df -k / | awk 'NR==2{print $3}')
+  current_used_gb=$(echo "scale=2; $current_used_bytes / (1024 * 1024)" | bc)
+  if (( $(echo "$current_used_gb > $MAX_USED_GB" | bc -l) )); then
+    echo "Warning: Used space ($current_used_gb GB) exceeds threshold ($MAX_USED_GB GB). Switching to --aggressive mode."
+    MODE="--aggressive"
+    notify "Mac storage high: Used space is $current_used_gb GB. Running in aggressive mode."
+  fi
+else
+  echo "bc not available; skipping used-space threshold check"
+fi
+
+echo "Mode: $MODE"
+echo "Before free space:"; df -h / | awk 'NR<3{print}'
+
+# Guardrails: deny-list of sensitive/system locations
+is_safe_to_delete() {
+  local path="$1"
+  local NO_GO_PATTERNS=(
+    "$HOME/Documents"
+    "$HOME/Desktop"
+    "$HOME/Pictures"
+    "$HOME/Movies"
+    "$HOME/Music"
+    "/System"
+    "/usr/bin" "/bin" "/sbin" "/etc"
+    "/var/db" "/var/log"
+    "/Library/Application Support"
+    "/Library/Containers"
+    "/Library/Mobile Documents"
+    "/Library/Metadata" "/Library/Developer"
+    "/Library/Group Containers" "/Library/Fonts"
+    "/Library/Messages" "/Library/Mail" "/Library/Safari"
+    "/Library/Keychains" "/Library/Photos"
+    "/Library/DuetExpertCenter" "/Library/IntelligencePlatform"
+    "/Library/HTTPStorages" "/Library/Trial" "/Library/Shortcuts"
+    "/Library/Daemon Containers" "/Library/Biome"
+    "/Library/pnpm"
+    "/Library/Caches/CloudKit"
+  )
+  for pattern in "${NO_GO_PATTERNS[@]}"; do
+    if [[ "$path" = "$pattern"* ]]; then
+      echo "Warning: Path '$path' matches NO-GO pattern '$pattern'. Skipping."
+      return 1
+    fi
+  done
+  return 0
+}
+
+# Collection of paths marked for deletion
+typeset -a files_to_delete=()
+
+add_to_delete_list() {
+  local path_to_add="$1"
+  if is_safe_to_delete "$path_to_add"; then
+    if [[ "$DRY_RUN" = true ]]; then
+      echo "Dry run: Would remove: $path_to_add"
+    else
+      if [[ -e "$path_to_add" ]]; then
+        files_to_delete+=("$path_to_add")
+      fi
+    fi
+  else
+    echo "Skipping unsafe path: $path_to_add"
+  fi
+}
+
+# Stop common long-running dev watchers (only in non-dry-run)
+if [[ "$DRY_RUN" = false ]]; then
+  if confirm "Stop common dev watchers (VS Code, Next, Vite, Node watch)?"; then
+    echo "\nStopping watchers..."
+    osascript -e 'tell application "Visual Studio Code" to quit' >/dev/null 2>&1 || true
+    pkill -f "next dev"       >/dev/null 2>&1 || true
+    pkill -f "vite"           >/dev/null 2>&1 || true
+    pkill -f "node.*watch"    >/dev/null 2>&1 || true
+  fi
+else
+  echo "Dry run: Would stop watchers (VS Code, Next, Vite, Node watch)"
+fi
+
+# Project caches under common dev roots
+echo "\nProject cache sweep (~/Documents & ~/Developer)..."
+for base in "$HOME/Documents" "$HOME/Developer"; do
+  [[ -d "$base" ]] || continue
+  if [[ "$DRY_RUN" = false ]]; then
+    find "$base" -type d -name node_modules -prune -print0 | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
+  else
+    echo "Dry run: Would remove node_modules in $base"
+  fi
+  for d in .next dist build .turbo .parcel-cache; do
+    if [[ "$DRY_RUN" = false ]]; then
+      find "$base" -type d -name "$d" -print0 | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
+    else
+      echo "Dry run: Would remove $d in $base"
+    fi
+  done
+done
+
+# Global dev caches (best-effort)
+echo "\nGlobal dev caches..."
+if [[ "$DRY_RUN" = false ]]; then
+  if has_cmd npm; then
+    npm cache clean --force || true
+  else
+    echo "npm command not found. Skipping npm cache clean."
+  fi
+else
+  echo "Dry run: Would run: npm cache clean --force"
+fi
+
+cleanup_docker
+cleanup_homebrew
+cleanup_pip
+
+# Snapshot of files to be deleted (archive only; deletion happens later)
+create_snapshot() {
+  if [[ "$DRY_RUN" = true ]]; then
+    echo "Dry run: Would create a snapshot."
+    return 0
+  fi
+  if [[ ${#files_to_delete[@]} -eq 0 ]]; then
+    echo "No files to snapshot."
+    return 0
+  fi
+  mkdir -p "$BACKUP_DIR"
+  local timestamp
+  timestamp=$(date +"%Y%m%d_%H%M%S")
+  local snapshot_file="$BACKUP_DIR/snapshot_${timestamp}.tar.gz"
+  echo "\nCreating snapshot: $snapshot_file"
+  printf "%s\0" "${files_to_delete[@]}" | tar -czf "$snapshot_file" --null --files-from=- --ignore-failed-read || true
+  if [[ -f "$snapshot_file" ]]; then
+    echo "Snapshot created successfully."
+  else
+    echo "Error creating snapshot. Some files might not have been included."
+  fi
+}
+
+# Retention for old snapshots
+manage_snapshots() {
+  local retention_days=7
+  [[ -d "$BACKUP_DIR" ]] || return 0
+  echo "\nManaging snapshots (retaining for $retention_days days)..."
+  find "$BACKUP_DIR" -type f -name "snapshot_*.tar.gz" -mtime +"$retention_days" -print -exec rm {} \; -o -prune || true
+  echo "Snapshot management complete."
+}
+
+# User caches
+echo "\nUser caches..."
+add_to_delete_list "$HOME/Library/Application Support/Google/Chrome/Default/Cache"
+add_to_delete_list "$HOME/Library/Caches/com.apple.Safari/Cache.db"
+add_to_delete_list "$HOME/Library/Caches/com.apple.Safari/WebKitCache"
+add_to_delete_list "$HOME/Library/Caches/com.apple.AppStore"
+add_to_delete_list "$HOME/Library/Caches/com.apple.iTunes"
+add_to_delete_list "$HOME/Library/Caches/com.apple.QuickLook"
+add_to_delete_list "$HOME/Library/Caches/com.apple.mail"
+add_to_delete_list "$HOME/Library/Caches/com.apple.Maps"
+add_to_delete_list "$HOME/Library/Caches/com.apple.Music"
+add_to_delete_list "$HOME/Library/Caches/com.apple.Podcasts"
+add_to_delete_list "$HOME/Library/Caches/com.apple.TV"
+add_to_delete_list "$HOME/Library/Caches/com.apple.WebKit.WebContent"
+
+# Catch-all for other caches
+if [[ "$DRY_RUN" = false ]]; then
+  find "$HOME/Library/Caches" -mindepth 1 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
+else
+  echo "Dry run: Would delete contents of $HOME/Library/Caches"
+fi
+
+# Xcode / Simulator
+echo "\nXcode / Simulator (if present)..."
+add_to_delete_list "$HOME/Library/Developer/Xcode/DerivedData"
+# Optional simulator cleanup (disabled by default)
+# if has_cmd xcrun; then xcrun simctl delete unavailable || true; fi
+
+# Trash
+echo "\nEmptying Trash..."
+if [[ "$DRY_RUN" = false ]]; then
+  find "$HOME/.Trash" -mindepth 1 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
+else
+  echo "Dry run: Would empty trash ($HOME/.Trash)"
+fi
+
+# Logs
+echo "\nUser logs..."
+add_to_delete_list "$HOME/Library/Logs/DiagnosticReports"
+add_to_delete_list "$HOME/Library/Logs/CrashReporter"
+add_to_delete_list "$HOME/Library/Logs/Adobe"
+add_to_delete_list "$HOME/Library/Logs/Google"
+add_to_delete_list "$HOME/Library/Logs/Microsoft"
+
+# Temporaries
+echo "\nTemporary files..."
+if [[ "$DRY_RUN" = false ]]; then
+  find /tmp -type f -mtime +3 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {} || true
+  find /var/tmp -type f -mtime +3 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {} || true
+else
+  echo "Dry run: Would delete temporary files older than 3 days in /tmp and /var/tmp"
+fi
+
+# Create snapshot then delete
+create_snapshot
+
+perform_deletion() {
+  if [[ "$DRY_RUN" = true ]]; then
+    echo "Dry run: No actual deletion performed."
+    return 0
+  fi
+  if [[ ${#files_to_delete[@]} -eq 0 ]]; then
+    echo "No files to delete."
+    return 0
+  fi
+  if ! confirm "Proceed to delete ${#files_to_delete[@]} items?"; then
+    echo "Deletion cancelled."
+    return 0
+  fi
+  echo "\nPerforming actual deletion..."
+  for file_path in "${files_to_delete[@]}"; do
+    if [[ -e "$file_path" ]]; then
+      echo "Deleting: $file_path"
+      rm -rf "$file_path"
+    else
+      echo "Skipping non-existent file: $file_path"
+    fi
+  done
+}
+
+perform_deletion
+manage_snapshots
+
+after_space=$(df -h / | awk 'NR==2{print $4}')
+
+# Best-effort freed space calc
+before_space_num=$(echo "$before_space" | sed 's/Gi//; s/G//')
+after_space_num=$(echo "$after_space" | sed 's/Gi//; s/G//')
+if has_cmd bc; then
+  freed_space=$(echo "$after_space_num - $before_space_num" | bc)
+else
+  freed_space="n/a"
+fi
+
+echo "\nAfter free space:"; df -h / | awk 'NR<3{print}'
+echo "Done."
+notify "Freed ${freed_space}G of space. Current available space is ${after_space}."

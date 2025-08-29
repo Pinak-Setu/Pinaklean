@@ -100,47 +100,39 @@ class UnifiedUIState: ObservableObject {
 
     // MARK: - Filter Methods
     func applyFilters(to items: [CleanableItem]) -> [CleanableItem] {
-        var filtered = items
-
-        // Search filter
-        if !searchText.isEmpty {
-            filtered = filtered.filter { item in
+        return items.filter { item in
+            // Search filter
+            let matchesSearch = searchText.isEmpty ||
                 item.name.localizedCaseInsensitiveContains(searchText) ||
                 item.path.localizedCaseInsensitiveContains(searchText) ||
                 item.category.localizedCaseInsensitiveContains(searchText)
-            }
-        }
 
-        // Category filter
-        if !selectedCategories.isEmpty {
-            filtered = filtered.filter { selectedCategories.contains($0.category) }
-        }
+            // Category filter
+            let matchesCategory = selectedCategories.isEmpty ||
+                selectedCategories.contains(item.category)
 
-        // Safety filter
-        switch safetyFilter {
-        case .safe:
-            filtered = filtered.filter { $0.safetyScore >= 70 }
-        case .review:
-            filtered = filtered.filter { $0.safetyScore >= 40 && $0.safetyScore < 70 }
-        case .risky:
-            filtered = filtered.filter { $0.safetyScore < 40 }
-        case .all:
-            break
-        }
+            // Safety filter
+            let matchesSafety: Bool = {
+                switch safetyFilter {
+                case .safe: return item.safetyScore >= 70
+                case .review: return item.safetyScore >= 40 && item.safetyScore < 70
+                case .risky: return item.safetyScore < 40
+                case .all: return true
+                }
+            }()
 
-        // Size filter
-        switch sizeFilter {
-        case .small:
-            filtered = filtered.filter { $0.size < 1024 * 1024 } // < 1MB
-        case .medium:
-            filtered = filtered.filter { $0.size >= 1024 * 1024 && $0.size < 100 * 1024 * 1024 } // 1MB - 100MB
-        case .large:
-            filtered = filtered.filter { $0.size >= 100 * 1024 * 1024 } // > 100MB
-        case .all:
-            break
-        }
+            // Size filter
+            let matchesSize: Bool = {
+                switch sizeFilter {
+                case .small: return item.size < 1024 * 1024 // < 1MB
+                case .medium: return item.size >= 1024 * 1024 && item.size < 100 * 1024 * 1024 // 1MB - 100MB
+                case .large: return item.size >= 100 * 1024 * 1024 // > 100MB
+                case .all: return true
+                }
+            }()
 
-        return filtered
+            return matchesSearch && matchesCategory && matchesSafety && matchesSize
+        }
     }
 
     // MARK: - Notification Methods

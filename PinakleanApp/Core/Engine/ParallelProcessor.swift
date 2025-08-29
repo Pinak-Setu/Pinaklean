@@ -139,7 +139,7 @@ public actor ParallelProcessor {
             for item in items {
                 group.addTask {
                     await semaphore.wait()
-                    
+
                     do {
                         try await self.deleteItem(item)
                         await semaphore.signal()

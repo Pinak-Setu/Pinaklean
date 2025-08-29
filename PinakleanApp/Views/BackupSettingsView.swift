@@ -7,7 +7,7 @@ struct BackupSettingsView: View {
     @State private var selectedProvider: CloudBackupManager.CloudProvider = .iCloudDrive
     @State private var showingSetupGuide = false
     @State private var isPerformingBackup = false
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 24) {
@@ -25,7 +25,7 @@ struct BackupSettingsView: View {
             SetupGuideView(provider: selectedProvider)
         }
     }
-    
+
     // MARK: - Header Section
     private var headerSection: some View {
         VStack(alignment: .leading, spacing: 12) {
@@ -37,23 +37,23 @@ struct BackupSettingsView: View {
                     .font(.title2)
                     .foregroundStyle(.green)
             }
-            
+
             Text("All backup options below are completely free. No subscription required!")
                 .font(.subheadline)
                 .foregroundStyle(.secondary)
-            
+
             InfoCard {
                 Text("💡 **Smart Tip**: Pinaklean automatically chooses the best free option based on your backup size.")
             }
         }
     }
-    
+
     // MARK: - Free Providers Section
     private var freeProvidersSection: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text("Available Free Providers")
                 .font(.headline)
-            
+
             ForEach(backupManager.availableProviders, id: \.self) { provider in
                 ProviderCard(
                     provider: provider,
@@ -65,13 +65,13 @@ struct BackupSettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Storage Usage Section
     private var storageUsageSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Storage Usage")
                 .font(.headline)
-            
+
             VStack(spacing: 8) {
                 ForEach(backupManager.storageStats, id: \.provider) { stat in
                     StorageBarView(
@@ -89,15 +89,15 @@ struct BackupSettingsView: View {
                 .fill(.ultraThinMaterial)
         )
     }
-    
+
     // MARK: - Backup Schedule Section
     private var backupScheduleSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Automatic Backup")
                 .font(.headline)
-            
+
             Toggle("Enable Auto-Backup", isOn: $backupManager.autoBackupEnabled)
-            
+
             if backupManager.autoBackupEnabled {
                 Picker("Schedule", selection: $backupManager.backupSchedule) {
                     Text("Daily").tag(BackupSchedule.daily)
@@ -106,7 +106,7 @@ struct BackupSettingsView: View {
                     Text("After Each Cleanup").tag(BackupSchedule.afterCleanup)
                 }
                 .pickerStyle(.segmented)
-                
+
                 Toggle("Incremental Backup (Saves Space)", isOn: $backupManager.incrementalEnabled)
                     .help("Only backs up changes since last backup")
             }
@@ -117,13 +117,13 @@ struct BackupSettingsView: View {
                 .fill(.ultraThinMaterial)
         )
     }
-    
+
     // MARK: - Setup Guides Section
     private var setupGuidesSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("Quick Setup Guides")
                 .font(.headline)
-            
+
             ScrollView(.horizontal, showsIndicators: false, content: {
                 HStack(spacing: 12) {
                     SetupCard(
@@ -135,7 +135,7 @@ struct BackupSettingsView: View {
                         selectedProvider = .iCloudDrive
                         showingSetupGuide = true
                     }
-                    
+
                     SetupCard(
                         icon: "arrow.up.circle",
                         title: "GitHub",
@@ -145,7 +145,7 @@ struct BackupSettingsView: View {
                         selectedProvider = .githubRelease
                         showingSetupGuide = true
                     }
-                    
+
                     SetupCard(
                         icon: "network",
                         title: "IPFS",
@@ -155,7 +155,7 @@ struct BackupSettingsView: View {
                         selectedProvider = .ipfs
                         showingSetupGuide = true
                     }
-                    
+
                     SetupCard(
                         icon: "externaldrive.connected.to.line.below",
                         title: "Local NAS",
@@ -169,7 +169,7 @@ struct BackupSettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Backup Actions Section
     private var backupActionsSection: some View {
         VStack(spacing: 12) {
@@ -185,14 +185,14 @@ struct BackupSettingsView: View {
                 .cornerRadius(12)
             }
             .disabled(isPerformingBackup)
-            
+
             HStack(spacing: 12) {
                 Button(action: restoreBackup) {
                     Label("Restore", systemImage: "arrow.down.circle")
                         .frame(maxWidth: .infinity)
                 }
                 .buttonStyle(.bordered)
-                
+
                 Button(action: viewBackups) {
                     Label("View Backups", systemImage: "list.bullet")
                         .frame(maxWidth: .infinity)
@@ -201,7 +201,7 @@ struct BackupSettingsView: View {
             }
         }
     }
-    
+
     // MARK: - Actions
     private func performBackup() {
         Task {
@@ -210,11 +210,11 @@ struct BackupSettingsView: View {
             isPerformingBackup = false
         }
     }
-    
+
     private func restoreBackup() {
         // Show restore sheet
     }
-    
+
     private func viewBackups() {
         // Show backups list
     }
@@ -226,7 +226,7 @@ struct ProviderCard: View {
     let isSelected: Bool
     let usage: StorageUsage
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {
@@ -234,7 +234,7 @@ struct ProviderCard: View {
                     .font(.title2)
                     .foregroundStyle(provider.color)
                     .frame(width: 40)
-                
+
                 VStack(alignment: .leading, spacing: 4) {
                     Text(provider.rawValue)
                         .font(.headline)
@@ -242,9 +242,9 @@ struct ProviderCard: View {
                         .font(.caption)
                         .foregroundStyle(.secondary)
                 }
-                
+
                 Spacer()
-                
+
                 VStack(alignment: .trailing, spacing: 4) {
                     Text(provider.freeStorage)
                         .font(.headline)
@@ -253,7 +253,7 @@ struct ProviderCard: View {
                         .font(.caption)
                         .foregroundStyle(.green)
                 }
-                
+
                 if isSelected {
                     Image(systemName: "checkmark.circle.fill")
                         .foregroundStyle(.green)
@@ -280,17 +280,17 @@ struct SetupCard: View {
     let subtitle: String
     let color: Color
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 8) {
                 Image(systemName: icon)
                     .font(.largeTitle)
                     .foregroundStyle(color)
-                
+
                 Text(title)
                     .font(.headline)
-                
+
                 Text(subtitle)
                     .font(.caption)
                     .foregroundStyle(.secondary)
@@ -311,12 +311,12 @@ struct StorageBarView: View {
     let usedGB: Double
     let totalGB: Double
     let color: Color
-    
+
     private var percentage: Double {
         guard totalGB > 0 else { return 0 }
         return min(usedGB / totalGB, 1.0)
     }
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             HStack {
@@ -327,12 +327,12 @@ struct StorageBarView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             GeometryReader { geometry in
                 ZStack(alignment: .leading) {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(Color.gray.opacity(0.2))
-                    
+
                     RoundedRectangle(cornerRadius: 4)
                         .fill(color)
                         .frame(width: geometry.size.width * percentage)
@@ -346,7 +346,7 @@ struct StorageBarView: View {
 // MARK: - Info Card
 struct InfoCard<Content: View>: View {
     @ViewBuilder let content: Content
-    
+
     var body: some View {
         HStack {
             content
@@ -365,7 +365,7 @@ struct InfoCard<Content: View>: View {
 struct SetupGuideView: View {
     let provider: CloudBackupManager.CloudProvider
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             ScrollView {
@@ -395,51 +395,51 @@ struct SetupGuideView: View {
             }
         }
     }
-    
+
     private var iCloudSetupGuide: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SetupStep(number: 1, title: "Sign in to iCloud", 
+            SetupStep(number: 1, title: "Sign in to iCloud",
                      description: "Go to System Settings > Apple ID and sign in")
-            SetupStep(number: 2, title: "Enable iCloud Drive", 
+            SetupStep(number: 2, title: "Enable iCloud Drive",
                      description: "Turn on iCloud Drive in System Settings > Apple ID > iCloud")
-            SetupStep(number: 3, title: "That's it!", 
+            SetupStep(number: 3, title: "That's it!",
                      description: "You have 5GB free storage. Pinaklean will automatically use it.")
         }
     }
-    
+
     private var githubSetupGuide: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SetupStep(number: 1, title: "Install GitHub CLI", 
+            SetupStep(number: 1, title: "Install GitHub CLI",
                      description: "Run: brew install gh")
-            SetupStep(number: 2, title: "Authenticate", 
+            SetupStep(number: 2, title: "Authenticate",
                      description: "Run: gh auth login")
-            SetupStep(number: 3, title: "Create a repository", 
+            SetupStep(number: 3, title: "Create a repository",
                      description: "Pinaklean will create releases in your repo (2GB per file limit)")
         }
     }
-    
+
     private var ipfsSetupGuide: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SetupStep(number: 1, title: "No setup needed!", 
+            SetupStep(number: 1, title: "No setup needed!",
                      description: "Pinaklean uses Web3.storage (5GB free)")
-            SetupStep(number: 2, title: "Optional: Install IPFS", 
+            SetupStep(number: 2, title: "Optional: Install IPFS",
                      description: "For unlimited local storage: brew install ipfs")
-            SetupStep(number: 3, title: "Distributed backup", 
+            SetupStep(number: 3, title: "Distributed backup",
                      description: "Your backups are distributed across the network")
         }
     }
-    
+
     private var nasSetupGuide: some View {
         VStack(alignment: .leading, spacing: 16) {
-            SetupStep(number: 1, title: "Connect to NAS", 
+            SetupStep(number: 1, title: "Connect to NAS",
                      description: "Use Finder > Go > Connect to Server")
-            SetupStep(number: 2, title: "Mount the drive", 
+            SetupStep(number: 2, title: "Mount the drive",
                      description: "Enter smb://your-nas-ip or afp://your-nas-ip")
-            SetupStep(number: 3, title: "Unlimited storage", 
+            SetupStep(number: 3, title: "Unlimited storage",
                      description: "Uses your own NAS storage capacity")
         }
     }
-    
+
     private var genericSetupGuide: some View {
         Text("Setup guide for \(provider.rawValue)")
     }
@@ -450,7 +450,7 @@ struct SetupStep: View {
     let number: Int
     let title: String
     let description: String
-    
+
     var body: some View {
         HStack(alignment: .top, spacing: 12) {
             Circle()
@@ -461,7 +461,7 @@ struct SetupStep: View {
                         .font(.headline)
                         .foregroundColor(.white)
                 )
-            
+
             VStack(alignment: .leading, spacing: 4) {
                 Text(title)
                     .font(.headline)
@@ -481,12 +481,12 @@ class CloudBackupViewModel: ObservableObject {
     @Published var autoBackupEnabled = false
     @Published var incrementalEnabled = true
     @Published var backupSchedule: BackupSchedule = .weekly
-    
+
     init() {
         loadProviders()
         loadStorageStats()
     }
-    
+
     func loadProviders() {
         // Check which providers are available
         availableProviders = [
@@ -494,13 +494,13 @@ class CloudBackupViewModel: ObservableObject {
             .githubGist,
             .ipfs
         ]
-        
+
         // Check for NAS
         if FileManager.default.fileExists(atPath: "/Volumes/NAS") {
             availableProviders.append(.localNAS)
         }
     }
-    
+
     func loadStorageStats() {
         storageStats = [
             StorageStats(provider: .iCloudDrive, usedGB: 2.3, totalGB: 5.0),
@@ -508,11 +508,11 @@ class CloudBackupViewModel: ObservableObject {
             StorageStats(provider: .ipfs, usedGB: 0.8, totalGB: 5.0),
         ]
     }
-    
+
     func getUsage(for provider: CloudBackupManager.CloudProvider) -> StorageUsage {
         storageStats.first { $0.provider == provider }?.usage ?? .init(used: 0, total: 0)
     }
-    
+
     func performBackup(to provider: CloudBackupManager.CloudProvider) async {
         // Perform backup
         try? await Task.sleep(nanoseconds: 2_000_000_000) // Simulate
@@ -525,9 +525,9 @@ struct StorageStats: Identifiable {
     let provider: CloudBackupManager.CloudProvider
     let usedGB: Double
     let totalGB: Double
-    
+
     var usage: StorageUsage {
-        StorageUsage(used: Int64(usedGB * 1024 * 1024 * 1024), 
+        StorageUsage(used: Int64(usedGB * 1024 * 1024 * 1024),
                     total: Int64(totalGB * 1024 * 1024 * 1024))
     }
 }
@@ -556,7 +556,7 @@ extension CloudBackupManager.CloudProvider {
         case .localNAS: return "externaldrive.connected.to.line.below"
         }
     }
-    
+
     var color: Color {
         switch self {
         case .iCloudDrive: return .blue
@@ -567,7 +567,7 @@ extension CloudBackupManager.CloudProvider {
         case .localNAS: return .teal
         }
     }
-    
+
     var description: String {
         switch self {
         case .iCloudDrive: return "Apple's cloud storage"
@@ -579,7 +579,7 @@ extension CloudBackupManager.CloudProvider {
         case .localNAS: return "Network attached storage"
         }
     }
-    
+
     var freeStorage: String {
         switch self {
         case .iCloudDrive: return "5GB"

@@ -9,7 +9,7 @@ struct BackupRegistryView: View {
     @State private var filterProvider: CloudBackupManager.CloudProvider?
     @State private var showingExportSheet = false
     @State private var showingDetailSheet = false
-    
+
     var body: some View {
         NavigationSplitView {
             sidebarContent
@@ -35,7 +35,7 @@ struct BackupRegistryView: View {
             await viewModel.loadBackups()
         }
     }
-    
+
     // MARK: - Sidebar Content
     private var sidebarContent: some View {
         List(selection: $selectedBackup) {
@@ -47,7 +47,7 @@ struct BackupRegistryView: View {
                     providers: viewModel.uniqueProviders
                 )
             }
-            
+
             // Filter Pills
             Section {
                 ScrollView(.horizontal, showsIndicators: false) {
@@ -55,7 +55,7 @@ struct BackupRegistryView: View {
                         FilterPill(title: "All", isSelected: filterProvider == nil) {
                             filterProvider = nil
                         }
-                        
+
                         ForEach(viewModel.uniqueProviders, id: \.self) { provider in
                             FilterPill(
                                 title: provider.rawValue,
@@ -69,7 +69,7 @@ struct BackupRegistryView: View {
                     .padding(.horizontal)
                 }
             }
-            
+
             // Backup List
             Section("Backups") {
                 ForEach(filteredAndSearchedBackups) { backup in
@@ -86,16 +86,16 @@ struct BackupRegistryView: View {
             await viewModel.loadBackups()
         }
     }
-    
+
     // MARK: - Filtered Backups
     private var filteredAndSearchedBackups: [BackupRecord] {
         var results = viewModel.backups
-        
+
         // Filter by provider
         if let provider = filterProvider {
             results = results.filter { $0.provider == provider.rawValue }
         }
-        
+
         // Filter by search
         if !searchText.isEmpty {
             results = results.filter { backup in
@@ -104,10 +104,10 @@ struct BackupRegistryView: View {
                 backup.location.localizedCaseInsensitiveContains(searchText)
             }
         }
-        
+
         return results
     }
-    
+
     // MARK: - Context Menu
     @ViewBuilder
     private func contextMenu(for backup: BackupRecord) -> some View {
@@ -116,22 +116,22 @@ struct BackupRegistryView: View {
         } label: {
             Label("Copy Location", systemImage: "doc.on.doc")
         }
-        
+
         Button {
             viewModel.copyInstructions(backup)
         } label: {
             Label("Copy Retrieval Instructions", systemImage: "text.quote")
         }
-        
+
         Button {
             viewModel.openInFinder(backup)
         } label: {
             Label("Show in Finder", systemImage: "folder")
         }
         .disabled(!backup.isLocal)
-        
+
         Divider()
-        
+
         Button {
             Task {
                 await viewModel.verifyBackup(backup)
@@ -139,14 +139,14 @@ struct BackupRegistryView: View {
         } label: {
             Label("Verify Backup", systemImage: "checkmark.shield")
         }
-        
+
         Button(role: .destructive) {
             viewModel.deleteBackup(backup)
         } label: {
             Label("Delete Record", systemImage: "trash")
         }
     }
-    
+
     // MARK: - Toolbar
     @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
@@ -157,7 +157,7 @@ struct BackupRegistryView: View {
                 Label("Export Registry", systemImage: "square.and.arrow.up")
             }
         }
-        
+
         ToolbarItem {
             Button {
                 viewModel.openBackupFolder()
@@ -165,7 +165,7 @@ struct BackupRegistryView: View {
                 Label("Open Backup Folder", systemImage: "folder")
             }
         }
-        
+
         ToolbarItem {
             Menu {
                 ForEach(SortOption.allCases, id: \.self) { option in
@@ -191,19 +191,19 @@ struct BackupRegistryView: View {
 struct BackupRowView: View {
     let backup: BackupRecord
     let isSelected: Bool
-    
+
     private var provider: CloudBackupManager.CloudProvider {
         CloudBackupManager.CloudProvider(rawValue: backup.provider) ?? .ipfs
     }
-    
+
     private var formattedSize: String {
         ByteCountFormatter.string(fromByteCount: backup.size, countStyle: .file)
     }
-    
+
     private var relativeTime: String {
         RelativeDateTimeFormatter().localizedString(for: backup.timestamp, relativeTo: Date())
     }
-    
+
     var body: some View {
         HStack(spacing: 12) {
             // Provider Icon
@@ -213,35 +213,35 @@ struct BackupRowView: View {
                 .frame(width: 32, height: 32)
                 .background(provider.color.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 8))
-            
+
             // Info
             VStack(alignment: .leading, spacing: 4) {
                 HStack {
                     Text(provider.rawValue)
                         .font(.headline)
-                    
+
                     if backup.isIncremental {
                         Badge("Incremental")
                     }
-                    
+
                     if backup.isEncrypted {
                         Image(systemName: "lock.fill")
                             .font(.caption)
                             .foregroundStyle(.green)
                     }
                 }
-                
+
                 Text(backup.location)
                     .font(.caption)
                     .foregroundStyle(.secondary)
                     .lineLimit(1)
                     .truncationMode(.middle)
-                
+
                 HStack {
                     Text(relativeTime)
                     Text("•")
                     Text(formattedSize)
-                    
+
                     if let lastVerified = backup.lastVerified {
                         Text("•")
                         Label("Verified", systemImage: "checkmark.shield.fill")
@@ -252,9 +252,9 @@ struct BackupRowView: View {
                 .font(.caption)
                 .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
-            
+
             // Status Indicator
             BackupStatusIndicator(status: backup.status)
         }
@@ -273,26 +273,26 @@ struct BackupDetailView: View {
     @State private var showingInstructions = false
     @State private var isVerifying = false
     @State private var verificationResult: VerificationResult?
-    
+
     private var provider: CloudBackupManager.CloudProvider {
         CloudBackupManager.CloudProvider(rawValue: backup.provider) ?? .ipfs
     }
-    
+
     var body: some View {
         ScrollView {
             VStack(alignment: .leading, spacing: 24) {
                 // Header
                 headerSection
-                
+
                 // Quick Actions
                 quickActionsSection
-                
+
                 // Details Grid
                 detailsGrid
-                
+
                 // Retrieval Instructions
                 retrievalInstructionsSection
-                
+
                 // Verification Status
                 if let result = verificationResult {
                     verificationSection(result)
@@ -303,7 +303,7 @@ struct BackupDetailView: View {
         .navigationTitle("Backup Details")
         .navigationSubtitle(backup.id)
     }
-    
+
     private var headerSection: some View {
         HStack {
             Image(systemName: provider.icon)
@@ -312,17 +312,17 @@ struct BackupDetailView: View {
                 .frame(width: 60, height: 60)
                 .background(provider.color.opacity(0.1))
                 .clipShape(RoundedRectangle(cornerRadius: 12))
-            
+
             VStack(alignment: .leading, spacing: 8) {
                 Text(provider.rawValue)
                     .font(.title2.bold())
-                
+
                 HStack {
                     if backup.isEncrypted {
                         Label("Encrypted", systemImage: "lock.fill")
                             .foregroundStyle(.green)
                     }
-                    
+
                     if backup.isIncremental {
                         Label("Incremental", systemImage: "arrow.triangle.2.circlepath")
                             .foregroundStyle(.blue)
@@ -330,29 +330,29 @@ struct BackupDetailView: View {
                 }
                 .font(.caption)
             }
-            
+
             Spacer()
-            
+
             BackupStatusIndicator(status: backup.status, large: true)
         }
     }
-    
+
     private var quickActionsSection: some View {
         HStack(spacing: 12) {
             ActionButton(title: "Copy Location", icon: "doc.on.doc") {
                 copyLocation()
             }
-            
+
             ActionButton(title: "Show Instructions", icon: "questionmark.circle") {
                 showingInstructions.toggle()
             }
-            
+
             ActionButton(title: "Verify", icon: "checkmark.shield", isLoading: isVerifying) {
                 Task {
                     await verifyBackup()
                 }
             }
-            
+
             if backup.isLocal {
                 ActionButton(title: "Open", icon: "folder") {
                     openInFinder()
@@ -360,7 +360,7 @@ struct BackupDetailView: View {
             }
         }
     }
-    
+
     private var detailsGrid: some View {
         LazyVGrid(columns: [
             GridItem(.flexible()),
@@ -373,7 +373,7 @@ struct BackupDetailView: View {
             DetailCard(title: "Checksum", value: String(backup.checksum.prefix(12)) + "...", icon: "checkmark.seal")
         }
     }
-    
+
     private var retrievalInstructionsSection: some View {
         VStack(alignment: .leading, spacing: 12) {
             HStack {
@@ -386,7 +386,7 @@ struct BackupDetailView: View {
                     Image(systemName: showingInstructions ? "chevron.up" : "chevron.down")
                 }
             }
-            
+
             if showingInstructions {
                 Text(backup.retrievalInstructions)
                     .font(.system(.body, design: .monospaced))
@@ -397,12 +397,12 @@ struct BackupDetailView: View {
             }
         }
     }
-    
+
     private func verificationSection(_ result: VerificationResult) -> some View {
         HStack {
             Image(systemName: result.exists ? "checkmark.circle.fill" : "xmark.circle.fill")
                 .foregroundStyle(result.exists ? .green : .red)
-            
+
             VStack(alignment: .leading) {
                 Text(result.exists ? "Backup Verified" : "Backup Not Found")
                     .font(.headline)
@@ -410,7 +410,7 @@ struct BackupDetailView: View {
                     .font(.caption)
                     .foregroundStyle(.secondary)
             }
-            
+
             Spacer()
         }
         .padding()
@@ -419,19 +419,19 @@ struct BackupDetailView: View {
                 .fill(result.exists ? Color.green.opacity(0.1) : Color.red.opacity(0.1))
         )
     }
-    
+
     // Actions
     private func copyLocation() {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(backup.location, forType: .string)
     }
-    
+
     private func openInFinder() {
         if FileManager.default.fileExists(atPath: backup.location) {
             NSWorkspace.shared.selectFile(backup.location, inFileViewerRootedAtPath: "")
         }
     }
-    
+
     private func verifyBackup() async {
         isVerifying = true
         // Verify backup exists
@@ -445,7 +445,7 @@ struct SummaryCard: View {
     let totalBackups: Int
     let totalSize: Int64
     let providers: [CloudBackupManager.CloudProvider]
-    
+
     var body: some View {
         VStack(spacing: 12) {
             HStack {
@@ -454,12 +454,12 @@ struct SummaryCard: View {
                 let totalSizeFormatted = ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file)
                 StatView(title: "Total Size", value: totalSizeFormatted, icon: "internaldrive")
             }
-            
+
             HStack {
                 Text("Providers:")
                     .font(.caption)
                     .foregroundStyle(.secondary)
-                
+
                 ForEach(providers, id: \.self) { provider in
                     Image(systemName: provider.icon)
                         .foregroundStyle(provider.color)
@@ -478,7 +478,7 @@ struct StatView: View {
     let title: String
     let value: String
     let icon: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Label(title, systemImage: icon)
@@ -496,7 +496,7 @@ struct FilterPill: View {
     var icon: String? = nil
     let isSelected: Bool
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             HStack {
@@ -522,7 +522,7 @@ struct ActionButton: View {
     let icon: String
     var isLoading = false
     let action: () -> Void
-    
+
     var body: some View {
         Button(action: action) {
             VStack(spacing: 4) {
@@ -549,7 +549,7 @@ struct DetailCard: View {
     let title: String
     let value: String
     let icon: String
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 4) {
             Label(title, systemImage: icon)
@@ -572,7 +572,7 @@ struct DetailCard: View {
 struct BackupStatusIndicator: View {
     let status: BackupStatus
     var large = false
-    
+
     var color: Color {
         switch status {
         case .active: return .green
@@ -581,7 +581,7 @@ struct BackupStatusIndicator: View {
         case .deleted: return .gray
         }
     }
-    
+
     var icon: String {
         switch status {
         case .active: return "checkmark.circle.fill"
@@ -590,7 +590,7 @@ struct BackupStatusIndicator: View {
         case .deleted: return "trash.circle.fill"
         }
     }
-    
+
     var body: some View {
         Image(systemName: icon)
             .font(large ? .title2 : .body)
@@ -600,7 +600,7 @@ struct BackupStatusIndicator: View {
 
 struct Badge: View {
     let text: String
-    
+
     var body: some View {
         Text(text)
             .font(.caption2)
@@ -627,7 +627,7 @@ struct EmptyDetailView: View {
 struct BackupDetailSheet: View {
     let backup: BackupRecord
     @Environment(\.dismiss) private var dismiss
-    
+
     var body: some View {
         NavigationStack {
             BackupDetailView(backup: backup)
@@ -644,14 +644,14 @@ struct ExportBackupListView: View {
     let backups: [BackupRecord]
     @Environment(\.dismiss) private var dismiss
     @State private var exportFormat = ExportFormat.json
-    
+
     enum ExportFormat: String, CaseIterable {
         case json = "JSON"
         case csv = "CSV"
         case markdown = "Markdown"
         case text = "Plain Text"
     }
-    
+
     var body: some View {
         NavigationStack {
             VStack(spacing: 20) {
@@ -661,7 +661,7 @@ struct ExportBackupListView: View {
                     }
                 }
                 .pickerStyle(.segmented)
-                
+
                 Button("Export") {
                     exportBackups()
                 }
@@ -676,7 +676,7 @@ struct ExportBackupListView: View {
             }
         }
     }
-    
+
     private func exportBackups() {
         // Export logic here
         dismiss()
@@ -689,22 +689,22 @@ class BackupRegistryViewModel: ObservableObject {
     @Published var backups: [BackupRecord] = []
     @Published var filteredBackups: [BackupRecord] = []
     @Published var sortOption = SortOption.newest
-    
+
     var totalSize: Int64 {
         backups.reduce(0) { $0 + $1.size }
     }
-    
+
     var uniqueProviders: [CloudBackupManager.CloudProvider] {
         let providerStrings = Set(backups.map { $0.provider })
         return providerStrings.compactMap { CloudBackupManager.CloudProvider(rawValue: $0) }
     }
-    
+
     func loadBackups() async {
         // Load from registry
         // backups = await registry.getAllBackups()
         sortBackups()
     }
-    
+
     private func sortBackups() {
         switch sortOption {
         case .newest:
@@ -719,33 +719,33 @@ class BackupRegistryViewModel: ObservableObject {
             backups.sort { $0.provider < $1.provider }
         }
     }
-    
+
     func copyLocation(_ backup: BackupRecord) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(backup.location, forType: .string)
     }
-    
+
     func copyInstructions(_ backup: BackupRecord) {
         NSPasteboard.general.clearContents()
         NSPasteboard.general.setString(backup.retrievalInstructions, forType: .string)
     }
-    
+
     func openInFinder(_ backup: BackupRecord) {
         if FileManager.default.fileExists(atPath: backup.location) {
             NSWorkspace.shared.selectFile(backup.location, inFileViewerRootedAtPath: "")
         }
     }
-    
+
     func openBackupFolder() {
         let documentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
         let backupFolder = documentsURL.appendingPathComponent("PinakleanBackups")
         NSWorkspace.shared.open(backupFolder)
     }
-    
+
     func verifyBackup(_ backup: BackupRecord) async {
         // Verify backup
     }
-    
+
     func deleteBackup(_ backup: BackupRecord) {
         // Delete backup record
     }
@@ -757,7 +757,7 @@ enum SortOption: String, CaseIterable {
     case largest = "Largest First"
     case smallest = "Smallest First"
     case provider = "By Provider"
-    
+
     var title: String { rawValue }
 }
 
@@ -767,7 +767,7 @@ extension BackupRecord: Identifiable {}
 extension BackupRecord {
     var isLocal: Bool {
         provider == CloudBackupManager.CloudProvider.localNAS.rawValue ||
-        (provider == CloudBackupManager.CloudProvider.iCloudDrive.rawValue && 
+        (provider == CloudBackupManager.CloudProvider.iCloudDrive.rawValue &&
          FileManager.default.fileExists(atPath: location))
     }
 }

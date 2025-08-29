@@ -250,10 +250,15 @@ public actor CloudBackupManager {
         }
         
         // Check for SMB shares
-        if let shares = try? FileManager.default.contentsOfDirectory(at: URL(fileURLWithPath: "/Volumes"), 
-                                                                    includingPropertiesForKeys: nil) {
-            return shares.contains { $0.lastPathComponent.contains("SMB") || 
-                                    $0.lastPathComponent.contains("AFP") }
+        let volumesURL = URL(fileURLWithPath: "/Volumes")
+        if let shares = try? FileManager.default.contentsOfDirectory(
+            at: volumesURL,
+            includingPropertiesForKeys: nil
+        ) {
+            return shares.contains { shareURL in
+                let name = shareURL.lastPathComponent
+                return name.contains("SMB") || name.contains("AFP")
+            }
         }
         
         return false

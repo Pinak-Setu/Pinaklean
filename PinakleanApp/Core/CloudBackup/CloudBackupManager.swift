@@ -1,5 +1,5 @@
 import Foundation
-import CloudKit
+// swiftlint:disable file_lengthimport CloudKit
 import CryptoKit
 import Compression
 

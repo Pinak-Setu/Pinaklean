@@ -1,5 +1,5 @@
 import XCTest
-import Quick
+// swiftlint:disable file_lengthimport Quick
 import Nimble
 @testable import PinakleanCore
 

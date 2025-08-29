@@ -58,7 +58,7 @@ let package = Package(
                 .process("Resources")
             ]
         ),
-        
+
         // CLI Tool
         .executableTarget(
             name: "PinakleanCLI",
@@ -68,7 +68,7 @@ let package = Package(
             ],
             path: "CLI"
         ),
-        
+
         // Tests
         .testTarget(
             name: "PinakleanCoreTests",

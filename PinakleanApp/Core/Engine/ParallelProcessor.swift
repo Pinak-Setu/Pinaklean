@@ -191,9 +191,7 @@ public actor ParallelProcessor {
         }
 
         // Update metrics
-        await MainActor.run {
-            totalBytesProcessed += expectedSize
-        }
+        totalBytesProcessed += expectedSize
     }
 
     /// Calculate directory sizes in parallel

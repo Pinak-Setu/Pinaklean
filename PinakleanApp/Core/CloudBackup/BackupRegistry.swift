@@ -30,8 +30,8 @@ public actor BackupRegistry {
         self.database = try DatabaseQueue(path: dbPath.path)
 
         // Create tables
-        try database.write { db in
-            try db.execute(sql: """
+        try database.write { database in
+            try database.execute(sql: """
                 CREATE TABLE IF NOT EXISTS backup_records (
                     id TEXT PRIMARY KEY,
                     timestamp REAL NOT NULL,
@@ -104,8 +104,8 @@ public actor BackupRegistry {
         )
 
         // Save to database
-        try await database.write { db in
-            try record.save(db)
+        try await database.write { database in
+            try record.save(database)
 
             // Record in history
             try BackupHistory(
@@ -113,7 +113,7 @@ public actor BackupRegistry {
                 action: "created",
                 timestamp: Date(),
                 details: "Backup created via \(result.provider.rawValue)"
-            ).save(db)
+            ).save(database)
         }
 
         // Update JSON backup
@@ -321,30 +321,30 @@ public actor BackupRegistry {
 
     // MARK: - Query Methods
     public func getAllBackups() async throws -> [BackupRecord] {
-        try await database.read { db in
-            try BackupRecord.fetchAll(db)
+        try await database.read { database in
+            try BackupRecord.fetchAll(database)
         }
     }
 
     public func getBackupsByProvider(_ provider: CloudBackupManager.CloudProvider) async throws -> [BackupRecord] {
-        try await database.read { db in
+        try await database.read { database in
             try BackupRecord
                 .filter(Column("provider") == provider.rawValue)
-                .fetchAll(db)
+                .fetchAll(database)
         }
     }
 
     public func getLatestBackup() async throws -> BackupRecord? {
-        try await database.read { db in
+        try await database.read { database in
             try BackupRecord
                 .order(Column("timestamp").desc)
-                .fetchOne(db)
+                .fetchOne(database)
         }
     }
 
     public func findBackup(byId id: String) async throws -> BackupRecord? {
-        try await database.read { db in
-            try BackupRecord.fetchOne(db, key: id)
+        try await database.read { database in
+            try BackupRecord.fetchOne(database, key: id)
         }
     }
 

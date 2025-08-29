@@ -65,13 +65,13 @@ enum DesignSystem {
     static func shadow(
         color: Color = .black,
         radius: CGFloat = shadowRadius,
-        y: CGFloat = shadowY
+        yOffset: CGFloat = shadowY
     ) -> some ViewModifier {
-        ShadowModifier(color: color.opacity(0.1), radius: radius, y: y)
+        ShadowModifier(color: color.opacity(0.1), radius: radius, yOffset: yOffset)
     }
 
     static func glassShadow() -> some ViewModifier {
-        ShadowModifier(color: glassShadow, radius: blurRadius, y: shadowY)
+        ShadowModifier(color: glassShadow, radius: blurRadius, yOffset: shadowY)
     }
 }
 
@@ -496,11 +496,11 @@ struct FileItemRow: View {
 struct ShadowModifier: ViewModifier {
     let color: Color
     let radius: CGFloat
-    let y: CGFloat
+    let yOffset: CGFloat
 
     func body(content: Content) -> some View {
         content
-            .shadow(color: color, radius: radius, x: 0, y: y)
+            .shadow(color: color, radius: radius, x: 0, y: yOffset)
     }
 }
 

@@ -32,7 +32,11 @@ struct AboutView: View {
                         .font(.headline)
                         .foregroundColor(.primary)
 
-                    Text("Pinaklean is an intelligent disk cleanup utility designed specifically for macOS developers. It combines advanced safety mechanisms with powerful automation to help you maintain a clean and efficient development environment.")
+                    Text("""
+                        Pinaklean is an intelligent disk cleanup utility designed specifically for macOS developers. \
+                        It combines advanced safety mechanisms with powerful automation to help you maintain a clean \
+                        and efficient development environment.
+                        """)
                         .font(.body)
                         .foregroundColor(.secondary)
                         .lineSpacing(4)
@@ -41,11 +45,31 @@ struct AboutView: View {
                     Divider()
 
                     VStack(alignment: .leading, spacing: 8) {
-                        FeatureRow(icon: "🛡️", title: "Safety First", description: "Comprehensive security audit before any deletion")
-                        FeatureRow(icon: "🤖", title: "Smart Detection", description: "ML-powered analysis of file importance")
-                        FeatureRow(icon: "⚡", title: "Parallel Processing", description: "High-performance concurrent file operations")
-                        FeatureRow(icon: "☁️", title: "Cloud Backup", description: "Automatic backups to multiple free providers")
-                        FeatureRow(icon: "📊", title: "Rich Analytics", description: "Detailed storage analysis and recommendations")
+                        FeatureRow(
+                            icon: "🛡️",
+                            title: "Safety First",
+                            description: "Comprehensive security audit before any deletion"
+                        )
+                        FeatureRow(
+                            icon: "🤖",
+                            title: "Smart Detection",
+                            description: "ML-powered analysis of file importance"
+                        )
+                        FeatureRow(
+                            icon: "⚡",
+                            title: "Parallel Processing",
+                            description: "High-performance concurrent file operations"
+                        )
+                        FeatureRow(
+                            icon: "☁️",
+                            title: "Cloud Backup",
+                            description: "Automatic backups to multiple free providers"
+                        )
+                        FeatureRow(
+                            icon: "📊",
+                            title: "Rich Analytics",
+                            description: "Detailed storage analysis and recommendations"
+                        )
                     }
                 }
             }
@@ -67,7 +91,11 @@ struct AboutView: View {
                     HStack(spacing: DesignSystem.largePadding) {
                         LinkButton(title: "GitHub", icon: "link", url: "https://github.com/Pinak-Setu/Pinaklean")
                         LinkButton(title: "Documentation", icon: "book.fill", url: "https://pinaklean.dev/docs")
-                        LinkButton(title: "Support", icon: "questionmark.circle.fill", url: "https://pinaklean.dev/support")
+                        LinkButton(
+                            title: "Support",
+                            icon: "questionmark.circle.fill",
+                            url: "https://pinaklean.dev/support"
+                        )
                     }
                 }
             }

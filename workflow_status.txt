@@ -1,0 +1,74 @@
+
+X main CI/CD Pipeline · 17321249479
+Triggered via push about 21 minutes ago
+
+JOBS
+X Security Audit & Static Analysis in 25s (ID 49174874246)
+  ✓ Set up job
+  ✓ Checkout code
+  ✓ Set up Xcode
+  ✓ Cache SwiftPM dependencies
+  X Run SwiftLint
+  - Security Audit with CodeQL
+  - Autobuild
+  - Perform CodeQL Analysis
+  - Run Shell Script Security Audit
+  - Post Cache SwiftPM dependencies
+  ✓ Post Checkout code
+  ✓ Complete job
+- Unit & Integration Tests in 0s (ID 49174904278)
+- Security & Guardrail Tests (ID 49174904418)
+X Send Notifications in 10s (ID 49174904644)
+  ✓ Set up job
+  ✓ Build Ilshidur/action-discord@master
+  X Send Discord notification
+  X Send Slack notification
+  ✓ Complete job
+- Quality Gate (ID 49174904670)
+- Update Documentation in 0s (ID 49174904714)
+- Deploy Release in 0s (ID 49174904732)
+- Build & Package (ID 49174904839)
+
+ANNOTATIONS
+X Trailing closure syntax should not be used when passing more than one closure argument (multiple_closures_with_trailing_closure)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#373
+
+X Line should be 120 characters or less; currently it has 134 characters (line_length)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#541
+
+X Line should be 120 characters or less; currently it has 122 characters (line_length)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#65
+
+X Variable name 'y' should be between 3 and 40 characters long (identifier_name)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#495
+
+X Variable name 'i' should be between 3 and 40 characters long (identifier_name)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#131
+
+X Variable name 'y' should be between 3 and 40 characters long (identifier_name)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#65
+
+X File should contain 400 lines or less: currently contains 555 (file_length)
+Security Audit & Static Analysis: PinakleanApp/UI/DesignSystem.swift#555
+
+X Trailing closure syntax should not be used when passing more than one closure argument (multiple_closures_with_trailing_closure)
+Security Audit & Static Analysis: PinakleanApp/UI/MenuBarView.swift#113
+
+X Trailing closure syntax should not be used when passing more than one closure argument (multiple_closures_with_trailing_closure)
+Security Audit & Static Analysis: PinakleanApp/UI/MenuBarView.swift#103
+
+X Line should be 120 characters or less; currently it has 123 characters (line_length)
+Security Audit & Static Analysis: PinakleanApp/UI/MenuBarView.swift#149
+
+- The macos-latest label will migrate to macOS 15 beginning August 4, 2025. For more information see https://github.com/actions/runner-images/issues/12520
+Security Audit & Static Analysis: .github#1
+
+- The macos-latest label will migrate to macOS 15 beginning August 4, 2025. For more information see https://github.com/actions/runner-images/issues/12520
+Security Audit & Static Analysis: .github#1
+
+X Error: Need to provide at least one botToken or webhookUrl
+Send Notifications: .github#20
+
+
+To see what failed, try: gh run view 17321249479 --log-failed
+View this run on GitHub: https://github.com/Pinak-Setu/Pinaklean/actions/runs/17321249479

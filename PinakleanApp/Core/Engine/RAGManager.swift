@@ -88,7 +88,9 @@ public actor RAGManager {
         if let existing = userPreferences[pattern] {
             // Update existing preference
             let newCount = existing.decisionCount + 1
-            let newTypicallyKept = (existing.typicallyKept ? Double(existing.decisionCount) : 0 + (userKept ? 1 : 0)) / Double(newCount)
+            let keptValue = existing.typicallyKept ? Double(existing.decisionCount) : 0
+            let additionalValue = userKept ? 1 : 0
+            let newTypicallyKept = (keptValue + additionalValue) / Double(newCount)
 
             userPreferences[pattern] = UserPreference(
                 pattern: pattern,
@@ -220,7 +222,11 @@ public actor RAGManager {
         return reasons.sorted { $0.confidence > $1.confidence }
     }
 
-    private func formatExplanation(item: CleanableItem, reasons: [CleaningReason], context: CleaningContext) async -> String {
+    private func formatExplanation(
+        item: CleanableItem,
+        reasons: [CleaningReason],
+        context: CleaningContext
+    ) async -> String {
         var explanation = ""
 
         if item.safetyScore > 70 {
@@ -255,7 +261,8 @@ public actor RAGManager {
         case .buildArtifact:
             explanation += "**💡 Tip:** These files will be regenerated during your next build.\n"
         case .log:
-            explanation += "**💡 Tip:** Consider archiving old logs instead of deleting if you need them for debugging.\n"
+            explanation += "**💡 Tip:** Consider archiving old logs instead of deleting "
+            explanation += "if you need them for debugging.\n"
         default:
             break
         }
@@ -263,7 +270,12 @@ public actor RAGManager {
         return explanation
     }
 
-    private func createRecommendation(title: String, description: String, items: [CleanableItem], riskLevel: RiskLevel) async -> CleaningRecommendation {
+    private func createRecommendation(
+        title: String,
+        description: String,
+        items: [CleanableItem],
+        riskLevel: RiskLevel
+    ) async -> CleaningRecommendation {
         let totalSpace = items.reduce(0) { $0 + $1.size }
         let confidence = calculateAverageConfidence(for: items)
 

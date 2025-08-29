@@ -1,6 +1,7 @@
 import Foundation
 import ArgumentParser
 import Logging
+import PinakleanCore
 
 /// Pinaklean CLI - Command line interface using the unified engine
 @main
@@ -53,12 +54,14 @@ struct Scan: AsyncParsableCommand {
         let engine = try await PinakleanEngine()
         
         // Configure engine
+        var config = PinakleanEngine.Configuration.default
         if aggressive {
-            engine.configuration = .aggressive
+            config = .aggressive
         } else if safe {
-            engine.configuration = .default
+            config = .default
         }
-        engine.configuration.verboseLogging = verbose
+        config.verboseLogging = verbose
+        await engine.configure(config)
         
         spinner.update(text: "Scanning for cleanable files...")
         
@@ -117,7 +120,8 @@ struct Scan: AsyncParsableCommand {
         print("\n📈 Summary:")
         print("  • Total items: \(results.items.count)")
         print("  • Total size: \(ByteCountFormatter.string(fromByteCount: results.totalSize, countStyle: .file))")
-        print("  • Safe to delete: \(ByteCountFormatter.string(fromByteCount: results.safeTotalSize, countStyle: .file))")
+        let safeSize = ByteCountFormatter.string(fromByteCount: results.safeTotalSize, countStyle: .file)
+        print("  • Safe to delete: \(safeSize)")
         
         // By category
         print("\n📁 By Category:")
@@ -139,7 +143,8 @@ struct Scan: AsyncParsableCommand {
         if showDuplicates && !results.duplicates.isEmpty {
             print("\n♊ Duplicate Files:")
             for group in results.duplicates.prefix(5) {
-                print("  • \(group.items.count) copies - \(ByteCountFormatter.string(fromByteCount: group.wastedSpace, countStyle: .file)) wasted")
+                let wastedSize = ByteCountFormatter.string(fromByteCount: group.wastedSpace, countStyle: .file)
+                print("  • \(group.items.count) copies - \(wastedSize) wasted")
                 for item in group.items.prefix(2) {
                     print("    - \(item.path)")
                 }
@@ -183,8 +188,10 @@ struct Clean: AsyncParsableCommand {
     
     mutating func run() async throws {
         let engine = try await PinakleanEngine()
-        engine.configuration.dryRun = dryRun
-        engine.configuration.autoBackup = !skipBackup
+        var config = await engine.configuration
+        config.dryRun = dryRun
+        config.autoBackup = !skipBackup
+        await engine.configure(config)
         
         // Scan first
         print("🔍 Scanning for cleanable files...")
@@ -227,7 +234,8 @@ struct Clean: AsyncParsableCommand {
         if dryRun {
             print("\n🔍 Dry Run Results:")
             print("  Would delete: \(cleanResults.deletedItems.count) items")
-            print("  Would free: \(ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file))")
+            let freedSize = ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file)
+            print("  Would free: \(freedSize)")
         } else {
             print("\n✅ Cleanup Complete!")
             print("  Deleted: \(cleanResults.deletedItems.count) items")
@@ -264,7 +272,8 @@ struct Auto: AsyncParsableCommand {
         print("═══════════════════════════════════════════════════════\n")
         
         let engine = try await PinakleanEngine()
-        engine.configuration = ultraSafe ? .paranoid : .default
+        let config = ultraSafe ? PinakleanEngine.Configuration.paranoid : PinakleanEngine.Configuration.default
+        await engine.configure(config)
         
         // Scan
         let spinner = Spinner(text: "Analyzing your system...")
@@ -290,7 +299,8 @@ struct Auto: AsyncParsableCommand {
         }
         
         let totalSpace = recommendations.reduce(0) { $0 + $1.potentialSpace }
-        print("💾 Total potential space to free: \(ByteCountFormatter.string(fromByteCount: totalSpace, countStyle: .file))")
+        let totalSpaceFormatted = ByteCountFormatter.string(fromByteCount: totalSpace, countStyle: .file)
+        print("💾 Total potential space to free: \(totalSpaceFormatted)")
         
         // Confirm
         if !yes {
@@ -417,21 +427,27 @@ struct Interactive: AsyncParsableCommand {
         6. ❓ Help
         7. 🚪 Exit
         
-        Enter choice [1-7]: """, terminator: "")
+        Enter choice [1-7]: 
+        """, terminator: "")
         
         guard let choice = readLine() else { return }
         
         switch choice {
         case "1":
-            try await Scan().run()
+            var scan = Scan()
+            try await scan.run()
         case "2":
-            try await Clean().run()
+            var clean = Clean()
+            try await clean.run()
         case "3":
-            try await Auto().run()
+            var auto = Auto()
+            try await auto.run()
         case "4":
-            try await Backup(list: true).run()
+            var backup = Backup(list: true)
+            try await backup.run()
         case "5":
-            try await Config(show: true).run()
+            var config = Config(show: true)
+            try await config.run()
         case "6":
             printHelp()
         case "7":

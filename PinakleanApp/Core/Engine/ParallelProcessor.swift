@@ -139,12 +139,13 @@ public actor ParallelProcessor {
             for item in items {
                 group.addTask {
                     await semaphore.wait()
-                    defer { semaphore.signal() }
-
+                    
                     do {
                         try await self.deleteItem(item)
+                        await semaphore.signal()
                         return DeletionResult(item: item, success: true)
                     } catch {
+                        await semaphore.signal()
                         return DeletionResult(item: item, success: false, error: error)
                     }
                 }
@@ -165,7 +166,8 @@ public actor ParallelProcessor {
         let duration = Date().timeIntervalSince(startTime)
         let throughput = Double(totalBytesProcessed) / duration / 1024 / 1024 // MB/s
 
-        print("Parallel deletion completed: \(successfulDeletions.count)/\(items.count) items, \(String(format: "%.2f", throughput)) MB/s")
+        let throughputStr = String(format: "%.2f", throughput)
+        print("Parallel deletion completed: \(successfulDeletions.count)/\(items.count) items, \(throughputStr) MB/s")
 
         return successfulDeletions
     }
@@ -331,38 +333,30 @@ enum DeletionError: LocalizedError {
     }
 }
 
-class AsyncSemaphore {
+actor AsyncSemaphore {
     private var value: Int
     private var waiters: [UnsafeContinuation<Void, Never>] = []
-    private let lock = NSLock()
 
     init(value: Int) {
         self.value = value
     }
 
     func wait() async {
-        lock.lock()
         if value > 0 {
             value -= 1
-            lock.unlock()
             return
         }
 
         await withUnsafeContinuation { continuation in
             waiters.append(continuation)
-            lock.unlock()
         }
     }
 
     func signal() {
-        lock.lock()
         value += 1
         if let waiter = waiters.first {
             waiters.removeFirst()
-            lock.unlock()
             waiter.resume()
-        } else {
-            lock.unlock()
         }
     }
 }

@@ -56,9 +56,14 @@ class PinakleanCoreTests: QuickSpec {
                             do {
                                 let results = try await engine.scan(categories: .safe)
                                 // All items should be from safe categories
-                                let safeCategories: Set<String> = [".userCaches", ".appCaches", ".logs", ".trash", ".nodeModules"]
+                                let safeCategories: Set<String> = [
+                                    ".userCaches", ".appCaches", ".logs",
+                                    ".trash", ".nodeModules"
+                                ]
                                 for item in results.items {
-                                    expect(safeCategories.contains(item.category)).to(beTrue(), description: "Item category \(item.category) should be safe")
+                                    let description = "Item category \(item.category) should be safe"
+                                    let isSafeCategory = safeCategories.contains(item.category)
+                                    expect(isSafeCategory).to(beTrue(), description: description)
                                 }
                                 done()
                             } catch {
@@ -681,7 +686,8 @@ class SecurityTests: QuickSpec {
                             let systemURL = URL(fileURLWithPath: "/System/Library")
                             do {
                                 let result = try await auditor.audit(systemURL)
-                                expect(result.risk.rawValue).to(beGreaterThanOrEqualTo(SecurityAuditor.Risk.medium.rawValue))
+                                let mediumRiskValue = SecurityAuditor.Risk.medium.rawValue
+                                expect(result.risk.rawValue).to(beGreaterThanOrEqualTo(mediumRiskValue))
                                 done()
                             } catch {
                                 fail("Process check should not fail: \(error)")

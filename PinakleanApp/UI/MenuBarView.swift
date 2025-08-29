@@ -146,7 +146,8 @@ struct MenuBarView: View {
                 uiState.scanResults = results
                 uiState.addNotification(.init(
                     title: "Quick Scan Complete",
-                    message: "Found \(results.items.count) items (\(results.safeTotalSize.formattedSize()) safe to clean)",
+                    let safeSize = results.safeTotalSize.formattedSize()
+                    message: "Found \(results.items.count) items (\(safeSize) safe to clean)",
                     type: .success
                 ))
                 uiState.isScanning = false

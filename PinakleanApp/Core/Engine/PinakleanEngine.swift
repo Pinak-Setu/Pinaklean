@@ -28,14 +28,14 @@ public class PinakleanEngine: ObservableObject {
     
     // MARK: - Configuration
     public struct Configuration {
-        var dryRun: Bool = false
-        var safeMode: Bool = true
-        var aggressiveMode: Bool = false
-        var parallelWorkers: Int = ProcessInfo.processInfo.processorCount
-        var enableSmartDetection: Bool = true
-        var enableSecurityAudit: Bool = true
-        var autoBackup: Bool = true
-        var verboseLogging: Bool = false
+        public var dryRun: Bool = false
+        public var safeMode: Bool = true
+        public var aggressiveMode: Bool = false
+        public var parallelWorkers: Int = ProcessInfo.processInfo.processorCount
+        public var enableSmartDetection: Bool = true
+        public var enableSecurityAudit: Bool = true
+        public var autoBackup: Bool = true
+        public var verboseLogging: Bool = false
         
         public static let `default` = Configuration()
         public static let aggressive = Configuration(
@@ -52,6 +52,11 @@ public class PinakleanEngine: ObservableObject {
     }
     
     public var configuration = Configuration.default
+    
+    /// Configure the engine (for CLI usage)
+    public func configure(_ newConfiguration: Configuration) {
+        configuration = newConfiguration
+    }
     
     // MARK: - Scan Categories
     public struct ScanCategories: OptionSet {
@@ -102,7 +107,7 @@ public class PinakleanEngine: ObservableObject {
         self.parallelProcessor = ParallelProcessor()
         self.smartDetector = try await SmartDetector()
         self.incrementalIndexer = try await IncrementalIndexer()
-        self.backupManager = await CloudBackupManager()
+        self.backupManager = CloudBackupManager()
         self.ragManager = try await RAGManager()
         
         logger.info("Pinaklean Engine initialized")
@@ -292,7 +297,9 @@ public class PinakleanEngine: ObservableObject {
                 category: ".userCaches",
                 paths: [
                     URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Caches"),
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Application Support/Google/Chrome/Default/Cache")
+                    URL(fileURLWithPath: NSHomeDirectory())
+                        .appendingPathComponent("Library/Application Support")
+                        .appendingPathComponent("Google/Chrome/Default/Cache")
                 ],
                 patterns: ["*", "Cache.db", "*.cache"]
             ))
@@ -313,8 +320,10 @@ public class PinakleanEngine: ObservableObject {
             tasks.append(ScanTask(
                 category: ".xcodeJunk",
                 paths: [
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Developer/Xcode/DerivedData"),
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Developer/Xcode/Archives")
+                    URL(fileURLWithPath: NSHomeDirectory())
+                        .appendingPathComponent("Library/Developer/Xcode/DerivedData"),
+                    URL(fileURLWithPath: NSHomeDirectory())
+                        .appendingPathComponent("Library/Developer/Xcode/Archives")
                 ],
                 patterns: ["*"]
             ))
@@ -443,7 +452,7 @@ public class PinakleanEngine: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct ScanResults {
+public struct ScanResults: Codable {
     public var items: [CleanableItem] = []
     public var duplicates: [DuplicateGroup] = []
     public var totalSize: Int64 = 0
@@ -487,7 +496,7 @@ public struct CleanableItem: Identifiable, Codable {
     }
 }
 
-public struct DuplicateGroup: Identifiable {
+public struct DuplicateGroup: Identifiable, Codable {
     public let id = UUID()
     public let checksum: String
     public let items: [CleanableItem]

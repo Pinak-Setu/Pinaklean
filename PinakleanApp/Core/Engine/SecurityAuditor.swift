@@ -191,7 +191,8 @@ public actor SecurityAuditor {
 
         if task.terminationStatus == 0 {
             let data = pipe.fileHandleForReading.readDataToEndOfFile()
-            if let output = String(data: data, encoding: .utf8), !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
+            if let output = String(data: data, encoding: .utf8),
+               !output.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty {
                 return AuditResult(
                     risk: .high,
                     message: "Files in path are currently in use",
@@ -260,7 +261,8 @@ public actor SecurityAuditor {
            fileSize.int64Value > 10 * 1024 * 1024 * 1024 { // > 10GB
             return AuditResult(
                 risk: .medium,
-                message: "Very large file (\(ByteCountFormatter.string(fromByteCount: fileSize.int64Value, countStyle: .file)))",
+                let sizeStr = ByteCountFormatter.string(fromByteCount: fileSize.int64Value, countStyle: .file)
+                message: "Very large file (\(sizeStr))",
                 details: ["size": fileSize.int64Value]
             )
         }

@@ -223,7 +223,9 @@ public actor IncrementalIndexer {
         indexedPaths = Set(paths?.map { $0[Expression<String>("path")] } ?? [])
 
         // Load last scan time
-        if let lastScan = try? db.scalar(scansTable.select(scansTable[Expression<Date>("end_time")]).order(scansTable[Expression<Date>("end_time")].desc).limit(1)) {
+        let endTimeExpr = Expression<Date>("end_time")
+        let query = scansTable.select(endTimeExpr).order(endTimeExpr.desc).limit(1)
+        if let lastScan = try? db.scalar(query) {
             lastScanTime = lastScan
         }
 
@@ -300,7 +302,8 @@ public actor IncrementalIndexer {
             let path = row[Expression<String>("path")]
             let indexedModified = row[Expression<Date>("modified_date")]
 
-            if let currentModified = try? FileManager.default.attributesOfItem(atPath: path)[.modificationDate] as? Date,
+            if let attributes = try? FileManager.default.attributesOfItem(atPath: path),
+               let currentModified = attributes[.modificationDate] as? Date,
                currentModified > indexedModified {
                 changes.append(FileChange(
                     path: path,
@@ -394,7 +397,8 @@ public actor IncrementalIndexer {
             }
         }
 
-        throw NSError(domain: "IncrementalIndexer", code: -1, userInfo: [NSLocalizedDescriptionKey: "Failed to generate file hash"])
+        let errorMessage = "Failed to generate file hash"
+        throw NSError(domain: "IncrementalIndexer", code: -1, userInfo: [NSLocalizedDescriptionKey: errorMessage])
     }
 
     private func determineCategory(for path: String) -> String {

@@ -367,7 +367,8 @@ struct BackupDetailView: View {
             GridItem(.flexible())
         ], spacing: 16) {
             DetailCard(title: "Backup ID", value: backup.id, icon: "number")
-            DetailCard(title: "Size", value: ByteCountFormatter.string(fromByteCount: backup.size, countStyle: .file), icon: "internaldrive")
+            let backupSize = ByteCountFormatter.string(fromByteCount: backup.size, countStyle: .file)
+            DetailCard(title: "Size", value: backupSize, icon: "internaldrive")
             DetailCard(title: "Created", value: backup.timestamp.formatted(), icon: "calendar")
             DetailCard(title: "Checksum", value: String(backup.checksum.prefix(12)) + "...", icon: "checkmark.seal")
         }
@@ -450,7 +451,8 @@ struct SummaryCard: View {
             HStack {
                 StatView(title: "Total Backups", value: "\(totalBackups)", icon: "archivebox")
                 Divider().frame(height: 40)
-                StatView(title: "Total Size", value: ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file), icon: "internaldrive")
+                let totalSizeFormatted = ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file)
+                StatView(title: "Total Size", value: totalSizeFormatted, icon: "internaldrive")
             }
             
             HStack {

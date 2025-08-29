@@ -7,39 +7,42 @@ struct ContentView: View {
 
     var body: some View {
         LiquidGlass {
-            NavigationSplitView {
-                // Sidebar
-                SidebarView()
-            } detail: {
-                // Main Content Area
-                ZStack {
-                    // Background
-                    Color.clear
+            NavigationSplitView(
+                sidebar: {
+                    // Sidebar
+                    SidebarView()
+                },
+                detail: {
+                    // Main Content Area
+                    ZStack {
+                        // Background
+                        Color.clear
 
-                    // Content based on current view
-                    switch uiState.currentView {
-                    case .dashboard:
-                        DashboardView()
-                    case .scan:
-                        ScanView()
-                    case .clean:
-                        CleanView()
-                    case .analyze:
-                        AnalyzeView()
-                    case .backup:
-                        BackupView()
-                    case .settings:
-                        SettingsView()
-                    }
+                        // Content based on current view
+                        switch uiState.currentView {
+                        case .dashboard:
+                            DashboardView()
+                        case .scan:
+                            ScanView()
+                        case .clean:
+                            CleanView()
+                        case .analyze:
+                            AnalyzeView()
+                        case .backup:
+                            BackupView()
+                        case .settings:
+                            SettingsView()
+                        }
 
-                    // Inspector overlay
-                    if uiState.inspectorVisible, let item = uiState.selectedInspectorItem {
-                        InspectorView(item: item)
-                            .transition(.move(edge: .trailing))
+                        // Inspector overlay
+                        if uiState.inspectorVisible, let item = uiState.selectedInspectorItem {
+                            InspectorView(item: item)
+                                .transition(.move(edge: .trailing))
+                        }
                     }
+                    .animation(.spring(), value: uiState.currentView)
                 }
-                .animation(.spring(), value: uiState.currentView)
-            }
+            )
         }
         .onAppear {
             // Initialize the engine when the view appears

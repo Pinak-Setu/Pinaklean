@@ -62,7 +62,11 @@ enum DesignSystem {
     )
 
     // MARK: - Shadows
-    static func shadow(color: Color = .black, radius: CGFloat = shadowRadius, y: CGFloat = shadowY) -> some ViewModifier {
+    static func shadow(
+        color: Color = .black,
+        radius: CGFloat = shadowRadius,
+        y: CGFloat = shadowY
+    ) -> some ViewModifier {
         ShadowModifier(color: color.opacity(0.1), radius: radius, y: y)
     }
 
@@ -538,7 +542,12 @@ struct DesignSystem_Previews: PreviewProvider {
                     .font(.title2)
             }
 
-            TogglePill(isOn: .constant(true), title: "Enable Smart Detection", subtitle: "Automatically analyze files", icon: "brain")
+            TogglePill(
+                isOn: .constant(true),
+                title: "Enable Smart Detection",
+                subtitle: "Automatically analyze files",
+                icon: "brain"
+            )
 
             ProgressRing(progress: 0.75)
 

@@ -362,7 +362,7 @@ public actor BackupRegistry {
                 .fetchOne(db) as Int64?
         }) ?? 0
         
-        return ByteCountFormatter.string(fromByteCount: totalBytes ?? 0, countStyle: .file)
+        return ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file)
     }
     
     private func getUsedProviders() async -> [String] {

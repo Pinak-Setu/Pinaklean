@@ -265,13 +265,20 @@ struct DashboardView: View {
                                         Text("Space Available")
                                             .font(.caption)
                                             .foregroundColor(.secondary)
-                                        Text(ByteCountFormatter.string(fromByteCount: scanResults.safeTotalSize, countStyle: .file))
+                                        let safeSize = ByteCountFormatter.string(
+                                            fromByteCount: scanResults.safeTotalSize,
+                                            countStyle: .file
+                                        )
+                                        Text(safeSize)
                                             .font(.title2)
                                             .foregroundColor(DesignSystem.success)
                                     }
                                 }
 
-                                ProgressView(value: Double(scanResults.safeTotalSize), total: Double(scanResults.totalSize))
+                                ProgressView(
+                                    value: Double(scanResults.safeTotalSize),
+                                    total: Double(scanResults.totalSize)
+                                )
                                     .tint(DesignSystem.success)
                             }
                         }
@@ -477,7 +484,12 @@ struct InspectorView: View {
                         DetailRow(label: "Size", value: item.formattedSize)
 
                         if let modified = item.lastModified {
-                            DetailRow(label: "Modified", value: DateFormatter.localizedString(from: modified, dateStyle: .medium, timeStyle: .short))
+                            let modifiedStr = DateFormatter.localizedString(
+                                from: modified,
+                                dateStyle: .medium,
+                                timeStyle: .short
+                            )
+                            DetailRow(label: "Modified", value: modifiedStr)
                         }
 
                         HStack {
@@ -485,8 +497,9 @@ struct InspectorView: View {
                                 .font(.subheadline)
                                 .foregroundColor(.secondary)
                             Spacer()
-                            StatusBadge(status: item.safetyScore >= 70 ? .safe : item.safetyScore >= 40 ? .warning : .danger,
-                                       text: "\(item.safetyScore)%")
+                            let safetyStatus: StatusBadge.Status = item.safetyScore >= 70 ? .safe :
+                                item.safetyScore >= 40 ? .warning : .danger
+                            StatusBadge(status: safetyStatus, text: "\(item.safetyScore)%")
                         }
                     }
 

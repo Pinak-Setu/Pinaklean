@@ -127,7 +127,7 @@ public actor SmartDetector {
             return .archive
         case "app", "dmg", "pkg":
             return .application
-        case "log", "txt", "csv", "json", "xml":
+        case "log", "csv", "json", "xml":
             return .data
         default:
             return .other

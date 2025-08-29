@@ -1,5 +1,6 @@
+// swiftlint:disable file_length
 import SwiftUI
-// swiftlint:disable file_lengthimport UniformTypeIdentifiers
+import UniformTypeIdentifiers
 
 /// View for managing and viewing all backup locations
 struct BackupRegistryView: View {

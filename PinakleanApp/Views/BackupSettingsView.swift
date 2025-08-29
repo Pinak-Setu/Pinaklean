@@ -388,11 +388,11 @@ struct SetupGuideView: View {
             }
             .navigationTitle("\(provider.rawValue) Setup")
             .navigationBarTitleDisplayMode(.large)
-            .toolbar {
+            .toolbar(content: {
                 ToolbarItem(placement: .confirmationAction) {
                     Button("Done") { dismiss() }
                 }
-            }
+            })
         }
     }
 

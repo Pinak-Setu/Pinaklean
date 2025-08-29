@@ -493,7 +493,7 @@ struct StatView: View {
 
 struct FilterPill: View {
     let title: String
-    var icon: String? = nil
+    var icon: String?
     let isSelected: Bool
     let action: () -> Void
 

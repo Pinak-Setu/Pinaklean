@@ -132,7 +132,7 @@ struct LiquidGlass<Content: View>: View {
                 // Animated background pattern
                 GeometryReader { geometry in
                     ZStack {
-                        ForEach(0..<20) { i in
+                        ForEach(0..<20) { index in
                             Circle()
                                 .fill(Color.white.opacity(0.02))
                                 .frame(width: CGFloat.random(in: 50...200))

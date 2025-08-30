@@ -16,11 +16,11 @@ struct PinakleanApp: App {
         }
         .windowStyle(.hiddenTitleBar)
         .windowToolbarStyle(.unifiedCompact)
-        .commands(content: {
+        .commands {
             SidebarCommands()
                 .focusedValue(\.selectedSidebarItem, $uiState.selectedSidebarItem)
             ToolbarCommands()
-        })
+        }
 
         // Menu Bar Extra for quick access
         MenuBarExtra("Pinaklean", systemImage: "sparkles") {

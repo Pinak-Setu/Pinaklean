@@ -86,7 +86,9 @@ class UnifiedUIState: ObservableObject {
     }
 
     func selectAll(in items: [CleanableItem]) {
-        selectedItems = Set(items.map { $0.id })
+        selectedItems = Set(items.map { item in
+            item.id
+        })
     }
 
     func deselectAll() {
@@ -95,7 +97,9 @@ class UnifiedUIState: ObservableObject {
 
     func getSelectedItems(from results: ScanResults?) -> [CleanableItem] {
         guard let results = results else { return [] }
-        return results.items.filter { selectedItems.contains($0.id) }
+        return results.items.filter { item in
+            selectedItems.contains(item.id)
+        }
     }
 
     // MARK: - Filter Methods
@@ -144,7 +148,9 @@ class UnifiedUIState: ObservableObject {
     }
 
     func removeNotification(_ notification: NotificationItem) {
-        notifications.removeAll { $0.id == notification.id }
+        notifications.removeAll { item in
+            item.id == notification.id
+        }
     }
 
     func clearNotifications() {

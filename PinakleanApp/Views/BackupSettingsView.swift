@@ -124,7 +124,7 @@ struct BackupSettingsView: View {
             Text("Quick Setup Guides")
                 .font(.headline)
 
-            ScrollView(.horizontal, showsIndicators: false, content: {
+            ScrollView(.horizontal, showsIndicators: false) {
                 HStack(spacing: 12) {
                     SetupCard(
                         icon: "icloud",

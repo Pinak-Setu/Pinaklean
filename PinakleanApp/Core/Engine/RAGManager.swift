@@ -36,9 +36,15 @@ public actor RAGManager {
         var recommendations: [CleaningRecommendation] = []
 
         // Group items by risk level
-        let highRisk = items.filter { $0.safetyScore < 40 }
-        let mediumRisk = items.filter { $0.safetyScore >= 40 && $0.safetyScore < 70 }
-        let lowRisk = items.filter { $0.safetyScore >= 70 }
+        let highRisk = items.filter { item in
+            item.safetyScore < 40
+        }
+        let mediumRisk = items.filter { item in
+            item.safetyScore >= 40 && item.safetyScore < 70
+        }
+        let lowRisk = items.filter { item in
+            item.safetyScore >= 70
+        }
 
         // Create recommendations for each risk level
         if !lowRisk.isEmpty {
@@ -89,7 +95,7 @@ public actor RAGManager {
             // Update existing preference
             let newCount = existing.decisionCount + 1
             let keptValue = existing.typicallyKept ? Double(existing.decisionCount) : 0
-            let additionalValue = userKept ? 1 : 0
+            let additionalValue = userKept ? 1.0 : 0.0
             let newTypicallyKept = (keptValue + additionalValue) / Double(newCount)
 
             userPreferences[pattern] = UserPreference(

@@ -306,7 +306,7 @@ struct Auto: AsyncParsableCommand {
         if !yes {
             print("\nProceed with automatic cleanup? [Y/n]: ", terminator: "")
             let response = readLine()?.lowercased() ?? "y"
-            if response != "y" && response != "yes" && response != "" {
+            if !["y", "yes", ""].contains(response) {
                 print("❌ Cancelled")
                 return
             }

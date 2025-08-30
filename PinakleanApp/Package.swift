@@ -23,7 +23,7 @@ let package = Package(
     ],
     dependencies: [
         // Database
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.24.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.14.0"),
 
         // CLI
@@ -44,6 +44,9 @@ let package = Package(
         // Testing
         .package(url: "https://github.com/Quick/Quick.git", from: "7.0.0"),
         .package(url: "https://github.com/Quick/Nimble.git", from: "13.0.0"),
+
+        // Auto-updates (temporarily disabled)
+        // .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.5.0"),
     ],
     targets: [
         // Core Framework
@@ -78,6 +81,7 @@ let package = Package(
             name: "PinakleanApp",
             dependencies: [
                 "PinakleanCore"
+                // .product(name: "Sparkle", package: "Sparkle") // Temporarily disabled
             ]
         ),
 

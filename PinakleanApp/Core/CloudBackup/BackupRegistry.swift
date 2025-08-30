@@ -1,3 +1,5 @@
+// MARK: - SHA256 Extension
+import CryptoKit
 import Foundation
 import GRDB
 import os.log
@@ -14,10 +16,13 @@ public actor BackupRegistry {
     // MARK: - Initialization
     public init() throws {
         // Primary location for registry
-        let appSupport = FileManager.default.urls(for: .applicationSupportDirectory,
-                                                  in: .userDomainMask).first!
+        let appSupport = FileManager.default.urls(
+            for: .applicationSupportDirectory,
+            in: .userDomainMask
+        ).first!
         let pinakleanDir = appSupport.appendingPathComponent("Pinaklean", isDirectory: true)
-        try? FileManager.default.createDirectory(at: pinakleanDir, withIntermediateDirectories: true)
+        try? FileManager.default.createDirectory(
+            at: pinakleanDir, withIntermediateDirectories: true)
 
         // SQLite database for fast queries
         let dbPath = pinakleanDir.appendingPathComponent("backup_registry.db")
@@ -31,48 +36,49 @@ public actor BackupRegistry {
 
         // Create tables
         try database.write { database in
-            try database.execute(sql: """
-                CREATE TABLE IF NOT EXISTS backup_records (
-                    id TEXT PRIMARY KEY,
-                    timestamp REAL NOT NULL,
-                    provider TEXT NOT NULL,
-                    location TEXT NOT NULL,
-                    size INTEGER NOT NULL,
-                    is_encrypted INTEGER NOT NULL,
-                    is_incremental INTEGER NOT NULL,
-                    parent_backup_id TEXT,
-                    checksum TEXT NOT NULL,
-                    metadata TEXT,
-                    retrieval_instructions TEXT NOT NULL,
-                    status TEXT NOT NULL,
-                    last_verified REAL,
-                    created_at REAL NOT NULL,
-                    updated_at REAL NOT NULL
-                );
+            try database.execute(
+                sql: """
+                        CREATE TABLE IF NOT EXISTS backup_records (
+                            id TEXT PRIMARY KEY,
+                            timestamp REAL NOT NULL,
+                            provider TEXT NOT NULL,
+                            location TEXT NOT NULL,
+                            size INTEGER NOT NULL,
+                            is_encrypted INTEGER NOT NULL,
+                            is_incremental INTEGER NOT NULL,
+                            parent_backup_id TEXT,
+                            checksum TEXT NOT NULL,
+                            metadata TEXT,
+                            retrieval_instructions TEXT NOT NULL,
+                            status TEXT NOT NULL,
+                            last_verified REAL,
+                            created_at REAL NOT NULL,
+                            updated_at REAL NOT NULL
+                        );
 
-                CREATE INDEX IF NOT EXISTS idx_timestamp ON backup_records(timestamp);
-                CREATE INDEX IF NOT EXISTS idx_provider ON backup_records(provider);
-                CREATE INDEX IF NOT EXISTS idx_status ON backup_records(status);
+                        CREATE INDEX IF NOT EXISTS idx_timestamp ON backup_records(timestamp);
+                        CREATE INDEX IF NOT EXISTS idx_provider ON backup_records(provider);
+                        CREATE INDEX IF NOT EXISTS idx_status ON backup_records(status);
 
-                CREATE TABLE IF NOT EXISTS backup_locations (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    provider TEXT NOT NULL,
-                    base_path TEXT NOT NULL,
-                    access_method TEXT NOT NULL,
-                    credentials_hint TEXT,
-                    last_accessed REAL,
-                    is_available INTEGER NOT NULL DEFAULT 1
-                );
+                        CREATE TABLE IF NOT EXISTS backup_locations (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            provider TEXT NOT NULL,
+                            base_path TEXT NOT NULL,
+                            access_method TEXT NOT NULL,
+                            credentials_hint TEXT,
+                            last_accessed REAL,
+                            is_available INTEGER NOT NULL DEFAULT 1
+                        );
 
-                CREATE TABLE IF NOT EXISTS backup_history (
-                    id INTEGER PRIMARY KEY AUTOINCREMENT,
-                    backup_id TEXT NOT NULL,
-                    action TEXT NOT NULL,
-                    timestamp REAL NOT NULL,
-                    details TEXT,
-                    FOREIGN KEY (backup_id) REFERENCES backup_records(id)
-                );
-            """)
+                        CREATE TABLE IF NOT EXISTS backup_history (
+                            id INTEGER PRIMARY KEY AUTOINCREMENT,
+                            backup_id TEXT NOT NULL,
+                            action TEXT NOT NULL,
+                            timestamp REAL NOT NULL,
+                            details TEXT,
+                            FOREIGN KEY (backup_id) REFERENCES backup_records(id)
+                        );
+                    """)
         }
 
         logger.info("Backup registry initialized at \(dbPath.path)")
@@ -84,9 +90,11 @@ public actor BackupRegistry {
     }
 
     // MARK: - Record Backup
-    public func recordBackup(_ result: BackupResult,
-                            snapshot: DiskSnapshot,
-                            retrievalInstructions: String? = nil) async throws -> BackupRecord {
+    public func recordBackup(
+        _ result: BackupResult,
+        snapshot: DiskSnapshot,
+        retrievalInstructions: String? = nil
+    ) async throws -> BackupRecord {
 
         let record = BackupRecord(
             id: UUID().uuidString,
@@ -99,7 +107,8 @@ public actor BackupRegistry {
             parentBackupId: nil,
             checksum: try await calculateChecksum(for: result),
             metadata: try? JSONEncoder().encode(snapshot.metadata),
-            retrievalInstructions: retrievalInstructions ?? generateRetrievalInstructions(for: result),
+            retrievalInstructions: retrievalInstructions
+                ?? generateRetrievalInstructions(for: result),
             status: .active
         )
 
@@ -120,7 +129,8 @@ public actor BackupRegistry {
         await updateJSONBackup()
 
         // Log for debugging
-        logger.info("""
+        logger.info(
+            """
             📦 Backup Recorded:
             ID: \(record.id)
             Provider: \(record.provider)
@@ -140,96 +150,98 @@ public actor BackupRegistry {
         switch result.provider {
         case .iCloudDrive:
             return """
-            📱 iCloud Drive Backup:
-            1. Open Finder
-            2. Click on "iCloud Drive" in sidebar
-            3. Navigate to: Documents/PinakleanBackups
-            4. File: \(URL(fileURLWithPath: result.location).lastPathComponent)
+                📱 iCloud Drive Backup:
+                1. Open Finder
+                2. Click on "iCloud Drive" in sidebar
+                3. Navigate to: Documents/PinakleanBackups
+                4. File: \(URL(fileURLWithPath: result.location).lastPathComponent)
 
-            Alternative:
-            - Go to: \(result.location)
-            - Or access via iCloud.com
-            """
+                Alternative:
+                - Go to: \(result.location)
+                - Or access via iCloud.com
+                """
 
         case .githubGist:
             return """
-            🔗 GitHub Gist Backup:
-            1. Open Terminal
-            2. Run: gh gist list | grep "Pinaklean Backup"
-            3. Or visit: https://gist.github.com
-            4. Look for: "Pinaklean Backup - \(Date())"
+                🔗 GitHub Gist Backup:
+                1. Open Terminal
+                2. Run: gh gist list | grep "Pinaklean Backup"
+                3. Or visit: https://gist.github.com
+                4. Look for: "Pinaklean Backup - \(Date())"
 
-            To download:
-            - gh gist view [GIST_ID] > backup.pinaklean
-            """
+                To download:
+                - gh gist view [GIST_ID] > backup.pinaklean
+                """
 
         case .githubRelease:
             return """
-            📦 GitHub Release Backup:
-            1. Visit your repository releases
-            2. Look for release tagged: pinaklean-backup-\(Date().timeIntervalSince1970)
-            3. Download the .pinaklean file
+                📦 GitHub Release Backup:
+                1. Visit your repository releases
+                2. Look for release tagged: pinaklean-backup-\(Date().timeIntervalSince1970)
+                3. Download the .pinaklean file
 
-            Via CLI:
-            - gh release download [TAG] --pattern "*.pinaklean"
-            """
+                Via CLI:
+                - gh release download [TAG] --pattern "*.pinaklean"
+                """
 
         case .googleDrive:
             return """
-            ☁️ Google Drive Backup:
-            1. Visit drive.google.com
-            2. Search for: "Pinaklean Backup"
-            3. Folder: PinakleanBackups
-            4. File: \(URL(fileURLWithPath: result.location).lastPathComponent)
-            """
+                ☁️ Google Drive Backup:
+                1. Visit drive.google.com
+                2. Search for: "Pinaklean Backup"
+                3. Folder: PinakleanBackups
+                4. File: \(URL(fileURLWithPath: result.location).lastPathComponent)
+                """
 
         case .ipfs:
             return """
-            🌐 IPFS Backup:
-            Location: \(result.location)
+                🌐 IPFS Backup:
+                Location: \(result.location)
 
-            To retrieve:
-            1. Via gateway: https://ipfs.io/\(result.location)
-            2. Via CLI: ipfs get \(result.location.replacingOccurrences(of: "ipfs://", with: ""))
-            3. Via Pinata: app.pinata.cloud (if pinned there)
+                To retrieve:
+                1. Via gateway: https://ipfs.io/\(result.location)
+                2. Via CLI: ipfs get \(result.location.replacingOccurrences(of: "ipfs://", with: ""))
+                3. Via Pinata: app.pinata.cloud (if pinned there)
 
-            Note: Keep this IPFS hash safe!
-            """
+                Note: Keep this IPFS hash safe!
+                """
 
         case .webDAV:
             return """
-            🌐 WebDAV Backup:
-            Server: \(result.location)
-            Path: /PinakleanBackups/
+                🌐 WebDAV Backup:
+                Server: \(result.location)
+                Path: /PinakleanBackups/
 
-            Access via:
-            1. Finder > Go > Connect to Server
-            2. Enter server address
-            3. Navigate to backup folder
-            """
+                Access via:
+                1. Finder > Go > Connect to Server
+                2. Enter server address
+                3. Navigate to backup folder
+                """
 
         case .localNAS:
             return """
-            💾 Local NAS Backup:
-            Path: \(result.location)
+                💾 Local NAS Backup:
+                Path: \(result.location)
 
-            To access:
-            1. Ensure NAS is connected
-            2. Open Finder
-            3. Go to: \(result.location)
+                To access:
+                1. Ensure NAS is connected
+                2. Open Finder
+                3. Go to: \(result.location)
 
-            Network path might be:
-            - smb://nas.local/PinakleanBackups
-            - afp://nas.local/PinakleanBackups
-            """
+                Network path might be:
+                - smb://nas.local/PinakleanBackups
+                - afp://nas.local/PinakleanBackups
+                """
         }
     }
 
     // MARK: - User-Visible Log File
     private func writeToUserLog(_ record: BackupRecord) async {
-        let logDir = FileManager.default.urls(for: .documentDirectory,
-                                             in: .userDomainMask).first!
-            .appendingPathComponent("PinakleanBackups", isDirectory: true)
+        let logDir = FileManager.default.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        ).first!
+        .appendingPathComponent("PinakleanBackups", isDirectory: true)
         try? FileManager.default.createDirectory(at: logDir, withIntermediateDirectories: true)
 
         let logFile = logDir.appendingPathComponent("backup_locations.log")
@@ -239,23 +251,23 @@ public actor BackupRegistry {
         let sizeFormatted = ByteCountFormatter.string(fromByteCount: record.size, countStyle: .file)
 
         let logEntry = """
-        ================================================================================
-        BACKUP RECORD - \(timestamp)
-        ================================================================================
-        Backup ID: \(record.id)
-        Provider: \(record.provider)
-        Location: \(record.location)
-        Size: \(sizeFormatted)
-        Encrypted: \(record.isEncrypted ? "Yes ✅" : "No ⚠️")
-        Incremental: \(record.isIncremental ? "Yes (saves space)" : "No (full backup)")
-        Checksum: \(record.checksum)
+            ================================================================================
+            BACKUP RECORD - \(timestamp)
+            ================================================================================
+            Backup ID: \(record.id)
+            Provider: \(record.provider)
+            Location: \(record.location)
+            Size: \(sizeFormatted)
+            Encrypted: \(record.isEncrypted ? "Yes ✅" : "No ⚠️")
+            Incremental: \(record.isIncremental ? "Yes (saves space)" : "No (full backup)")
+            Checksum: \(record.checksum)
 
-        HOW TO RETRIEVE THIS BACKUP:
-        \(record.retrievalInstructions)
+            HOW TO RETRIEVE THIS BACKUP:
+            \(record.retrievalInstructions)
 
-        ================================================================================
+            ================================================================================
 
-        """
+            """
 
         // Append to log file
         if let data = logEntry.data(using: .utf8) {
@@ -272,47 +284,47 @@ public actor BackupRegistry {
 
         // Create/Update README
         let readme = """
-        📦 PINAKLEAN BACKUP LOCATIONS
-        ==============================
+            📦 PINAKLEAN BACKUP LOCATIONS
+            ==============================
 
-        This file contains information about ALL your Pinaklean backups.
-        Keep this file safe! It helps you recover your backups from any provider.
+            This file contains information about ALL your Pinaklean backups.
+            Keep this file safe! It helps you recover your backups from any provider.
 
-        QUICK STATS:
-        ------------
-        Total Backups: \(await getTotalBackupCount())
-        Total Size: \(await getTotalBackupSize())
-        Providers Used: \(await getUsedProviders().joined(separator: ", "))
-        Latest Backup: \(timestamp)
+            QUICK STATS:
+            ------------
+            Total Backups: \(await getTotalBackupCount())
+            Total Size: \(await getTotalBackupSize())
+            Providers Used: \(await getUsedProviders().joined(separator: ", "))
+            Latest Backup: \(timestamp)
 
-        IMPORTANT NOTES:
-        ----------------
-        • All backups are encrypted with AES-256
-        • Your encryption key is stored in macOS Keychain
-        • Incremental backups require the parent backup to restore
-        • Keep this log file for disaster recovery
+            IMPORTANT NOTES:
+            ----------------
+            • All backups are encrypted with AES-256
+            • Your encryption key is stored in macOS Keychain
+            • Incremental backups require the parent backup to restore
+            • Keep this log file for disaster recovery
 
-        DETAILED BACKUP LOG:
-        --------------------
-        See 'backup_locations.log' in this folder for complete history.
+            DETAILED BACKUP LOG:
+            --------------------
+            See 'backup_locations.log' in this folder for complete history.
 
-        RECOVERY CHECKLIST:
-        ------------------
-        □ Check iCloud Drive (5GB free)
-        □ Check GitHub Gists/Releases
-        □ Check IPFS gateways
-        □ Check local NAS/Time Machine
-        □ Check this folder for local copies
+            RECOVERY CHECKLIST:
+            ------------------
+            □ Check iCloud Drive (5GB free)
+            □ Check GitHub Gists/Releases
+            □ Check IPFS gateways
+            □ Check local NAS/Time Machine
+            □ Check this folder for local copies
 
-        SUPPORT:
-        --------
-        If you need help recovering backups:
-        1. Check the detailed log file
-        2. Use the retrieval instructions for each backup
-        3. Visit: github.com/Pinak-Setu/Pinaklean/wiki/backup-recovery
+            SUPPORT:
+            --------
+            If you need help recovering backups:
+            1. Check the detailed log file
+            2. Use the retrieval instructions for each backup
+            3. Visit: github.com/Pinak-Setu/Pinaklean/wiki/backup-recovery
 
-        Last Updated: \(timestamp)
-        """
+            Last Updated: \(timestamp)
+            """
 
         try? readme.data(using: .utf8)?.write(to: readableLog)
 
@@ -326,7 +338,9 @@ public actor BackupRegistry {
         }
     }
 
-    public func getBackupsByProvider(_ provider: CloudBackupManager.CloudProvider) async throws -> [BackupRecord] {
+    public func getBackupsByProvider(_ provider: CloudBackupManager.CloudProvider) async throws
+        -> [BackupRecord]
+    {
         try await database.read { database in
             try BackupRecord
                 .filter(Column("provider") == provider.rawValue)
@@ -356,11 +370,12 @@ public actor BackupRegistry {
     }
 
     private func getTotalBackupSize() async -> String {
-        let totalBytes = (try? await database.read { db in
-            try BackupRecord
-                .select(sum(Column("size")))
-                .fetchOne(db) as Int64?
-        }) ?? 0
+        let totalBytes =
+            (try? await database.read { db in
+                try BackupRecord
+                    .select(sum(Column("size")))
+                    .fetchOne(db) as Int64?
+            }) ?? 0
 
         return ByteCountFormatter.string(fromByteCount: totalBytes, countStyle: .file)
     }
@@ -392,9 +407,10 @@ public actor BackupRegistry {
     private func loadFromJSONBackupIfNeeded() async {
         let count = await getTotalBackupCount()
         guard count == 0,
-              FileManager.default.fileExists(atPath: jsonBackupPath.path),
-              let data = try? Data(contentsOf: jsonBackupPath),
-              let records = try? JSONDecoder().decode([BackupRecord].self, from: data) else {
+            FileManager.default.fileExists(atPath: jsonBackupPath.path),
+            let data = try? Data(contentsOf: jsonBackupPath),
+            let records = try? JSONDecoder().decode([BackupRecord].self, from: data)
+        else {
             return
         }
 
@@ -420,13 +436,17 @@ public actor BackupRegistry {
 
         // Update verification timestamp
         try await database.write { db in
-            try db.execute(sql: """
-                UPDATE backup_records
-                SET last_verified = ?, status = ?
-                WHERE id = ?
-                """, arguments: [Date().timeIntervalSince1970,
-                                exists ? "active" : "missing",
-                                id])
+            try db.execute(
+                sql: """
+                    UPDATE backup_records
+                    SET last_verified = ?, status = ?
+                    WHERE id = ?
+                    """,
+                arguments: [
+                    Date().timeIntervalSince1970,
+                    exists ? "active" : "missing",
+                    id,
+                ])
         }
 
         return VerificationResult(
@@ -437,19 +457,21 @@ public actor BackupRegistry {
         )
     }
 
-    private func checkBackupExists(record: BackupRecord,
-                                  provider: CloudBackupManager.CloudProvider) async -> Bool {
+    private func checkBackupExists(
+        record: BackupRecord,
+        provider: CloudBackupManager.CloudProvider
+    ) async -> Bool {
         switch provider {
         case .iCloudDrive, .localNAS:
             return FileManager.default.fileExists(atPath: record.location)
 
         case .githubGist, .githubRelease:
             // Would check via gh CLI or API
-            return true // Placeholder
+            return true  // Placeholder
 
         case .ipfs:
             // Would check via IPFS gateway
-            return true // Placeholder
+            return true  // Placeholder
 
         default:
             return false
@@ -470,7 +492,8 @@ public actor BackupRegistry {
         }
 
         // For remote backups, use a combination of metadata
-        let checksumData = "\(result.provider.rawValue):\(result.size):\(result.timestamp.timeIntervalSince1970)"
+        let checksumData =
+            "\(result.provider.rawValue):\(result.size):\(result.timestamp.timeIntervalSince1970)"
         return SHA256.hash(data: checksumData.data(using: .utf8)!).hexString
     }
 }
@@ -479,27 +502,36 @@ public actor BackupRegistry {
 public struct BackupRecord: Codable, FetchableRecord, PersistableRecord {
     public static let databaseTableName = "backup_records"
 
-    let id: String
-    let timestamp: Date
-    let provider: String
-    let location: String
-    let size: Int64
-    let isEncrypted: Bool
-    let isIncremental: Bool
-    let parentBackupId: String?
-    let checksum: String
-    let metadata: Data?
-    let retrievalInstructions: String
-    var status: BackupStatus
-    var lastVerified: Date?
-    let createdAt: Date
-    let updatedAt: Date
+    public let id: String
+    public let timestamp: Date
+    public let provider: String
+    public let location: String
+    public let size: Int64
+    public let isEncrypted: Bool
+    public let isIncremental: Bool
+    public let parentBackupId: String?
+    public let checksum: String
+    public let metadata: Data?
+    public let retrievalInstructions: String
+    public var status: BackupStatus
+    public var lastVerified: Date?
+    public let createdAt: Date
+    public let updatedAt: Date
 
-    init(id: String, timestamp: Date, provider: String, location: String,
-         size: Int64, isEncrypted: Bool, isIncremental: Bool,
-         parentBackupId: String? = nil, checksum: String,
-         metadata: Data? = nil, retrievalInstructions: String,
-         status: BackupStatus = .active) {
+    public init(
+        id: String,
+        timestamp: Date,
+        provider: String,
+        location: String,
+        size: Int64,
+        isEncrypted: Bool,
+        isIncremental: Bool,
+        parentBackupId: String? = nil,
+        checksum: String,
+        metadata: Data? = nil,
+        retrievalInstructions: String,
+        status: BackupStatus
+    ) {
         self.id = id
         self.timestamp = timestamp
         self.provider = provider
@@ -528,7 +560,7 @@ struct BackupHistory: Codable, PersistableRecord {
     let details: String?
 }
 
-enum BackupStatus: String, Codable {
+public enum BackupStatus: String, Codable {
     case active = "active"
     case missing = "missing"
     case corrupted = "corrupted"
@@ -543,9 +575,6 @@ public struct VerificationResult {
 }
 
 // Note: BackupError is defined in CloudBackupManager.swift
-
-// MARK: - SHA256 Extension
-import CryptoKit
 
 extension SHA256.Digest {
     var hexString: String {

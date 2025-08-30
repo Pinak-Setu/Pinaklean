@@ -55,6 +55,52 @@ public class PinakleanEngine: ObservableObject {
     /// Configure the engine (for CLI usage)
     public func configure(_ newConfiguration: Configuration) {
         configuration = newConfiguration
+        // Persist the configuration
+        persistConfiguration()
+    }
+
+    /// Load configuration from UserDefaults
+    private func loadPersistedConfiguration() async {
+        // Use standard UserDefaults with prefixed keys (same as CLI)
+        let defaults = UserDefaults.standard
+        let keyPrefix = "pinaklean."
+
+        // Map CLI config keys to engine properties
+        configuration.safeMode = defaults.bool(forKey: keyPrefix + "safeMode")
+        configuration.autoBackup = defaults.bool(forKey: keyPrefix + "autoBackup")
+        configuration.parallelWorkers = defaults.integer(forKey: keyPrefix + "parallelWorkers")
+        if configuration.parallelWorkers == 0 {
+            configuration.parallelWorkers = ProcessInfo.processInfo.processorCount
+        }
+        configuration.enableSmartDetection = defaults.bool(forKey: keyPrefix + "smartDetection")
+        configuration.aggressiveMode = defaults.bool(forKey: keyPrefix + "aggressiveMode")
+        configuration.dryRun = defaults.bool(forKey: keyPrefix + "dryRun")
+        configuration.verboseLogging = defaults.bool(forKey: keyPrefix + "verboseLogging")
+
+        logger.info(
+            "Configuration loaded from UserDefaults: safeMode=\(self.configuration.safeMode), smartDetection=\(self.configuration.enableSmartDetection)"
+        )
+    }
+
+    /// Save configuration to UserDefaults
+    private func persistConfiguration() {
+        // Use standard UserDefaults with prefixed keys (same as CLI)
+        let defaults = UserDefaults.standard
+        let keyPrefix = "pinaklean."
+
+        // Map engine properties to CLI config keys
+        defaults.set(configuration.safeMode, forKey: keyPrefix + "safeMode")
+        defaults.set(configuration.autoBackup, forKey: keyPrefix + "autoBackup")
+        defaults.set(configuration.parallelWorkers, forKey: keyPrefix + "parallelWorkers")
+        defaults.set(configuration.enableSmartDetection, forKey: keyPrefix + "smartDetection")
+        defaults.set(configuration.aggressiveMode, forKey: keyPrefix + "aggressiveMode")
+        defaults.set(configuration.dryRun, forKey: keyPrefix + "dryRun")
+        defaults.set(configuration.verboseLogging, forKey: keyPrefix + "verboseLogging")
+
+        // Force synchronization
+        defaults.synchronize()
+
+        logger.info("Configuration persisted to UserDefaults")
     }
 
     // MARK: - Scan Categories
@@ -101,7 +147,6 @@ public class PinakleanEngine: ObservableObject {
     }
 
     // MARK: - Initialization
-    @MainActor
     public init() async throws {
         // Initialize components with proper error handling
         do {
@@ -114,6 +159,9 @@ public class PinakleanEngine: ObservableObject {
 
             logger.info("Pinaklean Engine initialized successfully")
 
+            // Load persisted configuration
+            await self.loadPersistedConfiguration()
+
             // Start incremental indexer with error handling
             Task {
                 do {
@@ -122,7 +170,9 @@ public class PinakleanEngine: ObservableObject {
                     self.logger.error("Failed to start incremental indexer: \(error)")
                 }
             }
-        } catch {
+        }
+
+        catch {
             logger.error("Engine initialization failed: \(error)")
             throw error
         }
@@ -191,8 +241,8 @@ public class PinakleanEngine: ObservableObject {
         }
 
         // Apply smart detection if enabled (with timeout)
-        if configuration.enableSmartDetection {
-            currentOperation = "Analyzing with ML..."
+        if self.configuration.enableSmartDetection {
+            self.currentOperation = "Analyzing with ML..."
             do {
                 results = try await withTimeout(30.0) {
                     try await self.applySmartDetection(to: results)
@@ -204,8 +254,8 @@ public class PinakleanEngine: ObservableObject {
         }
 
         // Perform security audit if enabled (with timeout)
-        if configuration.enableSecurityAudit {
-            currentOperation = "Running security audit..."
+        if self.configuration.enableSecurityAudit {
+            self.currentOperation = "Running security audit..."
             do {
                 results = try await withTimeout(60.0) {
                     try await self.performSecurityAudit(on: results)
@@ -216,7 +266,7 @@ public class PinakleanEngine: ObservableObject {
         }
 
         // Generate explanations (with timeout)
-        currentOperation = "Generating explanations..."
+        self.currentOperation = "Generating explanations..."
         do {
             results = try await withTimeout(30.0) {
                 await self.addExplanations(to: results)
@@ -262,14 +312,14 @@ public class PinakleanEngine: ObservableObject {
         }
 
         var results = CleanResults()
-        let totalItems = Double(items.count)
-        var processedItems = 0.0
+        let _ = Double(items.count)
+        let _ = 0.0
 
         // Group items by type for efficient cleaning
         let groupedItems = Dictionary(grouping: items) { $0.category }
 
         for (category, categoryItems) in groupedItems {
-            currentOperation = "Cleaning \(category)..."
+            self.currentOperation = "Cleaning \(category)..."
             if Task.isCancelled { throw EngineError.operationCancelled }
 
             if configuration.dryRun {
@@ -294,7 +344,7 @@ public class PinakleanEngine: ObservableObject {
 
         // Record results
         results.timestamp = Date()
-        results.isDryRun = configuration.dryRun
+        results.isDryRun = self.configuration.dryRun
         self.cleanResults = results
 
         logger.info(
@@ -645,7 +695,7 @@ public struct CleanableItem: Identifiable, Codable, Hashable {
 }
 
 public struct DuplicateGroup: Identifiable, Codable {
-    public let id = UUID()
+    public var id = UUID()
     public let checksum: String
     public let items: [CleanableItem]
     public var wastedSpace: Int64 {

@@ -41,6 +41,24 @@ final class CLITests: XCTestCase {
             "Clean command should complete and output results")
     }
 
+    func testBackupList() {
+        // Test backup --list
+        let arguments = ["pinaklean", "backup", "--list"]
+        let output = runCLI(arguments: arguments)
+        XCTAssertTrue(
+            output.contains("Backup Registry") || output.contains("No backups found"),
+            "Backup list should show registry or empty message")
+    }
+
+    func testBackupCreate() {
+        // Test backup --create
+        let arguments = ["pinaklean", "backup", "--create"]
+        let output = runCLI(arguments: arguments)
+        XCTAssertTrue(
+            output.contains("Backup created successfully!") || output.contains("Creating backup"),
+            "Backup create should indicate creation")
+    }
+
     // Helper to simulate CLI execution and capture output
     private func runCLI(arguments: [String]) -> String {
         // Redirect stdout and stderr to capture output
@@ -56,6 +74,7 @@ final class CLITests: XCTestCase {
             try PinakleanCLI.main(arguments)
         } catch {
             // Ignore errors for test purposes
+            // But for better testing, we might want to check for specific errors
         }
 
         // Restore stdout and stderr

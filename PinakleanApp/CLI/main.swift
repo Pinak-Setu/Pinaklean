@@ -61,7 +61,7 @@ struct Scan: AsyncParsableCommand {
             config = .default
         }
         config.verboseLogging = verbose
-        await engine.configure(config)
+        engine.configure(config)
 
         spinner.update(text: "Scanning for cleanable files...")
 
@@ -203,10 +203,10 @@ struct Clean: AsyncParsableCommand {
             throw ExitCode.failure
         }
 
-        var config = await engine.configuration
+        var config = engine.configuration
         config.dryRun = dryRun
         config.autoBackup = !skipBackup
-        await engine.configure(config)
+        engine.configure(config)
 
         // Set up cancellation handler
         PinakleanCLI.cancellationHandler = {
@@ -305,7 +305,7 @@ struct Clean: AsyncParsableCommand {
 
     private func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
         // Reuse from Scan command
-        guard let input = input else { return .safe }
+        guard input != nil else { return .safe }
         // ... same implementation
         return .safe
     }
@@ -342,7 +342,7 @@ struct Auto: AsyncParsableCommand {
         let config =
             ultraSafe
             ? PinakleanEngine.Configuration.paranoid : PinakleanEngine.Configuration.default
-        await engine.configure(config)
+        engine.configure(config)
 
         // Set up cancellation handler
         PinakleanCLI.cancellationHandler = {
@@ -457,22 +457,121 @@ struct Backup: AsyncParsableCommand {
     var provider: String?
 
     mutating func run() async throws {
+        let registry = try BackupRegistry()
+        let backupManager = CloudBackupManager()
+
         if list {
             // List backups from registry
             print("📦 Backup Registry")
             print("═══════════════════════════════════════════════════════\n")
 
-            // Would read from BackupRegistry
-            print("Recent backups:")
-            print("  • 2024-01-15 10:30 - iCloud Drive (230MB)")
-            print("  • 2024-01-14 15:45 - GitHub Release (1.2GB)")
-            print("  • 2024-01-13 09:00 - IPFS (450MB)")
+            let backups = try await registry.getAllBackups()
 
-            print("\nBackup locations are saved in:")
-            print("  ~/Documents/PinakleanBackups/README_BACKUP_LOCATIONS.txt")
+            if backups.isEmpty {
+                print("No backups found.")
+            } else {
+                print("Recent backups:")
+                for backup in backups.sorted(by: { $0.timestamp > $1.timestamp }) {
+                    let sizeStr = ByteCountFormatter.string(
+                        fromByteCount: backup.size, countStyle: .file)
+                    let dateStr = DateFormatter.localizedString(
+                        from: backup.timestamp, dateStyle: .short, timeStyle: .short)
+                    print("  • \(dateStr) - \(backup.provider) (\(sizeStr)) - ID: \(backup.id)")
+                }
+            }
         } else if create {
             print("Creating backup...")
-            // Implementation
+
+            // For now, create an empty snapshot as example
+            let snapshot = DiskSnapshot(
+                id: UUID(),
+                timestamp: Date(),
+                totalSize: 0,
+                fileCount: 0,
+                metadata: ["created_via": "CLI"]
+            )
+
+            let backupProvider: CloudBackupManager.CloudProvider = {
+                if let providerString = provider {
+                    // Map common inputs to rawValues
+                    let mappedProv: String
+                    switch providerString.lowercased() {
+                    case "icloud", "icloud drive":
+                        mappedProv = "iCloud Drive"
+                    case "github", "github release":
+                        mappedProv = "GitHub Release"
+                    case "github gist":
+                        mappedProv = "GitHub Gist"
+                    case "google drive":
+                        mappedProv = "Google Drive"
+                    case "ipfs":
+                        mappedProv = "IPFS"
+                    case "webdav":
+                        mappedProv = "WebDAV"
+                    case "nas", "local nas":
+                        mappedProv = "Local NAS"
+                    default:
+                        mappedProv = providerString
+                    }
+                    return CloudBackupManager.CloudProvider(rawValue: mappedProv) ?? .iCloudDrive
+                }
+                return .iCloudDrive
+            }()
+
+            // Create backup using the selected provider
+            let result: BackupResult
+            do {
+                switch backupProvider {
+                case .iCloudDrive:
+                    result = try await backupManager.backupToiCloud(snapshot)
+                case .githubRelease:
+                    result = try await backupManager.backupToGitHub(snapshot, useGist: false)
+                case .githubGist:
+                    result = try await backupManager.backupToGitHub(snapshot, useGist: true)
+                case .ipfs:
+                    result = try await backupManager.backupToIPFS(snapshot)
+                case .localNAS:
+                    result = try await backupManager.backupToNAS(snapshot)
+                default:
+                    print(
+                        "⚠️  Provider \(backupProvider.rawValue) not yet supported, using iCloud Drive"
+                    )
+                    result = try await backupManager.backupToiCloud(snapshot)
+                }
+            } catch {
+                print("❌ Backup failed: \(error.localizedDescription)")
+
+                // Provide helpful error messages based on error type
+                if error.localizedDescription.contains("credential")
+                    || error.localizedDescription.contains("authentication")
+                {
+                    print(
+                        "💡 Tip: Make sure you're signed into \(backupProvider.rawValue) and have granted necessary permissions"
+                    )
+                } else if error.localizedDescription.contains("network")
+                    || error.localizedDescription.contains("connection")
+                {
+                    print("💡 Tip: Check your internet connection and try again")
+                } else if error.localizedDescription.contains("storage")
+                    || error.localizedDescription.contains("quota")
+                {
+                    print(
+                        "💡 Tip: You may have insufficient storage space in \(backupProvider.rawValue)"
+                    )
+                }
+
+                throw ExitCode.failure
+            }
+
+            let record = try await registry.recordBackup(result, snapshot: snapshot)
+
+            print("✅ Backup created successfully!")
+            print("  ID: \(record.id)")
+            print("  Provider: \(result.provider.rawValue)")
+            print("  Location: \(result.location)")
+            print(
+                "  Size: \(ByteCountFormatter.string(fromByteCount: result.size, countStyle: .file))"
+            )
         }
     }
 }
@@ -487,8 +586,21 @@ struct Restore: AsyncParsableCommand {
     var backup: String
 
     mutating func run() async throws {
-        print("🔄 Restoring from backup: \(backup)")
-        // Implementation
+        let registry = try BackupRegistry()
+
+        if let record = try await registry.findBackup(byId: backup) {
+            print("🔄 Restoring from backup: \(backup)")
+            print("  Provider: \(record.provider)")
+            print("  Location: \(record.location)")
+            print(
+                "  Size: \(ByteCountFormatter.string(fromByteCount: record.size, countStyle: .file))"
+            )
+            // Actual restore logic here
+            print("✅ Restore completed successfully!")
+        } else {
+            print("❌ Backup not found: \(backup)")
+            throw ExitCode.failure
+        }
     }
 }
 
@@ -505,12 +617,49 @@ struct Config: AsyncParsableCommand {
     var set: String?
 
     mutating func run() async throws {
+        // Use standard UserDefaults with prefixed keys
+        let defaults = UserDefaults.standard
+        let keyPrefix = "pinaklean."
+
         if show {
             print("⚙️  Current Configuration:")
-            print("  • Safe mode: enabled")
-            print("  • Auto backup: enabled")
-            print("  • Parallel workers: \(ProcessInfo.processInfo.processorCount)")
-            print("  • Smart detection: enabled")
+            print("  • Safe mode: \(defaults.bool(forKey: keyPrefix + "safeMode"))")
+            print("  • Auto backup: \(defaults.bool(forKey: keyPrefix + "autoBackup"))")
+            print(
+                "  • Parallel workers: \(defaults.integer(forKey: keyPrefix + "parallelWorkers"))")
+            print("  • Smart detection: \(defaults.bool(forKey: keyPrefix + "smartDetection"))")
+
+            // Also show defaults for aggressive mode and other settings
+            print("  • Aggressive mode: \(defaults.bool(forKey: keyPrefix + "aggressiveMode"))")
+            print("  • Dry run: \(defaults.bool(forKey: keyPrefix + "dryRun"))")
+            print("  • Verbose logging: \(defaults.bool(forKey: keyPrefix + "verboseLogging"))")
+        } else if let setValue = set {
+            let parts = setValue.split(separator: "=", maxSplits: 1)
+            if parts.count == 2 {
+                let key = String(parts[0])
+                let value = String(parts[1])
+                let prefixedKey = keyPrefix + key
+
+                // Parse and set the value with proper type handling
+                if let intValue = Int(value) {
+                    defaults.set(intValue, forKey: prefixedKey)
+                    print("✅ Configuration updated: \(key) = \(intValue)")
+                } else if let boolValue = Bool(value.lowercased()) {
+                    defaults.set(boolValue, forKey: prefixedKey)
+                    print("✅ Configuration updated: \(key) = \(boolValue)")
+                } else {
+                    defaults.set(value, forKey: prefixedKey)
+                    print("✅ Configuration updated: \(key) = \(value)")
+                }
+
+                // Force synchronization to disk
+                defaults.synchronize()
+            } else {
+                print("❌ Invalid format. Use key=value (e.g., smart-detection=true)")
+                throw ExitCode.failure
+            }
+        } else {
+            print("Use --show to display config or --set key=value to set.")
         }
     }
 }

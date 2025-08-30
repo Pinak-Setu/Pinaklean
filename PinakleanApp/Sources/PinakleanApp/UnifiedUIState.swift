@@ -1,13 +1,3 @@
-
-<file_path>
-Pinaklean/PinakleanApp/Sources/PinakleanApp/UI/UnifiedUIState.swift
-</file_path>
-
-<edit_description>
-Enhance state management with animation tracking, notification management, and dashboard metrics for the Liquid Crystal UI system
-</edit_description>
-
-```swift
 //
 //  UnifiedUIState.swift
 //  PinakleanApp
@@ -15,14 +5,13 @@ Enhance state management with animation tracking, notification management, and d
 //  Enhanced state management for Pinaklean's "Liquid Crystal" UI
 //  Handles animations, notifications, dashboard metrics, and responsive layout
 //
-//  Created: Production Enhancement Phase
-//  Features: Animation tracking, Notification management, Dashboard metrics
+//  Created: Liquid Crystal UI Implementation Phase
+//  Features: Animation tracking, Notification management, Dashboard metrics, Responsive design
 //
 
 import Combine
 import Foundation
 import SwiftUI
-import PinakleanCore
 
 /// Unified UI state management for Pinaklean app
 /// Manages all UI state, animations, notifications, and responsive behavior
@@ -71,6 +60,7 @@ final class UnifiedUIState: ObservableObject {
     init() {
         loadDefaults()
         setupAccessibilityObservers()
+        initializeSampleData()
     }
 
     // MARK: - Public Methods
@@ -224,6 +214,23 @@ final class UnifiedUIState: ObservableObject {
         return animation
     }
 
+    private func initializeSampleData() {
+        // Add some sample activities for demo purposes
+        addActivity(
+            ActivityItem(
+                type: .scan,
+                title: "Quick Scan Completed",
+                description: "Scanned 1,234 files and found 89 items to clean (2.5 GB)"
+            ))
+
+        addActivity(
+            ActivityItem(
+                type: .clean,
+                title: "Auto Clean Executed",
+                description: "Cleaned 45 files and freed up 1.2 GB of space"
+            ))
+    }
+
     deinit {
         NotificationCenter.default.removeObserver(self)
     }
@@ -232,7 +239,7 @@ final class UnifiedUIState: ObservableObject {
 // MARK: - Supporting Types
 
 /// Application tabs
-enum AppTab {
+enum AppTab: CaseIterable {
     case dashboard
     case scan
     case clean
@@ -285,6 +292,13 @@ enum ScreenSize {
     }
 }
 
+/// Notification types for the application
+enum NotificationType {
+    case success
+    case error
+    case info
+}
+
 /// Notification with unique ID for tracking
 struct PinakleanNotification: Identifiable, Equatable {
     var id: Int = 0
@@ -306,7 +320,6 @@ struct ActivityItem: Identifiable {
     var title: String
     var description: String
     var timestamp: Date = Date()
-    var icon: String
 
     enum ActivityType {
         case scan
@@ -334,27 +347,47 @@ struct StorageBreakdown {
     }
 }
 
-extension NotificationType {
-    var color: Color {
-        switch self {
-        case .success: return DesignSystem.success
-        case .error: return DesignSystem.error
-        case .info: return DesignSystem.info
+/// Scan results data structure
+struct ScanResults {
+    var items: [CleanableItem]
+    var safeTotalSize: Int64
+
+    static var empty: ScanResults {
+        ScanResults(items: [], safeTotalSize: 0)
+    }
+}
+
+/// Cleanable item data structure
+struct CleanableItem: Identifiable {
+    var id = UUID()
+    var path: String
+    var name: String
+    var category: String
+    var size: Int64
+    var safetyScore: Int
+
+    /// Computed property for safety level
+    var safetyLevel: SafetyLevel {
+        switch safetyScore {
+        case 0..<25: return .minimal
+        case 25..<50: return .low
+        case 50..<75: return .medium
+        case 75..<90: return .high
+        default: return .critical
         }
     }
 }
 
-extension ScanResults {
-    /// Calculate total safe size
-    var safeTotalSize: Int64 {
-        items.reduce(0) { $0 + $1.size }
-    }
-
-    /// Get items by risk level
-    func itemsByRisk(_ risk: SafetyLevel) -> [CleanableItem] {
-        items.filter { $0.safetyLevel == risk }
-    }
+/// Safety levels for cleanable items
+enum SafetyLevel: Int {
+    case minimal = 0
+    case low = 25
+    case medium = 50
+    case high = 75
+    case critical = 100
 }
+
+// MARK: - Extensions
 
 extension UnifiedUIState {
     /// Convenience method to check if app is processing
@@ -373,4 +406,37 @@ extension UnifiedUIState {
         }
     }
 }
-```
+
+extension ScanResults {
+    /// Calculate total safe size
+    var safeTotalSize: Int64 {
+        items.filter { $0.safetyLevel != .critical }.reduce(0) { $0 + $1.size }
+    }
+
+    /// Get items by risk level
+    func itemsByRisk(_ risk: SafetyLevel) -> [CleanableItem] {
+        items.filter { $0.safetyLevel == risk }
+    }
+}
+
+extension NotificationType {
+    var color: Color {
+        switch self {
+        case .success: return DesignSystem.success
+        case .error: return DesignSystem.error
+        case .info: return DesignSystem.info
+        }
+    }
+}
+
+extension Int64 {
+    func formattedSize() -> String {
+        ByteCountFormatter.string(fromByteCount: self, countStyle: .file)
+    }
+}
+
+extension Date {
+    func formatted(_ style: Date.RelativeFormatStyle) -> String {
+        self.formatted(style)
+    }
+}

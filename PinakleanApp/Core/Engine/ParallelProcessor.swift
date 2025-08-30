@@ -1,5 +1,5 @@
-import Foundation
 import AsyncAlgorithms
+import Foundation
 
 /// High-performance parallel file processor using Swift Concurrency
 public actor ParallelProcessor {
@@ -43,11 +43,13 @@ public actor ParallelProcessor {
         var matchingFiles: [URL] = []
 
         // Use FileManager's directory enumerator for better performance
-        guard let enumerator = fileManager.enumerator(
-            at: directory,
-            includingPropertiesForKeys: [.isDirectoryKey, .isHiddenKey],
-            options: [.skipsHiddenFiles, .skipsPackageDescendants]
-        ) else {
+        guard
+            let enumerator = fileManager.enumerator(
+                at: directory,
+                includingPropertiesForKeys: [.isDirectoryKey, .isHiddenKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants]
+            )
+        else {
             return []
         }
 
@@ -135,39 +137,67 @@ public actor ParallelProcessor {
         var successfulDeletions: [CleanableItem] = []
         var failedItems: [CleanableItem] = []
 
+        // Add timeout for the entire operation
         try await withThrowingTaskGroup(of: DeletionResult.self) { group in
+            // Add timeout task
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(300 * 1_000_000_000))  // 5 minutes timeout
+                throw TimeoutError.operationTimedOut
+            }
+
             for item in items {
                 group.addTask {
-                    await semaphore.wait()
-
                     do {
+                        try await semaphore.waitWithTimeout(30.0)  // 30 second timeout per item
+                        defer { Task { await semaphore.signal() } }
+
+                        // Check for cancellation before attempting deletion
+                        if Task.isCancelled {
+                            return DeletionResult(
+                                item: item, success: false, error: TimeoutError.operationTimedOut)
+                        }
+                        // Attempt deletion with cancellation awareness
                         try await self.deleteItem(item)
-                        await semaphore.signal()
+                        // Check for cancellation after deletion attempt
+                        if Task.isCancelled {
+                            return DeletionResult(
+                                item: item, success: false, error: TimeoutError.operationTimedOut)
+                        }
                         return DeletionResult(item: item, success: true)
                     } catch {
-                        await semaphore.signal()
                         return DeletionResult(item: item, success: false, error: error)
                     }
                 }
             }
 
-            for try await result in group {
-                if result.success {
-                    successfulDeletions.append(result.item)
-                    totalBytesProcessed += result.item.size
-                } else {
-                    failedItems.append(result.item)
+            // Process results with timeout protection
+            var completedTasks = 0
+            while completedTasks < items.count {
+                if let result = try await group.next() {
+                    if !(result.error is TimeoutError) {  // Don't count timeout as completion
+                        if result.success {
+                            successfulDeletions.append(result.item)
+                            totalBytesProcessed += result.item.size
+                        } else {
+                            failedItems.append(result.item)
+                        }
+                        processedItems += 1
+                        completedTasks += 1
+                    }
                 }
-                processedItems += 1
             }
+
+            group.cancelAll()
         }
 
         // Log performance metrics
         let duration = Date().timeIntervalSince(startTime)
-        let throughput = Double(totalBytesProcessed) / duration / 1024 / 1024 // MB/s
+        let throughput = duration > 0 ? Double(totalBytesProcessed) / duration / 1024 / 1024 : 0
 
         let throughputStr = String(format: "%.2f", throughput)
-        print("Parallel deletion completed: \(successfulDeletions.count)/\(items.count) items, \(throughputStr) MB/s")
+        print(
+            "Parallel deletion completed: \(successfulDeletions.count)/\(items.count) items, \(throughputStr) MB/s"
+        )
 
         return successfulDeletions
     }
@@ -177,7 +207,7 @@ public actor ParallelProcessor {
 
         // Check if item still exists
         guard fileManager.fileExists(atPath: url.path) else {
-            return // Already deleted
+            return  // Already deleted
         }
 
         // Get attributes before deletion for verification
@@ -223,21 +253,31 @@ public actor ParallelProcessor {
 
         var totalSize: Int64 = 0
 
-        guard let enumerator = fileManager.enumerator(
-            at: directory,
-            includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey],
-            options: [.skipsHiddenFiles, .skipsPackageDescendants]
-        ) else {
+        guard
+            let enumerator = fileManager.enumerator(
+                at: directory,
+                includingPropertiesForKeys: [.fileSizeKey, .isDirectoryKey],
+                options: [.skipsHiddenFiles, .skipsPackageDescendants]
+            )
+        else {
             return 0
         }
 
+        // Convert synchronous enumeration to async processing
         for case let fileURL as URL in enumerator {
+            // Yield to allow other tasks to run and prevent hanging
+            await Task.yield()
+
+            // Check for cancellation to prevent hanging
+            try Task.checkCancellation()
+
             do {
                 let attributes = try fileManager.attributesOfItem(atPath: fileURL.path)
 
                 // Only count regular files, not directories
                 if let fileType = attributes[.type] as? FileAttributeType,
-                   fileType == .typeRegular {
+                    fileType == .typeRegular
+                {
                     if let fileSize = attributes[.size] as? Int64 {
                         totalSize += fileSize
                     }
@@ -333,6 +373,17 @@ enum DeletionError: LocalizedError {
     }
 }
 
+enum TimeoutError: LocalizedError {
+    case operationTimedOut
+
+    var errorDescription: String? {
+        switch self {
+        case .operationTimedOut:
+            return "Operation timed out"
+        }
+    }
+}
+
 actor AsyncSemaphore {
     private var value: Int
     private var waiters: [UnsafeContinuation<Void, Never>] = []
@@ -341,22 +392,48 @@ actor AsyncSemaphore {
         self.value = value
     }
 
+    func addWaiter() async {
+        await withUnsafeContinuation { continuation in
+            waiters.append(continuation)
+        }
+    }
+
     func wait() async {
         if value > 0 {
             value -= 1
             return
         }
 
-        await withUnsafeContinuation { continuation in
-            waiters.append(continuation)
+        await addWaiter()
+    }
+
+    func waitWithTimeout(_ timeout: TimeInterval) async throws {
+        if value > 0 {
+            value -= 1
+            return
+        }
+
+        try await withThrowingTaskGroup(of: Void.self) { group in
+            group.addTask {
+                await self.addWaiter()
+            }
+
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                throw TimeoutError.operationTimedOut
+            }
+
+            try await group.next()
+            group.cancelAll()
         }
     }
 
     func signal() {
-        value += 1
-        if let waiter = waiters.first {
-            waiters.removeFirst()
+        if !waiters.isEmpty {
+            let waiter = waiters.removeFirst()
             waiter.resume()
+        } else {
+            value += 1
         }
     }
 }
@@ -371,7 +448,8 @@ extension String {
             return true
         }
 
-        let regexPattern = pattern
+        let regexPattern =
+            pattern
             .replacingOccurrences(of: ".", with: "\\.")
             .replacingOccurrences(of: "*", with: ".*")
             .replacingOccurrences(of: "?", with: ".")

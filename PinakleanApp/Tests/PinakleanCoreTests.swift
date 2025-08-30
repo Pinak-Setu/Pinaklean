@@ -12,9 +12,6 @@ class PinakleanCoreTests: QuickSpec {
 
             beforeEach {
                 // Create a fresh engine for each test
-                Task {
-                    engine = try await PinakleanEngine()
-                }
                 waitUntil { done in
                     Task {
                         engine = try await PinakleanEngine()

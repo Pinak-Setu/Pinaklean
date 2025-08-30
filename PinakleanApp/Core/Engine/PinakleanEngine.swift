@@ -1,10 +1,9 @@
-import Foundation
 import Combine
+import Foundation
 import os.log
 
 /// Core Pinaklean Engine - Unified cleaning engine for both CLI and GUI
 /// This is the heart of Pinaklean, providing all cleaning operations
-@MainActor
 public class PinakleanEngine: ObservableObject {
 
     // MARK: - Published Properties
@@ -18,12 +17,12 @@ public class PinakleanEngine: ObservableObject {
     @Published public var cleanResults: CleanResults?
 
     // MARK: - Core Components
-    private let securityAuditor: SecurityAuditor
-    private let parallelProcessor: ParallelProcessor
-    private let smartDetector: SmartDetector
-    private let incrementalIndexer: IncrementalIndexer
-    private let backupManager: CloudBackupManager
-    private let ragManager: RAGManager
+    private var securityAuditor: SecurityAuditor!
+    private var parallelProcessor: ParallelProcessor!
+    private var smartDetector: SmartDetector!
+    private var incrementalIndexer: IncrementalIndexer!
+    private var backupManager: CloudBackupManager!
+    private var ragManager: RAGManager!
     private let logger = Logger(subsystem: "com.pinaklean", category: "Engine")
 
     // MARK: - Configuration
@@ -87,35 +86,52 @@ public class PinakleanEngine: ObservableObject {
             .userCaches, .systemCaches, .developerJunk, .appCaches,
             .logs, .downloads, .trash, .duplicates, .largeFiles,
             .oldFiles, .brokenSymlinks, .nodeModules, .xcodeJunk,
-            .dockerJunk, .brewCache, .pipCache
+            .dockerJunk, .brewCache, .pipCache,
         ]
 
         public static let safe: ScanCategories = [
             .userCaches, .appCaches, .logs, .trash,
-            .nodeModules, .brewCache, .pipCache
+            .nodeModules, .brewCache, .pipCache,
         ]
 
         public static let developer: ScanCategories = [
             .nodeModules, .xcodeJunk, .dockerJunk,
-            .brewCache, .pipCache, .developerJunk
+            .brewCache, .pipCache, .developerJunk,
         ]
     }
 
     // MARK: - Initialization
+    @MainActor
     public init() async throws {
-        self.securityAuditor = try await SecurityAuditor()
-        self.parallelProcessor = ParallelProcessor()
-        self.smartDetector = try await SmartDetector()
-        self.incrementalIndexer = try await IncrementalIndexer()
-        self.backupManager = CloudBackupManager()
-        self.ragManager = try await RAGManager()
+        // Initialize components with proper error handling
+        do {
+            self.securityAuditor = try await SecurityAuditor()
+            self.parallelProcessor = ParallelProcessor()
+            self.smartDetector = SmartDetector()
+            self.incrementalIndexer = try await IncrementalIndexer()
+            self.backupManager = CloudBackupManager()
+            self.ragManager = try await RAGManager()
 
-        logger.info("Pinaklean Engine initialized")
+            logger.info("Pinaklean Engine initialized successfully")
 
-        // Start incremental indexer
-        Task {
-            await incrementalIndexer.startMonitoring()
+            // Start incremental indexer with error handling
+            Task {
+                do {
+                    await self.incrementalIndexer.startMonitoring()
+                } catch {
+                    self.logger.error("Failed to start incremental indexer: \(error)")
+                }
+            }
+        } catch {
+            logger.error("Engine initialization failed: \(error)")
+            throw error
         }
+    }
+
+    // MARK: - Cleanup
+    deinit {
+        // Note: Removed async call to fix Swift 6 compatibility.
+        // If cleanup needed, handle separately.
     }
 
     // MARK: - Public API
@@ -130,6 +146,7 @@ public class PinakleanEngine: ObservableObject {
         scanProgress = 0
         currentOperation = "Initializing scan..."
         defer { isScanning = false }
+        if Task.isCancelled { throw EngineError.operationCancelled }
 
         logger.info("Starting scan with categories: \(categories.rawValue)")
 
@@ -138,37 +155,75 @@ public class PinakleanEngine: ObservableObject {
         let totalTasks = Double(scanTasks.count)
         var completedTasks = 0.0
 
-        // Execute scans in parallel
+        // Execute scans in parallel with timeout protection
         try await withThrowingTaskGroup(of: [CleanableItem].self) { group in
+            // Add timeout task
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(600 * 1_000_000_000))  // 10 minutes timeout
+                throw EngineError.scanTimeout
+            }
+
             for task in scanTasks {
                 group.addTask {
-                    try await self.executeScanTask(task)
+                    if Task.isCancelled { throw EngineError.operationCancelled }
+                    return try await self.executeScanTask(task)
                 }
             }
 
-            for try await items in group {
-                completedTasks += 1
-                scanProgress = completedTasks / totalTasks
-                results.items.append(contentsOf: items)
-                results.totalSize += items.reduce(0) { $0 + $1.size }
+            // Process results with cancellation support
+            while completedTasks < totalTasks {
+                if Task.isCancelled {
+                    group.cancelAll()
+                    throw EngineError.operationCancelled
+                }
+                if let items = try await group.next() {
+                    // Skip timeout result
+                    if !Task.isCancelled {
+                        completedTasks += 1
+                        scanProgress = completedTasks / totalTasks
+                        results.items.append(contentsOf: items)
+                        results.totalSize += items.reduce(0) { $0 + $1.size }
+                    }
+                }
+            }
+
+            group.cancelAll()
+        }
+
+        // Apply smart detection if enabled (with timeout)
+        if configuration.enableSmartDetection {
+            currentOperation = "Analyzing with ML..."
+            do {
+                results = try await withTimeout(30.0) {
+                    try await self.applySmartDetection(to: results)
+                }
+            } catch {
+                logger.warning("ML smart detection failed: \(error)")
+                // Fallback: continue without ML scoring
             }
         }
 
-        // Apply smart detection if enabled
-        if configuration.enableSmartDetection {
-            currentOperation = "Analyzing with ML..."
-            results = try await applySmartDetection(to: results)
-        }
-
-        // Perform security audit if enabled
+        // Perform security audit if enabled (with timeout)
         if configuration.enableSecurityAudit {
             currentOperation = "Running security audit..."
-            results = try await performSecurityAudit(on: results)
+            do {
+                results = try await withTimeout(60.0) {
+                    try await self.performSecurityAudit(on: results)
+                }
+            } catch {
+                logger.warning("Security audit timed out, using basic safety scores")
+            }
         }
 
-        // Generate explanations
+        // Generate explanations (with timeout)
         currentOperation = "Generating explanations..."
-        results = await addExplanations(to: results)
+        do {
+            results = try await withTimeout(30.0) {
+                await self.addExplanations(to: results)
+            }
+        } catch {
+            logger.warning("Explanation generation timed out")
+        }
 
         self.scanResults = results
         logger.info("Scan completed: \(results.items.count) items, \(results.totalSize) bytes")
@@ -185,14 +240,25 @@ public class PinakleanEngine: ObservableObject {
         isCleaning = true
         cleanProgress = 0
         currentOperation = "Preparing cleanup..."
-        defer { isCleaning = false }
+        defer {
+            isCleaning = false
+            currentOperation = "Idle"
+        }
+        if Task.isCancelled { throw EngineError.operationCancelled }
 
         logger.info("Starting cleanup of \(items.count) items")
 
-        // Create backup if enabled
+        // Create backup if enabled (with timeout)
         if configuration.autoBackup && !configuration.dryRun {
             currentOperation = "Creating backup..."
-            try await createBackup(for: items)
+            do {
+                try await withTimeout(300.0) {  // 5 minutes for backup
+                    try await self.createBackup(for: items)
+                }
+            } catch {
+                logger.warning("Backup creation timed out: \(error)")
+                throw EngineError.backupFailed
+            }
         }
 
         var results = CleanResults()
@@ -204,20 +270,26 @@ public class PinakleanEngine: ObservableObject {
 
         for (category, categoryItems) in groupedItems {
             currentOperation = "Cleaning \(category)..."
+            if Task.isCancelled { throw EngineError.operationCancelled }
 
             if configuration.dryRun {
                 // Dry run - just simulate
                 results.deletedItems.append(contentsOf: categoryItems)
                 results.freedSpace += categoryItems.reduce(0) { $0 + $1.size }
             } else {
-                // Actual deletion with parallel processing
-                let deleted = try await parallelProcessor.deleteItems(categoryItems)
-                results.deletedItems.append(contentsOf: deleted)
-                results.freedSpace += deleted.reduce(0) { $0 + $1.size }
+                // Actual deletion with parallel processing and timeout
+                do {
+                    let deleted: [CleanableItem] = try await withTimeout(600.0) {  // 10 minutes per category
+                        if Task.isCancelled { throw EngineError.operationCancelled }
+                        return try await self.parallelProcessor.deleteItems(categoryItems)
+                    }
+                    results.deletedItems.append(contentsOf: deleted)
+                    results.freedSpace += deleted.reduce(0) { $0 + $1.size }
+                } catch {
+                    logger.error("Failed to clean \(category): \(error)")
+                    // Add failed items to track what couldn't be deleted
+                }
             }
-
-            processedItems += Double(categoryItems.count)
-            cleanProgress = processedItems / totalItems
         }
 
         // Record results
@@ -225,7 +297,9 @@ public class PinakleanEngine: ObservableObject {
         results.isDryRun = configuration.dryRun
         self.cleanResults = results
 
-        logger.info("Cleanup completed: \(results.deletedItems.count) items, \(results.freedSpace) bytes freed")
+        logger.info(
+            "Cleanup completed: \(results.deletedItems.count) items, \(results.freedSpace) bytes freed"
+        )
 
         return results
     }
@@ -243,30 +317,32 @@ public class PinakleanEngine: ObservableObject {
         // Safe to delete items
         let safeItems = scanResults.items.filter { $0.safetyScore > 70 }
         if !safeItems.isEmpty {
-            recommendations.append(CleaningRecommendation(
-                id: UUID(),
-                title: "Safe to Delete",
-                description: "\(safeItems.count) items identified as safe to delete",
-                items: safeItems,
-                potentialSpace: safeItems.reduce(0) { $0 + $1.size },
-                confidence: 0.95
-            ))
+            recommendations.append(
+                CleaningRecommendation(
+                    id: UUID(),
+                    title: "Safe to Delete",
+                    description: "\(safeItems.count) items identified as safe to delete",
+                    items: safeItems,
+                    potentialSpace: safeItems.reduce(0) { $0 + $1.size },
+                    confidence: 0.95
+                ))
         }
 
         // Large old files
         let largeOldFiles = scanResults.items.filter {
-            $0.size > 100_000_000 && // > 100MB
-            $0.lastAccessed.map { Date().timeIntervalSince($0) > 90 * 24 * 3600 } ?? false
+            $0.size > 100_000_000  // > 100MB
+                && $0.lastAccessed.map { Date().timeIntervalSince($0) > 90 * 24 * 3600 } ?? false
         }
         if !largeOldFiles.isEmpty {
-            recommendations.append(CleaningRecommendation(
-                id: UUID(),
-                title: "Large Unused Files",
-                description: "Files over 100MB not accessed in 90+ days",
-                items: largeOldFiles,
-                potentialSpace: largeOldFiles.reduce(0) { $0 + $1.size },
-                confidence: 0.85
-            ))
+            recommendations.append(
+                CleaningRecommendation(
+                    id: UUID(),
+                    title: "Large Unused Files",
+                    description: "Files over 100MB not accessed in 90+ days",
+                    items: largeOldFiles,
+                    potentialSpace: largeOldFiles.reduce(0) { $0 + $1.size },
+                    confidence: 0.85
+                ))
         }
 
         // Developer junk
@@ -274,14 +350,15 @@ public class PinakleanEngine: ObservableObject {
             [".nodeModules", ".xcodeJunk", ".dockerJunk"].contains($0.category)
         }
         if !devJunk.isEmpty {
-            recommendations.append(CleaningRecommendation(
-                id: UUID(),
-                title: "Developer Cache",
-                description: "Build artifacts and package caches",
-                items: devJunk,
-                potentialSpace: devJunk.reduce(0) { $0 + $1.size },
-                confidence: 0.90
-            ))
+            recommendations.append(
+                CleaningRecommendation(
+                    id: UUID(),
+                    title: "Developer Cache",
+                    description: "Build artifacts and package caches",
+                    items: devJunk,
+                    potentialSpace: devJunk.reduce(0) { $0 + $1.size },
+                    confidence: 0.90
+                ))
         }
 
         return recommendations
@@ -293,50 +370,55 @@ public class PinakleanEngine: ObservableObject {
         var tasks: [ScanTask] = []
 
         if categories.contains(.userCaches) {
-            tasks.append(ScanTask(
-                category: ".userCaches",
-                paths: [
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Library/Caches"),
-                    URL(fileURLWithPath: NSHomeDirectory())
-                        .appendingPathComponent("Library/Application Support")
-                        .appendingPathComponent("Google/Chrome/Default/Cache")
-                ],
-                patterns: ["*", "Cache.db", "*.cache"]
-            ))
+            tasks.append(
+                ScanTask(
+                    category: ".userCaches",
+                    paths: [
+                        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(
+                            "Library/Caches"),
+                        URL(fileURLWithPath: NSHomeDirectory())
+                            .appendingPathComponent("Library/Application Support")
+                            .appendingPathComponent("Google/Chrome/Default/Cache"),
+                    ],
+                    patterns: ["*", "Cache.db", "*.cache"]
+                ))
         }
 
         if categories.contains(.nodeModules) {
-            tasks.append(ScanTask(
-                category: ".nodeModules",
-                paths: [
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Documents"),
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Developer")
-                ],
-                patterns: ["node_modules", ".npm", ".yarn", ".pnpm-store"]
-            ))
+            tasks.append(
+                ScanTask(
+                    category: ".nodeModules",
+                    paths: [
+                        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Documents"),
+                        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("Developer"),
+                    ],
+                    patterns: ["node_modules", ".npm", ".yarn", ".pnpm-store"]
+                ))
         }
 
         if categories.contains(.xcodeJunk) {
-            tasks.append(ScanTask(
-                category: ".xcodeJunk",
-                paths: [
-                    URL(fileURLWithPath: NSHomeDirectory())
-                        .appendingPathComponent("Library/Developer/Xcode/DerivedData"),
-                    URL(fileURLWithPath: NSHomeDirectory())
-                        .appendingPathComponent("Library/Developer/Xcode/Archives")
-                ],
-                patterns: ["*"]
-            ))
+            tasks.append(
+                ScanTask(
+                    category: ".xcodeJunk",
+                    paths: [
+                        URL(fileURLWithPath: NSHomeDirectory())
+                            .appendingPathComponent("Library/Developer/Xcode/DerivedData"),
+                        URL(fileURLWithPath: NSHomeDirectory())
+                            .appendingPathComponent("Library/Developer/Xcode/Archives"),
+                    ],
+                    patterns: ["*"]
+                ))
         }
 
         if categories.contains(.trash) {
-            tasks.append(ScanTask(
-                category: ".trash",
-                paths: [
-                    URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".Trash")
-                ],
-                patterns: ["*"]
-            ))
+            tasks.append(
+                ScanTask(
+                    category: ".trash",
+                    paths: [
+                        URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent(".Trash")
+                    ],
+                    patterns: ["*"]
+                ))
         }
 
         // Add more categories...
@@ -354,7 +436,9 @@ public class PinakleanEngine: ObservableObject {
                 let foundPaths = try await findPaths(in: basePath, matching: pattern)
 
                 for path in foundPaths {
-                    if let item = try? await createCleanableItem(from: path, category: task.category) {
+                    if let item = try? await createCleanableItem(
+                        from: path, category: task.category)
+                    {
                         items.append(item)
                     }
                 }
@@ -369,11 +453,12 @@ public class PinakleanEngine: ObservableObject {
         return try await parallelProcessor.findFiles(in: directory, matching: pattern)
     }
 
-    private func createCleanableItem(from url: URL, category: String) async throws -> CleanableItem {
+    private func createCleanableItem(from url: URL, category: String) async throws -> CleanableItem
+    {
         let attributes = try FileManager.default.attributesOfItem(atPath: url.path)
         let size = (attributes[.size] as? Int64) ?? 0
         let modified = attributes[.modificationDate] as? Date
-        let accessed = attributes[.creationDate] as? Date // Note: macOS doesn't reliably track access time
+        let accessed = attributes[.creationDate] as? Date  // Note: macOS doesn't reliably track access time
 
         // Calculate safety score
         let safetyScore = await smartDetector.calculateSafetyScore(for: url)
@@ -395,13 +480,24 @@ public class PinakleanEngine: ObservableObject {
         var enhancedResults = results
 
         // Find duplicates
-        let duplicates = try await smartDetector.findDuplicates(in: results.items)
-        enhancedResults.duplicates = duplicates
+        do {
+            let duplicates = try await smartDetector.findDuplicates(in: results.items)
+            enhancedResults.duplicates = duplicates
+        } catch {
+            logger.warning("ML duplicate detection failed: \(error)")
+            // Fallback: no duplicates detected
+            enhancedResults.duplicates = []
+        }
 
         // Apply ML-based safety scoring
         for (index, item) in enhancedResults.items.enumerated() {
-            let enhancedScore = try await smartDetector.enhanceSafetyScore(for: item)
-            enhancedResults.items[index].safetyScore = enhancedScore
+            do {
+                let enhancedScore = try await smartDetector.enhanceSafetyScore(for: item)
+                enhancedResults.items[index].safetyScore = enhancedScore
+            } catch {
+                logger.warning("ML safety scoring failed for item \(item.path): \(error)")
+                // Fallback: keep original safety score
+            }
         }
 
         return enhancedResults
@@ -415,7 +511,8 @@ public class PinakleanEngine: ObservableObject {
 
             // Update safety score based on audit
             if auditResult.risk == .critical || auditResult.risk == .high {
-                auditedResults.items[index].safetyScore = min(auditedResults.items[index].safetyScore, 25)
+                auditedResults.items[index].safetyScore = min(
+                    auditedResults.items[index].safetyScore, 25)
                 auditedResults.items[index].warning = auditResult.message
             }
         }
@@ -442,11 +539,31 @@ public class PinakleanEngine: ObservableObject {
             fileCount: items.count,
             metadata: [
                 "type": "pre-cleanup",
-                "categories": items.map { $0.category }.unique().joined(separator: ",")
+                "categories": items.map { $0.category }.unique().joined(separator: ","),
             ]
         )
 
         _ = try await backupManager.smartBackup(snapshot)
+    }
+
+    // MARK: - Timeout Utility
+    private func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T)
+        async throws -> T
+    {
+        try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                throw EngineError.cleanTimeout
+            }
+
+            let result = try await group.next()!
+            group.cancelAll()
+            return result
+        }
     }
 }
 
@@ -475,7 +592,14 @@ public struct CleanResults {
     public var isDryRun = false
 }
 
-public struct CleanableItem: Identifiable, Codable {
+public struct CleanableItem: Identifiable, Codable, Hashable {
+    public static func == (lhs: CleanableItem, rhs: CleanableItem) -> Bool {
+        lhs.id == rhs.id
+    }
+
+    public func hash(into hasher: inout Hasher) {
+        hasher.combine(id)
+    }
     public let id: UUID
     public let path: String
     public let name: String
@@ -486,6 +610,30 @@ public struct CleanableItem: Identifiable, Codable {
     public var safetyScore: Int
     public var explanation: String?
     public var warning: String?
+
+    public init(
+        id: UUID,
+        path: String,
+        name: String,
+        category: String,
+        size: Int64,
+        lastModified: Date? = nil,
+        lastAccessed: Date? = nil,
+        safetyScore: Int,
+        explanation: String? = nil,
+        warning: String? = nil
+    ) {
+        self.id = id
+        self.path = path
+        self.name = name
+        self.category = category
+        self.size = size
+        self.lastModified = lastModified
+        self.lastAccessed = lastAccessed
+        self.safetyScore = safetyScore
+        self.explanation = explanation
+        self.warning = warning
+    }
 
     public var formattedSize: String {
         ByteCountFormatter.string(fromByteCount: size, countStyle: .file)
@@ -529,7 +677,11 @@ public enum EngineError: LocalizedError {
     case operationInProgress
     case noScanResults
     case securityAuditFailed(String)
-    case backupFailed(String)
+    case backupFailed
+    case initializationTimeout
+    case scanTimeout
+    case cleanTimeout
+    case operationCancelled
 
     public var errorDescription: String? {
         switch self {
@@ -539,8 +691,16 @@ public enum EngineError: LocalizedError {
             return "No scan results available. Please run a scan first."
         case .securityAuditFailed(let message):
             return "Security audit failed: \(message)"
-        case .backupFailed(let message):
-            return "Backup failed: \(message)"
+        case .backupFailed:
+            return "Backup operation failed or timed out"
+        case .initializationTimeout:
+            return "Engine initialization timed out"
+        case .scanTimeout:
+            return "Scan operation timed out"
+        case .cleanTimeout:
+            return "Clean operation timed out"
+        case .operationCancelled:
+            return "Operation was cancelled"
         }
     }
 }

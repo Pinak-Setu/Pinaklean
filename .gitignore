@@ -1,3 +1,21 @@
+# macOS
+.DS_Store
+
+# backups
+pinaklean_backups/
+
+# node
+node_modules/
+
+# test temp
+/tmp/
+
+# Swift
 .build/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcscmblueprint
+
+# logs
 test_results_*.log
 *.log

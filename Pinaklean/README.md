@@ -1,18 +1,50 @@
-## 🕐 Automated Hourly Cleaning
+## 🕐 Automated Maintenance Features
 
-Pinaklean can automatically maintain your Mac with safe, scheduled cleaning:
+**Available in v1.0.0:**
+Pinaklean provides comprehensive automated maintenance capabilities:
 
 ### Installation
 
-1. **Install the hourly cleaning system:**
+#### Method 1: Swift Package Manager
+```bash
+# Clone and build
+git clone https://github.com/Pinak-Setu/Pinaklean.git
+cd Pinaklean/PinakleanApp
+
+# Build the CLI tool
+swift build --product pinaklean-cli --configuration release
+
+# Install globally (optional)
+sudo cp .build/release/pinaklean-cli /usr/local/bin/pinaklean
+```
+
+#### Method 2: Download Pre-built Binary
+```bash
+# From GitHub Releases
+# https://github.com/Pinak-Setu/Pinaklean/releases/tag/v1.0.0
+
+# Make executable
+chmod +x pinaklean-cli
+./pinaklean-cli --help
+```
+
+### Automated Maintenance Setup
+
+1. **Install the maintenance system:**
    ```bash
-   chmod +x scripts/install_hourly_clean.sh
-   ./scripts/install_hourly_clean.sh
+   # Create maintenance directory
+   mkdir -p ~/.pinaklean
+
+   # Copy maintenance scripts (if available)
+   # cp scripts/hourly_clean.sh ~/.pinaklean/
+   # chmod +x ~/.pinaklean/hourly_clean.sh
    ```
 
-2. **Load the launchd agent:**
+2. **Configure automated cleaning:**
    ```bash
-   launchctl load ~/Library/LaunchAgents/com.pinaklean.hourlyclean.plist
+   # Set up launchd agent (example)
+   # cp scripts/com.pinaklean.hourlyclean.plist ~/Library/LaunchAgents/
+   # launchctl load ~/Library/LaunchAgents/com.pinaklean.hourlyclean.plist
    ```
 
 ### Features
@@ -86,45 +118,72 @@ Our comprehensive CI/CD pipeline ensures:
 
 ### Manual Testing Commands
 ```bash
-# Safety verification
-./bin/pinaklean --safety-check
+# Build the CLI tool first
+cd PinakleanApp
+swift build --product pinaklean-cli --configuration release
 
-# Dry run testing
-./bin/pinaklean --dry-run --categories all
+# Safety verification (dry-run)
+./.build/release/pinaklean-cli clean --dry-run
+
+# Scan testing
+./.build/release/pinaklean-cli scan --safe --verbose
 
 # Performance testing
-time ./bin/pinaklean --categories userCaches,logs
+time ./.build/release/pinaklean-cli scan --safe
+
+# Configuration testing
+./.build/release/pinaklean-cli config --show
+
+# Help system
+./.build/release/pinaklean-cli --help
+./.build/release/pinaklean-cli scan --help
+./.build/release/pinaklean-cli clean --help
 ```
 
 ## 📊 Monitoring & Analytics
 
-### Metrics Collection
-Pinaklean tracks comprehensive metrics:
-- **Daily Cleaning**: Items cleaned, space freed, duration
-- **System Health**: CPU usage, memory, disk space
-- **Performance**: Scan times, processing efficiency
-- **Safety**: Operations blocked, risk assessments
+### Metrics Collection (v1.0.0)
+Pinaklean provides real-time performance metrics:
 
-### Analytics Dashboard
+#### Current Metrics Available:
+- **Processing Statistics**: Files scanned, processing time
+- **Safety Metrics**: Operations blocked, safety score distributions
+- **Performance Data**: CPU usage, memory consumption
+- **System Health**: Disk space analysis, file counts
+
+#### Viewing Metrics:
 ```bash
-# View daily metrics
-cat ~/.pinaklean/metrics.json | jq .daily
+# Real-time performance during scanning
+./.build/release/pinaklean-cli scan --safe --verbose
 
-# View total statistics
-cat ~/.pinaklean/metrics.json | jq .total
+# Configuration and system info
+./.build/release/pinaklean-cli config --show
 
-# Generate cleaning report
-./scripts/generate_report.sh
+# Performance benchmarking
+time ./.build/release/pinaklean-cli scan --safe
 ```
+
+#### Future Analytics Features:
+- **Daily Cleaning Reports** (planned for v1.1.0)
+- **Trend Analysis** (planned for v1.2.0)
+- **Automated Alerts** (planned for v1.3.0)
+- **Historical Data** (planned for v1.4.0)
 
 ### Log Analysis
 ```bash
-# View recent cleaning activity
-tail -50 ~/.pinaklean/hourly_clean.log
+# View CLI output with verbose logging
+./.build/release/pinaklean-cli scan --safe --verbose
 
-# Search for specific events
-grep "SUCCESS\|ERROR" ~/.pinaklean/hourly_clean.log
+# Debug information
+./.build/release/pinaklean-cli --help
 
-# Analyze error patterns
-grep "ERROR" ~/.pinaklean/hourly_clean.log | sort | uniq -c
+# Configuration details
+./.build/release/pinaklean-cli config --show
 ```
+
+### Roadmap for Advanced Analytics:
+- ✅ **Basic Performance Metrics** (v1.0.0)
+- 🔄 **Daily Cleaning Reports** (v1.1.0)
+- 🔄 **Trend Analysis Dashboard** (v1.2.0)
+- 🔄 **Automated Alert System** (v1.3.0)
+- 🔄 **Historical Data Storage** (v1.4.0)

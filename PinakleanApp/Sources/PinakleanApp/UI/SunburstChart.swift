@@ -191,7 +191,7 @@ struct WedgePath: Shape {
         var path = Path()
 
         let centerPoint = CGPoint(x: rect.midX, y: rect.midY)
-        let _ = CGPoint(
+        let startOuter = CGPoint(
             x: centerPoint.x + outerRadius * cos(CGFloat(startAngle.radians)),
             y: centerPoint.y + outerRadius * sin(CGFloat(startAngle.radians))
         )
@@ -268,32 +268,32 @@ struct SunburstChart_Previews: PreviewProvider {
         ]
 
         SunburstChart(
-                data: sampleData,
-                centerText: "Total Space",
-                centerValue: "256 GB"
-            )
-            .frame(width: 400, height: 400)
-            .preferredColorScheme(.light)
-        }
+            data: sampleData,
+            centerText: "Total Space",
+            centerValue: "256 GB"
+        )
+        .frame(width: 400, height: 400)
+        .preferredColorScheme(.light)
+    }
+}
+
+// MARK: - Extensions
+
+extension SunburstChart {
+    /// Sunburst chart with custom colors
+    func customColors(_ colors: [Color]) -> some View {
+        // Implementation would modify data colors
+        self
     }
 
-    // MARK: - Extensions
-
-    extension SunburstChart {
-        /// Sunburst chart with custom colors
-        func customColors(_ colors: [Color]) -> some View {
-            // Implementation would modify data colors
-            self
-        }
-
-        /// Sunburst chart with animation delay
-        func animationDelay(_ delay: Double) -> some View {
-            self.onAppear {
-                DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
-                    withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
-                        // Trigger animation
-                    }
+    /// Sunburst chart with animation delay
+    func animationDelay(_ delay: Double) -> some View {
+        self.onAppear {
+            DispatchQueue.main.asyncAfter(deadline: .now() + delay) {
+                withAnimation(.spring(response: 0.4, dampingFraction: 0.8)) {
+                    // Trigger animation
                 }
             }
         }
     }
+}

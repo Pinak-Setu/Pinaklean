@@ -90,7 +90,7 @@ struct DashboardView: View {
                                 type: .scan,
                                 title: "Quick Scan Completed",
                                 description:
-                                    "Scanned \(uiState.totalFilesScanned) files and found items to clean",
+                                    "Scanned (uiState.totalFilesScanned) files and found items to clean"
                                 icon: "magnifyingglass"
                             ))
                     }

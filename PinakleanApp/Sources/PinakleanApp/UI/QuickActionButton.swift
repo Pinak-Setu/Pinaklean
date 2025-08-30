@@ -171,12 +171,13 @@ struct QuickActionButton_Previews: PreviewProvider {
 
 // MARK: - Accessibility Extensions
 
-extension QuickActionButton {
-    /// Add custom accessibility actions
-    func accessibilityAction(named name: String, action: @escaping () -> Void) -> some View {
-        self.accessibilityAction(.named(name), action)
-    }
-}
+// Temporarily disabled due to API changes
+// extension QuickActionButton {
+//     /// Add custom accessibility actions
+//     func accessibilityAction(named name: String, action: @escaping () -> Void) -> some View {
+//         self.accessibilityAction(.named(name), action)
+//     }
+// }
 
 // MARK: - Animation Extensions
 

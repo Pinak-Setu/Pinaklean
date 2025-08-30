@@ -9,3 +9,10 @@ node_modules/
 
 # test temp
 /tmp/
+
+# Swift
+.build/
+*.xcodeproj/xcuserdata/
+*.xcodeproj/project.xcworkspace/xcuserdata/
+*.xcscmblueprint
+.DS_Store

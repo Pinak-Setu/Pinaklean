@@ -1,8 +1,8 @@
+import CloudKit
+import Compression
+import CryptoKit
 // swiftlint:disable file_length
 import Foundation
-import CloudKit
-import CryptoKit
-import Compression
 
 // MARK: - Free Cloud Backup Strategy
 // 1. iCloud Drive (5GB free) - Primary
@@ -15,11 +15,11 @@ public actor CloudBackupManager {
 
     // MARK: - Free Tier Limits
     private enum CloudLimits {
-        static let iCloudFree: Int64 = 5 * 1024 * 1024 * 1024      // 5GB
-        static let googleDriveFree: Int64 = 15 * 1024 * 1024 * 1024 // 15GB
-        static let dropboxFree: Int64 = 2 * 1024 * 1024 * 1024      // 2GB
-        static let githubReleaseMax: Int64 = 2 * 1024 * 1024 * 1024 // 2GB per file
-        static let megaFree: Int64 = 20 * 1024 * 1024 * 1024        // 20GB
+        static let iCloudFree: Int64 = 5 * 1024 * 1024 * 1024  // 5GB
+        static let googleDriveFree: Int64 = 15 * 1024 * 1024 * 1024  // 15GB
+        static let dropboxFree: Int64 = 2 * 1024 * 1024 * 1024  // 2GB
+        static let githubReleaseMax: Int64 = 2 * 1024 * 1024 * 1024  // 2GB per file
+        static let megaFree: Int64 = 20 * 1024 * 1024 * 1024  // 20GB
     }
 
     // MARK: - Properties
@@ -31,24 +31,24 @@ public actor CloudBackupManager {
     // MARK: - Cloud Providers
     public enum CloudProvider: String, CaseIterable {
         case iCloudDrive = "iCloud Drive"
-        case githubGist = "GitHub Gist"     // For small metadata (up to 100MB)
-        case githubRelease = "GitHub Release" // For larger backups
+        case githubGist = "GitHub Gist"  // For small metadata (up to 100MB)
+        case githubRelease = "GitHub Release"  // For larger backups
         case googleDrive = "Google Drive"
-        case ipfs = "IPFS"                   // Decentralized
-        case webDAV = "WebDAV"               // Self-hosted option
-        case localNAS = "Local NAS"          // Network attached storage
+        case ipfs = "IPFS"  // Decentralized
+        case webDAV = "WebDAV"  // Self-hosted option
+        case localNAS = "Local NAS"  // Network attached storage
 
-        var isFree: Bool { true } // All options are free
+        var isFree: Bool { true }  // All options are free
 
         var storageLimit: Int64 {
             switch self {
             case .iCloudDrive: return CloudLimits.iCloudFree
-            case .githubGist: return 100 * 1024 * 1024 // 100MB
+            case .githubGist: return 100 * 1024 * 1024  // 100MB
             case .githubRelease: return CloudLimits.githubReleaseMax
             case .googleDrive: return CloudLimits.googleDriveFree
-            case .ipfs: return Int64.max // Unlimited (distributed)
-            case .webDAV: return Int64.max // Depends on server
-            case .localNAS: return Int64.max // Depends on NAS
+            case .ipfs: return Int64.max  // Unlimited (distributed)
+            case .webDAV: return Int64.max  // Depends on server
+            case .localNAS: return Int64.max  // Depends on NAS
             }
         }
     }
@@ -99,7 +99,8 @@ public actor CloudBackupManager {
             throw BackupError.iCloudNotAvailable
         }
 
-        let backupDir = containerURL.appendingPathComponent("Documents/PinakleanBackups", isDirectory: true)
+        let backupDir = containerURL.appendingPathComponent(
+            "Documents/PinakleanBackups", isDirectory: true)
         try? FileManager.default.createDirectory(at: backupDir, withIntermediateDirectories: true)
 
         // Compress and encrypt snapshot
@@ -143,13 +144,15 @@ public actor CloudBackupManager {
         return ghCheck.terminationStatus == 0
     }
 
-    public func backupToGitHub(_ snapshot: DiskSnapshot, useGist: Bool = false) async throws -> BackupResult {
+    public func backupToGitHub(_ snapshot: DiskSnapshot, useGist: Bool = false) async throws
+        -> BackupResult
+    {
         let compressedData = try await compressSnapshot(snapshot)
         let encryptedData = try await encryptData(compressedData)
 
-        if useGist && encryptedData.count <= 100 * 1024 * 1024 { // Under 100MB - use Gist
+        if useGist && encryptedData.count <= 100 * 1024 * 1024 {  // Under 100MB - use Gist
             return try await createGitHubGist(data: encryptedData, snapshot: snapshot)
-        } else { // Use GitHub Release for larger files
+        } else {  // Use GitHub Release for larger files
             return try await createGitHubRelease(data: encryptedData, snapshot: snapshot)
         }
     }
@@ -157,16 +160,16 @@ public actor CloudBackupManager {
     private func createGitHubGist(data: Data, snapshot: DiskSnapshot) async throws -> BackupResult {
         let base64Data = data.base64EncodedString()
         let gistContent = """
-        {
-            "description": "Pinaklean Backup - \(snapshot.id)",
-            "public": false,
-            "files": {
-                "backup.pinaklean": {
-                    "content": "\(base64Data)"
+            {
+                "description": "Pinaklean Backup - \(snapshot.id)",
+                "public": false,
+                "files": {
+                    "backup.pinaklean": {
+                        "content": "\(base64Data)"
+                    }
                 }
             }
-        }
-        """
+            """
 
         // Use gh CLI to create gist
         let process = Process()
@@ -207,7 +210,9 @@ public actor CloudBackupManager {
         }
     }
 
-    private func uploadToIPFSGateway(data: Data, snapshot: DiskSnapshot) async throws -> BackupResult {
+    private func uploadToIPFSGateway(data: Data, snapshot: DiskSnapshot) async throws
+        -> BackupResult
+    {
         // Use free IPFS pinning services like:
         // - Pinata (1GB free)
         // - Web3.storage (5GB free)
@@ -241,7 +246,7 @@ public actor CloudBackupManager {
             "/Volumes/TimeMachine",
             "/Volumes/Backup",
             "/Volumes/NAS",
-            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("NAS").path
+            URL(fileURLWithPath: NSHomeDirectory()).appendingPathComponent("NAS").path,
         ]
 
         for path in nasPaths {
@@ -287,7 +292,9 @@ public actor CloudBackupManager {
             }
         }
 
-        if availableProviders.contains(.githubRelease) && snapshotSize < CloudLimits.githubReleaseMax {
+        if availableProviders.contains(.githubRelease)
+            && snapshotSize < CloudLimits.githubReleaseMax
+        {
             if let result = try? await backupToGitHub(snapshot, useGist: false) {
                 return result
             }
@@ -298,8 +305,10 @@ public actor CloudBackupManager {
     }
 
     // MARK: - Incremental Backup with Deduplication
-    public func incrementalBackup(_ snapshot: DiskSnapshot,
-                                 previousBackup: BackupResult?) async throws -> BackupResult {
+    public func incrementalBackup(
+        _ snapshot: DiskSnapshot,
+        previousBackup: BackupResult?
+    ) async throws -> BackupResult {
         // Only backup changed blocks (deduplication)
         let changes = try await calculateDelta(snapshot, previous: previousBackup)
 
@@ -312,7 +321,7 @@ public actor CloudBackupManager {
         let incrementalData = try await createIncrementalBackup(changes)
 
         // Choose smallest free option for incremental
-        if incrementalData.count < 100 * 1024 * 1024 { // Under 100MB
+        if incrementalData.count < 100 * 1024 * 1024 {  // Under 100MB
             if availableProviders.contains(.githubGist) {
                 return try await backupToGitHub(snapshot, useGist: true)
             }
@@ -340,8 +349,9 @@ public actor CloudBackupManager {
             return SymmetricKey(data: keyData)
         } else {
             let newKey = SymmetricKey(size: .bits256)
-            KeychainHelper.save(key: "PinakleanBackupKey",
-                               data: newKey.withUnsafeBytes { Data($0) })
+            KeychainHelper.save(
+                key: "PinakleanBackupKey",
+                data: newKey.withUnsafeBytes { Data($0) })
             return newKey
         }
     }
@@ -354,7 +364,8 @@ public actor CloudBackupManager {
 
         // Check Keychain
         if let tokenData = KeychainHelper.load(key: "GitHubToken"),
-           let token = String(data: tokenData, encoding: .utf8) {
+            let token = String(data: tokenData, encoding: .utf8)
+        {
             return token
         }
 
@@ -362,7 +373,8 @@ public actor CloudBackupManager {
         let ghConfigPath = URL(fileURLWithPath: NSHomeDirectory())
             .appendingPathComponent(".config/gh/hosts.yml")
         if let config = try? String(contentsOf: ghConfigPath),
-           config.contains("oauth_token") {
+            config.contains("oauth_token")
+        {
             // Parse token from config
             return "configured_via_gh_cli"
         }
@@ -379,7 +391,8 @@ public actor CloudBackupManager {
         return process.terminationStatus == 0
     }
 
-    private func uploadToLocalIPFS(data: Data, snapshot: DiskSnapshot) async throws -> BackupResult {
+    private func uploadToLocalIPFS(data: Data, snapshot: DiskSnapshot) async throws -> BackupResult
+    {
         // Save to temporary file first
         let tempFile = FileManager.default.temporaryDirectory
             .appendingPathComponent("backup_\(snapshot.id).pinaklean")
@@ -421,7 +434,7 @@ public actor CloudBackupManager {
         let compressionRatio = Double(compressed.count) / Double(sampleData.count)
 
         // Estimate based on file count and average size
-        return Int64(Double(snapshot.totalSize) * compressionRatio * 0.1) // Assume 10% of files are backed up
+        return Int64(Double(snapshot.totalSize) * compressionRatio * 0.1)  // Assume 10% of files are backed up
     }
 
     private func calculateiCloudUsage() async throws -> Int64 {
@@ -429,11 +442,14 @@ public actor CloudBackupManager {
             return 0
         }
 
-        let backupDir = containerURL.appendingPathComponent("Documents/PinakleanBackups", isDirectory: true)
+        let backupDir = containerURL.appendingPathComponent(
+            "Documents/PinakleanBackups", isDirectory: true)
 
         var totalSize: Int64 = 0
-        if let enumerator = FileManager.default.enumerator(at: backupDir,
-                                                          includingPropertiesForKeys: [.fileSizeKey]) {
+        if let enumerator = FileManager.default.enumerator(
+            at: backupDir,
+            includingPropertiesForKeys: [.fileSizeKey])
+        {
             while let fileURL = enumerator.nextObject() as? URL {
                 if let size = try? fileURL.resourceValues(forKeys: [.fileSizeKey]).fileSize {
                     totalSize += Int64(size)
@@ -444,7 +460,7 @@ public actor CloudBackupManager {
         return totalSize
     }
 
-    private func backupToNAS(_ snapshot: DiskSnapshot) async throws -> BackupResult {
+    public func backupToNAS(_ snapshot: DiskSnapshot) async throws -> BackupResult {
         // Find NAS mount point
         guard let nasURL = findNASMountPoint() else {
             throw BackupError.nasNotAvailable
@@ -474,7 +490,7 @@ public actor CloudBackupManager {
         let possiblePaths = [
             "/Volumes/TimeMachine",
             "/Volumes/Backup",
-            "/Volumes/NAS"
+            "/Volumes/NAS",
         ]
 
         for path in possiblePaths {
@@ -487,8 +503,10 @@ public actor CloudBackupManager {
         return nil
     }
 
-    private func calculateDelta(_ snapshot: DiskSnapshot,
-                               previous: BackupResult?) async throws -> [BackupFileChange] {
+    private func calculateDelta(
+        _ snapshot: DiskSnapshot,
+        previous: BackupResult?
+    ) async throws -> [BackupFileChange] {
         // Implement delta calculation logic
         // Compare current snapshot with previous backup metadata
         return []
@@ -499,7 +517,9 @@ public actor CloudBackupManager {
         return try await compressSnapshot(DiskSnapshot.incremental(changes: changes))
     }
 
-    private func createGitHubRelease(data: Data, snapshot: DiskSnapshot) async throws -> BackupResult {
+    private func createGitHubRelease(data: Data, snapshot: DiskSnapshot) async throws
+        -> BackupResult
+    {
         // Implementation for GitHub Release creation
         // Would use gh CLI or GitHub API
         return BackupResult(
@@ -515,12 +535,12 @@ public actor CloudBackupManager {
 
 // MARK: - Supporting Types
 public struct BackupResult {
-    let provider: CloudBackupManager.CloudProvider
-    let location: String
-    let size: Int64
-    let timestamp: Date
-    let isEncrypted: Bool
-    let isFree: Bool
+    public let provider: CloudBackupManager.CloudProvider
+    public let location: String
+    public let size: Int64
+    public let timestamp: Date
+    public let isEncrypted: Bool
+    public let isFree: Bool
 
     static let empty = BackupResult(
         provider: .ipfs,
@@ -533,11 +553,25 @@ public struct BackupResult {
 }
 
 public struct DiskSnapshot: Codable {
-    let id: UUID
-    let timestamp: Date
-    let totalSize: Int64
-    let fileCount: Int
-    let metadata: [String: String]
+    public let id: UUID
+    public let timestamp: Date
+    public let totalSize: Int64
+    public let fileCount: Int
+    public let metadata: [String: String]
+
+    public init(
+        id: UUID,
+        timestamp: Date,
+        totalSize: Int64,
+        fileCount: Int,
+        metadata: [String: String]
+    ) {
+        self.id = id
+        self.timestamp = timestamp
+        self.totalSize = totalSize
+        self.fileCount = fileCount
+        self.metadata = metadata
+    }
 
     static func incremental(changes: [BackupFileChange]) -> DiskSnapshot {
         DiskSnapshot(
@@ -554,7 +588,7 @@ public struct BackupFileChange: Codable {
     let path: String
     let changeType: ChangeType
     let sizeDelta: Int64
-    let timestamp: Date
+    public let timestamp: Date
 
     enum ChangeType: String, Codable {
         case added, modified, deleted
@@ -608,8 +642,10 @@ struct KeychainHelper {
 // MARK: - Local Storage Manager
 struct LocalStorageManager {
     func saveLocally(_ data: Data, filename: String) throws -> URL {
-        let documentsURL = FileManager.default.urls(for: .documentDirectory,
-                                                   in: .userDomainMask).first!
+        let documentsURL = FileManager.default.urls(
+            for: .documentDirectory,
+            in: .userDomainMask
+        ).first!
         let backupDir = documentsURL.appendingPathComponent("PinakleanBackups", isDirectory: true)
         try? FileManager.default.createDirectory(at: backupDir, withIntermediateDirectories: true)
 

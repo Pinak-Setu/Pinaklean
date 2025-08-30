@@ -220,14 +220,16 @@ final class UnifiedUIState: ObservableObject {
             ActivityItem(
                 type: .scan,
                 title: "Quick Scan Completed",
-                description: "Scanned 1,234 files and found 89 items to clean (2.5 GB)"
+                description: "Scanned 1,234 files and found 89 items to clean (2.5 GB)",
+                icon: "magnifyingglass"
             ))
 
         addActivity(
             ActivityItem(
                 type: .clean,
                 title: "Auto Clean Executed",
-                description: "Cleaned 45 files and freed up 1.2 GB of space"
+                description: "Cleaned 45 files and freed up 1.2 GB of space",
+                icon: "trash.fill"
             ))
     }
 
@@ -239,12 +241,14 @@ final class UnifiedUIState: ObservableObject {
 // MARK: - Supporting Types
 
 /// Application tabs
-enum AppTab: CaseIterable {
+enum AppTab: CaseIterable, Identifiable {
     case dashboard
     case scan
     case clean
     case settings
     case analytics
+
+    var id: Self { self }
 
     var title: String {
         switch self {
@@ -319,6 +323,7 @@ struct ActivityItem: Identifiable {
     var type: ActivityType
     var title: String
     var description: String
+    var icon: String
     var timestamp: Date = Date()
 
     enum ActivityType {
@@ -408,10 +413,6 @@ extension UnifiedUIState {
 }
 
 extension ScanResults {
-    /// Calculate total safe size
-    var safeTotalSize: Int64 {
-        items.filter { $0.safetyLevel != .critical }.reduce(0) { $0 + $1.size }
-    }
 
     /// Get items by risk level
     func itemsByRisk(_ risk: SafetyLevel) -> [CleanableItem] {

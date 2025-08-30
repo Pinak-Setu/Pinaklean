@@ -1,0 +1,45 @@
+//
+//  PinakleanApp.swift
+//  PinakleanApp
+//
+//  Main application showcasing the "Liquid Crystal" design system
+//  Demonstrates glassmorphic components, animations, and responsive layout
+//
+//  Created: UI Implementation Phase
+//  Features: Glassmorphic UI, Liquid Crystal design, Component showcase
+//
+
+import SwiftUI
+
+/// Main Pinaklean Application with Liquid Crystal Design System
+@main
+struct PinakleanApp: App {
+    @StateObject private var uiState = UnifiedUIState()
+
+    var body: some Scene {
+        WindowGroup {
+            MainView()
+                .environmentObject(uiState)
+                .preferredColorScheme(.dark)
+                .frame(minWidth: 1000, minHeight: 700)
+        }
+        .windowStyle(.titleBar)
+        .windowToolbarStyle(.automatic)
+        .commands {
+            // Custom commands for Pinaklean
+            CommandGroup(replacing: .newItem) {
+                Button("Quick Scan") {
+                    uiState.addScanActivity(foundFiles: 1234, duration: 2.5)
+                }
+                .keyboardShortcut("n", modifiers: [.command])
+            }
+
+            CommandGroup(replacing: .saveItem) {
+                Button("Auto Clean") {
+                    uiState.addCleanActivity(cleanedBytes: 1_200_000_000, fileCount: 45)
+                }
+                .keyboardShortcut("s", modifiers: [.command])
+            }
+        }
+    }
+}

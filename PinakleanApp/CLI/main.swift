@@ -1,5 +1,5 @@
-import Foundation
 import ArgumentParser
+import Foundation
 import Logging
 import PinakleanCore
 
@@ -17,7 +17,7 @@ struct PinakleanCLI: AsyncParsableCommand {
             Backup.self,
             Restore.self,
             Config.self,
-            Interactive.self
+            Interactive.self,
         ],
         defaultSubcommand: Interactive.self
     )
@@ -119,8 +119,11 @@ struct Scan: AsyncParsableCommand {
         // Summary
         print("\n📈 Summary:")
         print("  • Total items: \(results.items.count)")
-        print("  • Total size: \(ByteCountFormatter.string(fromByteCount: results.totalSize, countStyle: .file))")
-        let safeSize = ByteCountFormatter.string(fromByteCount: results.safeTotalSize, countStyle: .file)
+        print(
+            "  • Total size: \(ByteCountFormatter.string(fromByteCount: results.totalSize, countStyle: .file))"
+        )
+        let safeSize = ByteCountFormatter.string(
+            fromByteCount: results.safeTotalSize, countStyle: .file)
         print("  • Safe to delete: \(safeSize)")
 
         // By category
@@ -143,7 +146,8 @@ struct Scan: AsyncParsableCommand {
         if showDuplicates && !results.duplicates.isEmpty {
             print("\n♊ Duplicate Files:")
             for group in results.duplicates.prefix(5) {
-                let wastedSize = ByteCountFormatter.string(fromByteCount: group.wastedSpace, countStyle: .file)
+                let wastedSize = ByteCountFormatter.string(
+                    fromByteCount: group.wastedSpace, countStyle: .file)
                 print("  • \(group.items.count) copies - \(wastedSize) wasted")
                 for item in group.items.prefix(2) {
                     print("    - \(item.path)")
@@ -187,16 +191,48 @@ struct Clean: AsyncParsableCommand {
     var minSafety: Int = 70
 
     mutating func run() async throws {
-        let engine = try await PinakleanEngine()
+        setupSignalHandlers()
+
+        let engine: PinakleanEngine
+        do {
+            engine = try await withTimeout(300.0) {  // 5 minutes
+                try await PinakleanEngine()
+            }
+        } catch {
+            print("❌ Failed to initialize engine: \(error.localizedDescription)")
+            throw ExitCode.failure
+        }
+
         var config = await engine.configuration
         config.dryRun = dryRun
         config.autoBackup = !skipBackup
         await engine.configure(config)
 
-        // Scan first
+        // Set up cancellation handler
+        PinakleanCLI.cancellationHandler = {
+            Task {
+                print("⚠️  Stopping clean operation...")
+                // Engine cleanup happens automatically via deinit
+            }
+        }
+
+        // Scan first with timeout
         print("🔍 Scanning for cleanable files...")
         let scanCategories = parseCategories(categories)
-        let scanResults = try await engine.scan(categories: scanCategories)
+        let scanResults: ScanResults
+
+        do {
+            scanResults = try await withTimeout(300.0) {  // 5 minutes
+                try await engine.scan(categories: scanCategories)
+            }
+        } catch {
+            if PinakleanCLI.isInterrupted {
+                print("❌ Scan cancelled by user")
+                throw ExitCode.failure
+            }
+            print("❌ Scan timed out or failed: \(error.localizedDescription)")
+            throw ExitCode.failure
+        }
 
         // Filter by safety score
         let safeItems = scanResults.items.filter { $0.safetyScore >= minSafety }
@@ -209,7 +245,9 @@ struct Clean: AsyncParsableCommand {
         // Show what will be cleaned
         let totalSize = safeItems.reduce(0) { $0 + $1.size }
         print("\n🗑️  Items to clean: \(safeItems.count)")
-        print("💾 Space to free: \(ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file))")
+        print(
+            "💾 Space to free: \(ByteCountFormatter.string(fromByteCount: totalSize, countStyle: .file))"
+        )
 
         // Confirm unless forced
         if !force && !dryRun {
@@ -222,11 +260,24 @@ struct Clean: AsyncParsableCommand {
             }
         }
 
-        // Perform cleanup
+        // Perform cleanup with timeout
         let spinner = Spinner(text: dryRun ? "Simulating cleanup..." : "Cleaning...")
         spinner.start()
 
-        let cleanResults = try await engine.clean(safeItems)
+        let cleanResults: CleanResults
+        do {
+            cleanResults = try await withTimeout(600.0) {  // 10 minutes
+                try await engine.clean(safeItems)
+            }
+        } catch {
+            spinner.stop()
+            if PinakleanCLI.isInterrupted {
+                print("❌ Cleanup cancelled by user")
+                throw ExitCode.failure
+            }
+            print("❌ Cleanup timed out or failed: \(error.localizedDescription)")
+            throw ExitCode.failure
+        }
 
         spinner.stop()
 
@@ -234,15 +285,20 @@ struct Clean: AsyncParsableCommand {
         if dryRun {
             print("\n🔍 Dry Run Results:")
             print("  Would delete: \(cleanResults.deletedItems.count) items")
-            let freedSize = ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file)
+            let freedSize = ByteCountFormatter.string(
+                fromByteCount: cleanResults.freedSpace, countStyle: .file)
             print("  Would free: \(freedSize)")
         } else {
             print("\n✅ Cleanup Complete!")
             print("  Deleted: \(cleanResults.deletedItems.count) items")
-            print("  Freed: \(ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file))")
+            print(
+                "  Freed: \(ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file))"
+            )
 
             if !cleanResults.failedItems.isEmpty {
-                print("\n⚠️  Failed to delete \(cleanResults.failedItems.count) items")
+                print(
+                    "\n⚠️  Failed to delete \(cleanResults.failedItems.count) items (check permissions)"
+                )
             }
         }
     }
@@ -268,19 +324,57 @@ struct Auto: AsyncParsableCommand {
     var ultraSafe = false
 
     mutating func run() async throws {
+        setupSignalHandlers()
+
         print("🤖 Pinaklean Auto-Clean")
         print("═══════════════════════════════════════════════════════\n")
 
-        let engine = try await PinakleanEngine()
-        let config = ultraSafe ? PinakleanEngine.Configuration.paranoid : PinakleanEngine.Configuration.default
+        let engine: PinakleanEngine
+        do {
+            engine = try await withTimeout(60.0) {
+                try await PinakleanEngine()
+            }
+        } catch {
+            print("❌ Failed to initialize engine: \(error.localizedDescription)")
+            throw ExitCode.failure
+        }
+
+        let config =
+            ultraSafe
+            ? PinakleanEngine.Configuration.paranoid : PinakleanEngine.Configuration.default
         await engine.configure(config)
 
-        // Scan
+        // Set up cancellation handler
+        PinakleanCLI.cancellationHandler = {
+            Task {
+                print("⚠️  Stopping auto-clean operation...")
+                // Engine cleanup happens automatically via deinit
+            }
+        }
+
+        // Scan with timeout
         let spinner = Spinner(text: "Analyzing your system...")
         spinner.start()
 
-        let results = try await engine.scan(categories: .safe)
-        let recommendations = try await engine.getRecommendations()
+        let results: ScanResults
+        let recommendations: [CleaningRecommendation]
+
+        do {
+            results = try await withTimeout(300.0) {  // 5 minutes
+                try await engine.scan(categories: .safe)
+            }
+            recommendations = try await withTimeout(60.0) {  // 1 minute
+                try await engine.getRecommendations()
+            }
+        } catch {
+            spinner.stop()
+            if PinakleanCLI.isInterrupted {
+                print("❌ Operation cancelled by user")
+                throw ExitCode.failure
+            }
+            print("❌ Scan timed out or failed: \(error.localizedDescription)")
+            throw ExitCode.failure
+        }
 
         spinner.stop()
 
@@ -299,7 +393,8 @@ struct Auto: AsyncParsableCommand {
         }
 
         let totalSpace = recommendations.reduce(0) { $0 + $1.potentialSpace }
-        let totalSpaceFormatted = ByteCountFormatter.string(fromByteCount: totalSpace, countStyle: .file)
+        let totalSpaceFormatted = ByteCountFormatter.string(
+            fromByteCount: totalSpace, countStyle: .file)
         print("💾 Total potential space to free: \(totalSpaceFormatted)")
 
         // Confirm
@@ -312,18 +407,37 @@ struct Auto: AsyncParsableCommand {
             }
         }
 
-        // Clean
+        // Clean with timeout
         spinner.update(text: "Cleaning...")
         spinner.start()
 
-        let itemsToClean = recommendations.flatMap { $0.items }
-        let cleanResults = try await engine.clean(itemsToClean)
+        let cleanResults: CleanResults
+        do {
+            let itemsToClean = recommendations.flatMap { $0.items }
+            cleanResults = try await withTimeout(600.0) {  // 10 minutes
+                try await engine.clean(itemsToClean)
+            }
+        } catch {
+            spinner.stop()
+            if PinakleanCLI.isInterrupted {
+                print("❌ Cleanup cancelled by user")
+                throw ExitCode.failure
+            }
+            print("❌ Cleanup timed out or failed: \(error.localizedDescription)")
+            throw ExitCode.failure
+        }
 
         spinner.stop()
 
         print("\n✅ Auto-Clean Complete!")
         print("  Cleaned: \(cleanResults.deletedItems.count) items")
-        print("  Freed: \(ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file))")
+        print(
+            "  Freed: \(ByteCountFormatter.string(fromByteCount: cleanResults.freedSpace, countStyle: .file))"
+        )
+
+        if !cleanResults.failedItems.isEmpty {
+            print("  Failed: \(cleanResults.failedItems.count) items (check permissions)")
+        }
     }
 }
 
@@ -411,24 +525,25 @@ struct Interactive: AsyncParsableCommand {
         // Clear screen
         print("\u{001B}[2J\u{001B}[H")
 
-        print("""
-        ╔══════════════════════════════════════════════════════╗
-        ║                    🧹 Pinaklean 2.0                  ║
-        ║              Safe macOS Cleanup Toolkit              ║
-        ╚══════════════════════════════════════════════════════╝
+        print(
+            """
+            ╔══════════════════════════════════════════════════════╗
+            ║                    🧹 Pinaklean 2.0                  ║
+            ║              Safe macOS Cleanup Toolkit              ║
+            ╚══════════════════════════════════════════════════════╝
 
-        What would you like to do?
+            What would you like to do?
 
-        1. 🔍 Scan for cleanable files
-        2. 🧹 Clean files (safe mode)
-        3. 🤖 Auto-clean (recommended)
-        4. 📦 Manage backups
-        5. ⚙️  Settings
-        6. ❓ Help
-        7. 🚪 Exit
+            1. 🔍 Scan for cleanable files
+            2. 🧹 Clean files (safe mode)
+            3. 🤖 Auto-clean (recommended)
+            4. 📦 Manage backups
+            5. ⚙️  Settings
+            6. ❓ Help
+            7. 🚪 Exit
 
-        Enter choice [1-7]:
-        """, terminator: "")
+            Enter choice [1-7]:
+            """, terminator: "")
 
         guard let choice = readLine() else { return }
 
@@ -459,42 +574,97 @@ struct Interactive: AsyncParsableCommand {
     }
 
     private func printHelp() {
-        print("""
+        print(
+            """
 
-        📚 Pinaklean Help
-        ═══════════════════════════════════════════════════════
+            📚 Pinaklean Help
+            ═══════════════════════════════════════════════════════
 
-        Pinaklean is a safe, intelligent disk cleanup utility for macOS.
+            Pinaklean is a safe, intelligent disk cleanup utility for macOS.
 
-        Features:
-        • 🔒 Security audit before deletion
-        • 🤖 ML-powered smart detection
-        • ⚡ Parallel processing for speed
-        • 📦 Automatic cloud backups (free)
-        • 🔄 Incremental backup support
-        • 📊 Beautiful visualizations (GUI)
+            Features:
+            • 🔒 Security audit before deletion
+            • 🤖 ML-powered smart detection
+            • ⚡ Parallel processing for speed
+            • 📦 Automatic cloud backups (free)
+            • 🔄 Incremental backup support
+            • 📊 Beautiful visualizations (GUI)
 
-        Safety First:
-        • Never deletes system files
-        • Creates backups before cleanup
-        • Dry-run mode for preview
-        • Security audit on all files
+            Safety First:
+            • Never deletes system files
+            • Creates backups before cleanup
+            • Dry-run mode for preview
+            • Security audit on all files
 
-        Quick Start:
-        1. Run 'pinaklean' for interactive mode
-        2. Run 'pinaklean auto' for automatic safe cleanup
-        3. Run 'pinaklean scan' to see what can be cleaned
+            Quick Start:
+            1. Run 'pinaklean' for interactive mode
+            2. Run 'pinaklean auto' for automatic safe cleanup
+            3. Run 'pinaklean scan' to see what can be cleaned
 
-        For more help: pinaklean --help
-        GitHub: https://github.com/Pinak-Setu/Pinaklean
+            For more help: pinaklean --help
+            GitHub: https://github.com/Pinak-Setu/Pinaklean
 
-        """)
+            """)
     }
 }
 
 // MARK: - Helper Classes
+// MARK: - Utilities
 
-/// Simple spinner for CLI feedback
+/// Timeout wrapper for async operations
+func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T) async throws
+    -> T
+{
+    return try await withThrowingTaskGroup(of: T.self) { group in
+        group.addTask {
+            try await operation()
+        }
+        group.addTask {
+            try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+            throw TimeoutError.operationTimedOut
+        }
+        defer { group.cancelAll() }
+        return try await group.next()!
+    }
+}
+
+enum TimeoutError: LocalizedError {
+    case operationTimedOut
+
+    var errorDescription: String? {
+        return "Operation timed out"
+    }
+}
+
+// MARK: - Signal Handling
+
+extension PinakleanCLI {
+    static var isInterrupted = false
+    static var cancellationHandler: (() -> Void)?
+
+    static func setupSignalHandlers() {
+        signal(SIGINT) { _ in
+            print("\n⚠️  Interrupt received, cleaning up...")
+            PinakleanCLI.isInterrupted = true
+            PinakleanCLI.cancellationHandler?()
+            _stdlib.exit(1)
+        }
+
+        signal(SIGTERM) { _ in
+            print("\n⚠️  Termination requested, cleaning up...")
+            PinakleanCLI.isInterrupted = true
+            PinakleanCLI.cancellationHandler?()
+            _stdlib.exit(1)
+        }
+    }
+}
+
+func setupSignalHandlers() {
+    PinakleanCLI.setupSignalHandlers()
+}
+
+// MARK: - Spinner
+
 class Spinner {
     private var text: String
     private let frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
@@ -509,7 +679,6 @@ class Spinner {
         timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
             self.draw()
         }
-        RunLoop.current.run(until: Date(timeIntervalSinceNow: 0.1))
     }
 
     func update(text: String) {
@@ -518,13 +687,12 @@ class Spinner {
 
     func stop() {
         timer?.invalidate()
-        print("\r\u{001B}[K", terminator: "") // Clear line
+        print("\r\u{001B}[K", terminator: "")  // Clear line
     }
 
     private func draw() {
-        let frame = frames[currentFrame]
-        print("\r\u{001B}[K\(frame) \(text)", terminator: "")
-        fflush(stdout)
         currentFrame = (currentFrame + 1) % frames.count
+        print("\r\(frames[currentFrame]) \(text)", terminator: "")
+        fflush(stdout)
     }
 }

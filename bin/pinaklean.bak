@@ -203,13 +203,13 @@ echo "\nProject cache sweep (~/Documents & ~/Developer)..."
 for base in "$HOME/Documents" "$HOME/Developer"; do
   [[ -d "$base" ]] || continue
   if [[ "$DRY_RUN" = false ]]; then
-    find "$base" -type d -name node_modules -prune -print0 | while IFS= read -r -d '' path; do add_to_delete_list "$path"; done
+    find "$base" -type d -name node_modules -prune -print0 | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
   else
     echo "Dry run: Would remove node_modules in $base"
   fi
   for d in .next dist build .turbo .parcel-cache; do
     if [[ "$DRY_RUN" = false ]]; then
-      find "$base" -type d -name "$d" -print0 | while IFS= read -r -d '' path; do add_to_delete_list "$path"; done
+      find "$base" -type d -name "$d" -print0 | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
     else
       echo "Dry run: Would remove $d in $base"
     fi
@@ -281,7 +281,7 @@ add_to_delete_list "$HOME/Library/Caches/com.apple.WebKit.WebContent"
 
 # Catch-all for other caches
 if [[ "$DRY_RUN" = false ]]; then
-  find "$HOME/Library/Caches" -mindepth 1 -print0 2>/dev/null | while IFS= read -r -d '' path; do add_to_delete_list "$path"; done
+  find "$HOME/Library/Caches" -mindepth 1 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
 else
   echo "Dry run: Would delete contents of $HOME/Library/Caches"
 fi
@@ -295,7 +295,7 @@ add_to_delete_list "$HOME/Library/Developer/Xcode/DerivedData"
 # Trash
 echo "\nEmptying Trash..."
 if [[ "$DRY_RUN" = false ]]; then
-  find "$HOME/.Trash" -mindepth 1 -print0 2>/dev/null | while IFS= read -r -d '' path; do add_to_delete_list "$path"; done
+  find "$HOME/.Trash" -mindepth 1 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {}
 else
   echo "Dry run: Would empty trash ($HOME/.Trash)"
 fi
@@ -311,8 +311,8 @@ add_to_delete_list "$HOME/Library/Logs/Microsoft"
 # Temporaries
 echo "\nTemporary files..."
 if [[ "$DRY_RUN" = false ]]; then
-  find /tmp -type f -mtime +3 -print0 2>/dev/null | while IFS= read -r -d '' path; do add_to_delete_list "$path"; done || true
-  find /var/tmp -type f -mtime +3 -print0 2>/dev/null | while IFS= read -r -d '' path; do add_to_delete_list "$path"; done || true
+  find /tmp -type f -mtime +3 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {} || true
+  find /var/tmp -type f -mtime +3 -print0 2>/dev/null | xargs -0 -I {} zsh -c 'add_to_delete_list "$0"' {} || true
 else
   echo "Dry run: Would delete temporary files older than 3 days in /tmp and /var/tmp"
 fi

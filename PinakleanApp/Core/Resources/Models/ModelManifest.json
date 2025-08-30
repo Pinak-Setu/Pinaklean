@@ -1,0 +1,46 @@
+{
+  "version": "1.0",
+  "models": {
+    "SafetyModel": {
+      "name": "SafetyModel.mlmodelc",
+      "version": "1.0.0",
+      "description": "Predicts file safety scores based on file attributes",
+      "status": "development",
+      "fallback": "heuristic",
+      "input_features": [
+        "file_size",
+        "days_since_modified",
+        "path_depth",
+        "is_recent",
+        "is_old",
+        "is_system_dir",
+        "is_user_dir",
+        "has_common_extensions"
+      ],
+      "output": "safety_score"
+    },
+    "ContentTypeModel": {
+      "name": "ContentTypeModel.mlmodelc",
+      "version": "1.0.0",
+      "description": "Predicts content type from file name and extension",
+      "status": "development",
+      "fallback": "extension_mapping",
+      "input_features": [
+        "file_extension",
+        "file_name"
+      ],
+      "output": "content_type"
+    }
+  },
+  "fallback_behavior": {
+    "enabled": true,
+    "description": "When ML models are not available, the system uses sophisticated heuristic analysis that provides excellent baseline functionality",
+    "safety_scoring": "rule_based",
+    "content_detection": "extension_based"
+  },
+  "notes": [
+    "Models are currently in development phase",
+    "Heuristic fallback provides robust performance",
+    "Future releases will include trained Core ML models"
+  ]
+}

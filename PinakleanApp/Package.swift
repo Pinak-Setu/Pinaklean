@@ -5,7 +5,7 @@ let package = Package(
     name: "PinakleanCore",
     platforms: [
         .macOS(.v14),
-        .iOS(.v17)
+        .iOS(.v17),
     ],
     products: [
         .library(
@@ -15,7 +15,11 @@ let package = Package(
         .executable(
             name: "pinaklean-cli",
             targets: ["PinakleanCLI"]
-        )
+        ),
+        .executable(
+            name: "Pinaklean",
+            targets: ["PinakleanApp"]
+        ),
     ],
     dependencies: [
         // Database
@@ -23,7 +27,7 @@ let package = Package(
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.14.0"),
 
         // CLI
-        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.3.0"),
+        .package(url: "https://github.com/apple/swift-argument-parser.git", from: "1.4.0"),
 
         // Async algorithms
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
@@ -39,7 +43,7 @@ let package = Package(
 
         // Testing
         .package(url: "https://github.com/Quick/Quick.git", from: "7.0.0"),
-        .package(url: "https://github.com/Quick/Nimble.git", from: "13.0.0")
+        .package(url: "https://github.com/Quick/Nimble.git", from: "13.0.0"),
     ],
     targets: [
         // Core Framework
@@ -51,7 +55,7 @@ let package = Package(
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
                 .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
-                .product(name: "Metrics", package: "swift-metrics")
+                .product(name: "Metrics", package: "swift-metrics"),
             ],
             path: "Core",
             resources: [
@@ -64,9 +68,17 @@ let package = Package(
             name: "PinakleanCLI",
             dependencies: [
                 "PinakleanCore",
-                .product(name: "ArgumentParser", package: "swift-argument-parser")
+                .product(name: "ArgumentParser", package: "swift-argument-parser"),
             ],
             path: "CLI"
+        ),
+
+        // macOS App
+        .executableTarget(
+            name: "PinakleanApp",
+            dependencies: [
+                "PinakleanCore"
+            ]
         ),
 
         // Tests
@@ -75,9 +87,9 @@ let package = Package(
             dependencies: [
                 "PinakleanCore",
                 .product(name: "Quick", package: "Quick"),
-                .product(name: "Nimble", package: "Nimble")
+                .product(name: "Nimble", package: "Nimble"),
             ],
             path: "Tests"
-        )
+        ),
     ]
 )

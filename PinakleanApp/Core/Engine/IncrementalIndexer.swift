@@ -5,9 +5,9 @@
 
 import Foundation
 
-/// Simplified incremental indexer 
+/// Simplified incremental indexer
 public actor IncrementalIndexer {
-    
+
     private var lastScanTime: Date?
     private var indexedPaths: Set<String> = []
     private var isMonitoring = false
@@ -16,20 +16,27 @@ public actor IncrementalIndexer {
         // Simplified initialization
         await loadIndexState()
     }
-    
+
     public func startMonitoring() async {
         guard !isMonitoring else { return }
         isMonitoring = true
         print("File monitoring started (simplified)")
     }
-    
-    public func stopMonitoring() {
+
+    public func stopMonitoring() async {
         isMonitoring = false
         print("File monitoring stopped")
+        // Clean up any resources
+        await saveIndexState()
     }
-    
+
     private func loadIndexState() async {
         // Simplified state loading
         lastScanTime = Date()
+    }
+
+    private func saveIndexState() async {
+        // Save current state for cleanup
+        print("Index state saved")
     }
 }

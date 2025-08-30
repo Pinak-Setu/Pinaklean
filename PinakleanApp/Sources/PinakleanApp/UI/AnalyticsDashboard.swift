@@ -278,23 +278,23 @@ struct AnalyticsDashboard: View {
 
         return [
             SunburstSegment(
-                id: 0, name: "System Cache", value: breakdown.systemCache, color: .blue, level: 0),
+                id: 0, name: "System Cache", value: Double(breakdown.systemCache), color: .blue, level: 0),
             SunburstSegment(
-                id: 1, name: "User Cache", value: breakdown.userCache, color: .green, level: 0),
-            SunburstSegment(id: 2, name: "Logs", value: breakdown.logs, color: .orange, level: 1),
+                id: 1, name: "User Cache", value: Double(breakdown.userCache), color: .green, level: 0),
+            SunburstSegment(id: 2, name: "Logs", value: Double(breakdown.logs), color: .orange, level: 1),
             SunburstSegment(
-                id: 3, name: "Temporary", value: breakdown.temporaryFiles, color: .red, level: 1),
+                id: 3, name: "Temporary", value: Double(breakdown.temporaryFiles), color: .red, level: 1),
             SunburstSegment(
-                id: 4, name: "Duplicates", value: breakdown.duplicates, color: .purple, level: 1),
+                id: 4, name: "Duplicates", value: Double(breakdown.duplicates), color: .purple, level: 1),
         ].filter { $0.value > 0 }
     }
 
     private func generateSankeyNodes() -> [SankeyNode] {
         return [
-            SankeyNode(id: 0, label: "Scanned Files", x: 0.1, y: 0.3, color: .blue, isWide: true),
+            SankeyNode(id: 0, label: "Scanned Files", x: 0.1, y: 0.3, color: .blue),
             SankeyNode(id: 1, label: "Safe to Clean", x: 0.1, y: 0.7, color: .green),
             SankeyNode(
-                id: 2, label: "Cleanup Engine", x: 0.5, y: 0.5, color: .orange, isWide: true),
+                id: 2, label: "Cleanup Engine", x: 0.5, y: 0.5, color: .orange),
             SankeyNode(id: 3, label: "Space Recovered", x: 0.9, y: 0.4, color: .purple),
             SankeyNode(id: 4, label: "Protected Files", x: 0.9, y: 0.8, color: .red),
         ]

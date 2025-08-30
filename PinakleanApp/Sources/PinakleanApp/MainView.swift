@@ -90,7 +90,8 @@ struct DashboardView: View {
                                 type: .scan,
                                 title: "Quick Scan Completed",
                                 description:
-                                    "Scanned \(uiState.totalFilesScanned) files and found items to clean"
+                                    "Scanned \(uiState.totalFilesScanned) files and found items to clean",
+                                icon: "magnifyingglass"
                             ))
                     }
 
@@ -103,7 +104,8 @@ struct DashboardView: View {
                             ActivityItem(
                                 type: .clean,
                                 title: "Auto Clean Executed",
-                                description: "Cleaned files and freed up space"
+                                description: "Cleaned files and freed up space",
+                                icon: "trash.fill"
                             ))
                     }
                 }

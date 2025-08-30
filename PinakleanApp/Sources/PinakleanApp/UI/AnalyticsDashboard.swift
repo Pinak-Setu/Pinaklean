@@ -3,13 +3,12 @@
 //  PinakleanApp
 //
 //  Analytics dashboard for visualizing cleanup data, trends, and storage metrics
-//  Features interactive charts, storage breakdown, advanced visualizations (Sunburst & Sankey), and performance metrics
+//  Features interactive charts, storage breakdown, and performance metrics
 //
 //  Created: Analytics Implementation Phase
-//  Features: Data visualization, Interactive charts, Trend analysis, Advanced 3D Charts
+//  Features: Data visualization, Interactive charts, Trend analysis
 //
 
-import Charts
 import SwiftUI
 
 /// Main analytics dashboard view
@@ -70,9 +69,6 @@ struct AnalyticsDashboard: View {
                 // Charts section
                 chartSection
 
-                // Advanced Visualizations section
-                advancedVisualizationsSection
-
                 // Storage breakdown section
                 storageBreakdownSection
 
@@ -84,44 +80,6 @@ struct AnalyticsDashboard: View {
         .background(DesignSystem.gradientBackground)
     }
 
-    private var advancedVisualizationsSection: some View {
-        VStack(spacing: DesignSystem.spacing) {
-            Text("Advanced Visualizations")
-                .font(DesignSystem.fontHeadline)
-                .foregroundColor(DesignSystem.textPrimary)
-                .frame(maxWidth: .infinity, alignment: .leading)
-
-            HStack(spacing: DesignSystem.spacing) {
-                // Sunburst Chart
-                VStack(alignment: .leading, spacing: DesignSystem.spacingSmall) {
-                    Text("Storage Sunburst")
-                        .font(DesignSystem.fontSubheadline)
-                        .foregroundColor(DesignSystem.textSecondary)
-
-                    SunburstChart(
-                        data: generateSunburstData(),
-                        centerText: "Disk Usage",
-                        centerValue: formatFileSize(Int64(uiState.spaceToClean))
-                    )
-                    .frame(height: 300)
-                }
-
-                // Sankey Diagram
-                VStack(alignment: .leading, spacing: DesignSystem.spacingSmall) {
-                    Text("Cleanup Flow")
-                        .font(DesignSystem.fontSubheadline)
-                        .foregroundColor(DesignSystem.textSecondary)
-
-                    SankeyDiagram(
-                        nodes: generateSankeyNodes(),
-                        flows: generateSankeyFlows()
-                    )
-                    .frame(height: 300)
-                }
-            }
-        }
-    }
-
     private var chartSection: some View {
         FrostCard {
             VStack(spacing: DesignSystem.spacing) {
@@ -131,43 +89,40 @@ struct AnalyticsDashboard: View {
 
                 // Chart view
                 if let chartData = generateChartData() {
-                    Chart {
-                        ForEach(chartData) { dataPoint in
-                            switch selectedChartType {
-                            case .bar:
-                                BarMark(
-                                    x: .value("Date", dataPoint.date),
-                                    y: .value("Size", dataPoint.size)
-                                )
-                                .foregroundStyle(DesignSystem.gradientPrimary)
-                            case .line:
-                                LineMark(
-                                    x: .value("Date", dataPoint.date),
-                                    y: .value("Size", dataPoint.size)
-                                )
-                                .foregroundStyle(DesignSystem.primary)
-                                .lineStyle(StrokeStyle(lineWidth: 2))
-                            case .area:
-                                AreaMark(
-                                    x: .value("Date", dataPoint.date),
-                                    y: .value("Size", dataPoint.size)
-                                )
-                                .foregroundStyle(DesignSystem.gradientPrimary.opacity(0.3))
+                    // Simple bar chart representation
+                    VStack(spacing: DesignSystem.spacing) {
+                        ForEach(Array(chartData.prefix(5)), id: \.date) { dataPoint in
+                            HStack {
+                                Text(dataPoint.date.formatted(.dateTime.month().day()))
+                                    .font(DesignSystem.fontCaption)
+                                    .foregroundColor(DesignSystem.textSecondary)
+                                    .frame(width: 60, alignment: .leading)
+
+                                GeometryReader { geometry in
+                                    RoundedRectangle(cornerRadius: 4)
+                                        .fill(DesignSystem.primary.opacity(0.7))
+                                        .frame(
+                                            width: (dataPoint.size / 10_000_000)
+                                                * geometry.size.width, height: 20)
+                                }
+                                .frame(height: 20)
+
+                                Text(
+                                    ByteCountFormatter.string(
+                                        fromByteCount: Int64(dataPoint.size), countStyle: .file)
+
+                                .font(DesignSystem.fontCaption)
+                                .foregroundColor(DesignSystem.textPrimary)
+                                .frame(width: 80, alignment: .trailing)
                             }
                         }
                     }
-                    .frame(height: 300)
-                    .chartYAxis {
-                        AxisMarks(position: .leading)
-                    }
-                    .chartXAxis {
-                        AxisMarks(position: .bottom)
-                    }
+                    .frame(height: 200)
                 } else {
                     Text("No data available")
                         .font(DesignSystem.fontBody)
                         .foregroundColor(DesignSystem.textSecondary)
-                        .frame(height: 300)
+                        .frame(height: 200)
                 }
             }
         }
@@ -185,19 +140,35 @@ struct AnalyticsDashboard: View {
 
                 VStack(spacing: DesignSystem.spacing) {
                     StorageBarItem(
-                        label: "System Cache", value: breakdown.systemCache, total: total,
-                        color: .blue)
+                        label: "System Cache",
+                        value: breakdown.systemCache,
+                        total: total,
+                        color: .blue
+
                     StorageBarItem(
-                        label: "User Cache", value: breakdown.userCache, total: total, color: .green
-                    )
+                        label: "User Cache",
+                        value: breakdown.userCache,
+                        total: total,
+                        color: .green
+
                     StorageBarItem(
-                        label: "Logs", value: breakdown.logs, total: total, color: .orange)
+                        label: "Logs",
+                        value: breakdown.logs,
+                        total: total,
+                        color: .orange
+
                     StorageBarItem(
-                        label: "Temporary Files", value: breakdown.temporaryFiles, total: total,
-                        color: .red)
+                        label: "Temporary Files",
+                        value: breakdown.temporaryFiles,
+                        total: total,
+                        color: .red
+
                     StorageBarItem(
-                        label: "Duplicates", value: breakdown.duplicates, total: total,
-                        color: .purple)
+                        label: "Duplicates",
+                        value: breakdown.duplicates,
+                        total: total,
+                        color: .purple
+
                 }
             }
         }
@@ -235,9 +206,12 @@ struct AnalyticsDashboard: View {
                         .font(DesignSystem.fontBody)
                         .foregroundColor(DesignSystem.textSecondary)
 
-                    Text(formatFileSize(Int64(uiState.spaceToClean)))
-                        .font(DesignSystem.fontLargeTitle)
-                        .foregroundColor(DesignSystem.accent)
+                    Text(
+                        ByteCountFormatter.string(
+                            fromByteCount: uiState.spaceToClean, countStyle: .file)
+
+                    .font(DesignSystem.fontLargeTitle)
+                    .foregroundColor(DesignSystem.accent)
                 }
             }
         }
@@ -264,54 +238,6 @@ struct AnalyticsDashboard: View {
             return ChartDataPoint(date: date, size: size)
         }
     }
-
-    private func formatFileSize(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useGB, .useMB, .useKB]
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
-    }
-
-    private func generateSunburstData() -> [SunburstSegment] {
-        let breakdown = uiState.storageBreakdown
-        let total = breakdown.total
-
-        return [
-            SunburstSegment(
-                id: 0, name: "System Cache", value: Double(breakdown.systemCache), color: .blue, level: 0),
-            SunburstSegment(
-                id: 1, name: "User Cache", value: Double(breakdown.userCache), color: .green, level: 0),
-            SunburstSegment(id: 2, name: "Logs", value: Double(breakdown.logs), color: .orange, level: 1),
-            SunburstSegment(
-                id: 3, name: "Temporary", value: Double(breakdown.temporaryFiles), color: .red, level: 1),
-            SunburstSegment(
-                id: 4, name: "Duplicates", value: Double(breakdown.duplicates), color: .purple, level: 1),
-        ].filter { $0.value > 0 }
-    }
-
-    private func generateSankeyNodes() -> [SankeyNode] {
-        return [
-            SankeyNode(id: 0, label: "Scanned Files", x: 0.1, y: 0.3, color: .blue),
-            SankeyNode(id: 1, label: "Safe to Clean", x: 0.1, y: 0.7, color: .green),
-            SankeyNode(
-                id: 2, label: "Cleanup Engine", x: 0.5, y: 0.5, color: .orange),
-            SankeyNode(id: 3, label: "Space Recovered", x: 0.9, y: 0.4, color: .purple),
-            SankeyNode(id: 4, label: "Protected Files", x: 0.9, y: 0.8, color: .red),
-        ]
-    }
-
-    private func generateSankeyFlows() -> [SankeyFlow] {
-        let totalFiles = Double(uiState.totalFilesScanned)
-        let safeFiles = Double.random(in: 0.3...0.7) * totalFiles  // Simulated data
-        let protectedFiles = totalFiles - safeFiles
-
-        return [
-            SankeyFlow(id: 0, sourceId: 0, targetId: 2, value: safeFiles, color: .green),
-            SankeyFlow(id: 1, sourceId: 1, targetId: 2, value: protectedFiles, color: .red),
-            SankeyFlow(id: 2, sourceId: 2, targetId: 3, value: safeFiles * 0.8, color: .blue),
-            SankeyFlow(id: 3, sourceId: 2, targetId: 4, value: protectedFiles, color: .orange),
-        ]
-    }
 }
 
 // MARK: - Supporting Views
@@ -331,7 +257,7 @@ struct StorageBarItem: View {
 
                 Spacer()
 
-                Text(formatFileSize(value))
+                Text(ByteCountFormatter.string(fromByteCount: value, countStyle: .file))
                     .font(DesignSystem.fontBody)
                     .foregroundColor(DesignSystem.textSecondary)
             }
@@ -352,13 +278,6 @@ struct StorageBarItem: View {
             }
             .frame(height: 8)
         }
-    }
-
-    private func formatFileSize(_ bytes: Int64) -> String {
-        let formatter = ByteCountFormatter()
-        formatter.allowedUnits = [.useGB, .useMB, .useKB]
-        formatter.countStyle = .file
-        return formatter.string(fromByteCount: bytes)
     }
 }
 
@@ -390,20 +309,34 @@ struct ChartDataPoint: Identifiable {
 
 // MARK: - Previews
 
+private func createMockUIState() -> UnifiedUIState {
+    let state = UnifiedUIState()
+    state.totalFilesScanned = 150
+    state.spaceToClean = 2_500_000_000
+    state.storageBreakdown =
+        systemCache: 1_000_000_000,
+        userCache: 500_000_000,
+        logs: 300_000_000,
+        temporaryFiles: 200_000_000)
+        duplicates: 500_000_000
+    )
+    return state
+}
+
 struct AnalyticsDashboard_Previews: PreviewProvider {
     static var previews: some View {
-        let mockUIState = UnifiedUIState()
-        mockUIState.totalFilesScanned = 150
-        mockUIState.spaceToClean = 2_500_000_000  // 2.5 GB
-        mockUIState.storageBreakdown = StorageBreakdown(
-            systemCache: 1_000_000_000,
-            userCache: 500_000_000,
-            logs: 300_000_000,
-            temporaryFiles: 200_000_000,
-            duplicates: 500_000_000
-        )
+        let mockUIState = createMockUIState()
 
-        return AnalyticsDashboard()
+
+
+
+
+
+
+
+
+
+        AnalyticsDashboard()
             .environmentObject(mockUIState)
             .frame(width: 900, height: 700)
             .preferredColorScheme(.light)

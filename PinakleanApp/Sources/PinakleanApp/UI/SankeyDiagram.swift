@@ -236,13 +236,13 @@ struct SankeyFlow: Identifiable {
 struct SankeyDiagram_Previews: PreviewProvider {
     static var previews: some View {
         let sampleNodes: [SankeyNode] = [
-            SankeyNode(id: 0, label: "Scanned Files", x: 0.1, y: 0.3, color: .blue, isWide: true),
-            SankeyNode(id: 1, label: "Safe to Clean", x: 0.1, y: 0.7, color: .green, isWide: false),
+            SankeyNode(id: 0, label: "Scanned Files", x: 0.1, y: 0.3, color: .blue),
+            SankeyNode(id: 1, label: "Safe to Clean", x: 0.1, y: 0.7, color: .green),
             SankeyNode(
-                id: 2, label: "Cleanup Engine", x: 0.5, y: 0.5, color: .orange, isWide: true),
+                id: 2, label: "Cleanup Engine", x: 0.5, y: 0.5, color: .orange),
             SankeyNode(
-                id: 3, label: "Space Recovered", x: 0.9, y: 0.4, color: .purple, isWide: false),
-            SankeyNode(id: 4, label: "Protected Files", x: 0.9, y: 0.8, color: .red, isWide: false),
+                id: 3, label: "Space Recovered", x: 0.9, y: 0.4, color: .purple),
+            SankeyNode(id: 4, label: "Protected Files", x: 0.9, y: 0.8, color: .red),
         ]
 
         let sampleFlows: [SankeyFlow] = [

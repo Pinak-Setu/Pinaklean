@@ -1,6 +1,4 @@
 //
-Pinaklean/PinakleanApp/Sources/PinakleanApp/UI/DesignSystem.swift
-Implement complete "Liquid Crystal" design system with colors, materials, animations, and effects
 //
 import SwiftUI
 

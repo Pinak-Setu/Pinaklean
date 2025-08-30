@@ -268,7 +268,6 @@ struct SunburstChart_Previews: PreviewProvider {
         ]
 
         SunburstChart(
-            return SunburstChart(
                 data: sampleData,
                 centerText: "Total Space",
                 centerValue: "256 GB"

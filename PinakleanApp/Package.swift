@@ -81,6 +81,15 @@ let package = Package(
             ]
         ),
 
-        // Tests temporarily disabled
+        // Tests
+        .testTarget(
+            name: "PinakleanAppTests",
+            dependencies: [
+                "PinakleanApp",
+                .product(name: "Quick", package: "Quick"),
+                .product(name: "Nimble", package: "Nimble")
+            ],
+            path: "Tests"
+        ),
     ]
 )

@@ -12,20 +12,99 @@ struct PinakleanCLI: AsyncParsableCommand {
         abstract: "🧹 Safe macOS cleanup toolkit for developers",
         version: "2.0.0",
         subcommands: [
-            Scan.self,
-            Clean.self,
-            Auto.self,
-            Backup.self,
-            Restore.self,
-            Config.self,
-            Interactive.self,
+            PinakleanCLI.Scan.self,
+            PinakleanCLI.Clean.self,
+            PinakleanCLI.Auto.self,
+            PinakleanCLI.Backup.self,
+            PinakleanCLI.Restore.self,
+            PinakleanCLI.Config.self,
+            PinakleanCLI.Interactive.self,
         ],
-        defaultSubcommand: Interactive.self
+        defaultSubcommand: PinakleanCLI.Interactive.self
     )
-}
 
-// MARK: - Scan Command
-struct Scan: AsyncParsableCommand {
+    // MARK: - Signal Handling Properties
+
+    static var isInterrupted = false
+    static var cancellationHandler: (() -> Void)?
+
+    static func setupSignalHandlers() {
+        signal(SIGINT) { _ in
+            print("\n⚠️  Interrupt received, cleaning up...")
+            PinakleanCLI.isInterrupted = true
+            PinakleanCLI.cancellationHandler?()
+            Darwin.exit(1)
+        }
+
+        signal(SIGTERM) { _ in
+            print("\n⚠️  Termination requested, cleaning up...")
+            PinakleanCLI.isInterrupted = true
+            PinakleanCLI.cancellationHandler?()
+            Darwin.exit(1)
+        }
+    }
+
+    // MARK: - Nested Types and Utilities
+
+    /// Timeout wrapper for async operations
+    static func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T) async throws -> T {
+        return try await withThrowingTaskGroup(of: T.self) { group in
+            group.addTask {
+                try await operation()
+            }
+            group.addTask {
+                try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
+                throw PinakleanCLI.TimeoutError.operationTimedOut
+            }
+            defer { group.cancelAll() }
+            return try await group.next()!
+        }
+    }
+
+    enum TimeoutError: LocalizedError {
+        case operationTimedOut
+
+        var errorDescription: String? {
+            return "Operation timed out"
+        }
+    }
+
+    // MARK: - Spinner
+
+    class Spinner {
+        private var text: String
+        private let frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+        private var currentFrame = 0
+        private var timer: Timer?
+
+        init(text: String) {
+            self.text = text
+        }
+
+        func start() {
+            timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
+                self.draw()
+            }
+        }
+
+        func update(text: String) {
+            self.text = text
+        }
+
+        func stop() {
+            timer?.invalidate()
+            print("\r\u{001B}[K", terminator: "")  // Clear line
+        }
+
+        private func draw() {
+            currentFrame = (currentFrame + 1) % frames.count
+            print("\r\(frames[currentFrame]) \(text)", terminator: "")
+            fflush(stdout)
+        }
+    }
+
+    // MARK: - Scan Command
+    struct Scan: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Scan for cleanable files"
     )
@@ -49,7 +128,7 @@ struct Scan: AsyncParsableCommand {
     var duplicates = false
 
     mutating func run() async throws {
-        let spinner = Spinner(text: "Initializing Pinaklean Engine...")
+        let spinner = PinakleanCLI.Spinner(text: "Initializing Pinaklean Engine...")
         spinner.start()
 
         let engine = try await PinakleanEngine()
@@ -170,8 +249,8 @@ struct Scan: AsyncParsableCommand {
     }
 }
 
-// MARK: - Clean Command
-struct Clean: AsyncParsableCommand {
+    // MARK: - Clean Command
+    struct Clean: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Clean selected files"
     )
@@ -192,11 +271,11 @@ struct Clean: AsyncParsableCommand {
     var minSafety: Int = 70
 
     mutating func run() async throws {
-        setupSignalHandlers()
+        PinakleanCLI.setupSignalHandlers()
 
         let engine: PinakleanEngine
         do {
-            engine = try await withTimeout(300.0) {  // 5 minutes
+            engine = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
                 try await PinakleanEngine()
             }
         } catch {
@@ -223,7 +302,7 @@ struct Clean: AsyncParsableCommand {
         let scanResults: ScanResults
 
         do {
-            scanResults = try await withTimeout(300.0) {  // 5 minutes
+            scanResults = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
                 try await engine.scan(categories: scanCategories)
             }
         } catch {
@@ -262,12 +341,12 @@ struct Clean: AsyncParsableCommand {
         }
 
         // Perform cleanup with timeout
-        let spinner = Spinner(text: dryRun ? "Simulating cleanup..." : "Cleaning...")
+        let spinner = PinakleanCLI.Spinner(text: dryRun ? "Simulating cleanup..." : "Cleaning...")
         spinner.start()
 
         let cleanResults: CleanResults
         do {
-            cleanResults = try await withTimeout(600.0) {  // 10 minutes
+            cleanResults = try await PinakleanCLI.withTimeout(600.0) {  // 10 minutes
                 try await engine.clean(safeItems)
             }
         } catch {
@@ -312,8 +391,8 @@ struct Clean: AsyncParsableCommand {
     }
 }
 
-// MARK: - Auto Command
-struct Auto: AsyncParsableCommand {
+    // MARK: - Auto Command
+    struct Auto: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Automatic safe cleanup"
     )
@@ -325,14 +404,14 @@ struct Auto: AsyncParsableCommand {
     var ultraSafe = false
 
     mutating func run() async throws {
-        setupSignalHandlers()
+        PinakleanCLI.setupSignalHandlers()
 
         print("🤖 Pinaklean Auto-Clean")
         print("═══════════════════════════════════════════════════════\n")
 
         let engine: PinakleanEngine
         do {
-            engine = try await withTimeout(60.0) {
+            engine = try await PinakleanCLI.withTimeout(60.0) {
                 try await PinakleanEngine()
             }
         } catch {
@@ -354,17 +433,17 @@ struct Auto: AsyncParsableCommand {
         }
 
         // Scan with timeout
-        let spinner = Spinner(text: "Analyzing your system...")
+        let spinner = PinakleanCLI.Spinner(text: "Analyzing your system...")
         spinner.start()
 
         let results: ScanResults
         let recommendations: [CleaningRecommendation]
 
         do {
-            results = try await withTimeout(300.0) {  // 5 minutes
+            results = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
                 try await engine.scan(categories: .safe)
             }
-            recommendations = try await withTimeout(60.0) {  // 1 minute
+            recommendations = try await PinakleanCLI.withTimeout(60.0) {  // 1 minute
                 try await engine.getRecommendations()
             }
         } catch {
@@ -415,7 +494,7 @@ struct Auto: AsyncParsableCommand {
         let cleanResults: CleanResults
         do {
             let itemsToClean = recommendations.flatMap { $0.items }
-            cleanResults = try await withTimeout(600.0) {  // 10 minutes
+            cleanResults = try await PinakleanCLI.withTimeout(600.0) {  // 10 minutes
                 try await engine.clean(itemsToClean)
             }
         } catch {
@@ -442,8 +521,8 @@ struct Auto: AsyncParsableCommand {
     }
 }
 
-// MARK: - Backup Command
-struct Backup: AsyncParsableCommand {
+    // MARK: - Backup Command
+    struct Backup: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Manage backups"
     )
@@ -577,8 +656,8 @@ struct Backup: AsyncParsableCommand {
     }
 }
 
-// MARK: - Restore Command
-struct Restore: AsyncParsableCommand {
+    // MARK: - Restore Command
+    struct Restore: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Restore from backup"
     )
@@ -605,8 +684,8 @@ struct Restore: AsyncParsableCommand {
     }
 }
 
-// MARK: - Config Command
-struct Config: AsyncParsableCommand {
+    // MARK: - Config Command
+    struct Config: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Manage configuration"
     )
@@ -665,8 +744,8 @@ struct Config: AsyncParsableCommand {
     }
 }
 
-// MARK: - Interactive Command (Default)
-struct Interactive: AsyncParsableCommand {
+    // MARK: - Interactive Command (Default)
+    struct Interactive: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
         abstract: "Interactive mode with TUI"
     )
@@ -757,92 +836,4 @@ struct Interactive: AsyncParsableCommand {
             """)
     }
 }
-
-// MARK: - Helper Classes
-// MARK: - Utilities
-
-/// Timeout wrapper for async operations
-func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T) async throws
-    -> T
-{
-    return try await withThrowingTaskGroup(of: T.self) { group in
-        group.addTask {
-            try await operation()
-        }
-        group.addTask {
-            try await Task.sleep(nanoseconds: UInt64(timeout * 1_000_000_000))
-            throw TimeoutError.operationTimedOut
-        }
-        defer { group.cancelAll() }
-        return try await group.next()!
-    }
-}
-
-enum TimeoutError: LocalizedError {
-    case operationTimedOut
-
-    var errorDescription: String? {
-        return "Operation timed out"
-    }
-}
-
-// MARK: - Signal Handling
-
-extension PinakleanCLI {
-    static var isInterrupted = false
-    static var cancellationHandler: (() -> Void)?
-
-    static func setupSignalHandlers() {
-        signal(SIGINT) { _ in
-            print("\n⚠️  Interrupt received, cleaning up...")
-            PinakleanCLI.isInterrupted = true
-            PinakleanCLI.cancellationHandler?()
-            Darwin.exit(1)
-        }
-
-        signal(SIGTERM) { _ in
-            print("\n⚠️  Termination requested, cleaning up...")
-            PinakleanCLI.isInterrupted = true
-            PinakleanCLI.cancellationHandler?()
-            Darwin.exit(1)
-        }
-    }
-}
-
-func setupSignalHandlers() {
-    PinakleanCLI.setupSignalHandlers()
-}
-
-// MARK: - Spinner
-
-class Spinner {
-    private var text: String
-    private let frames = ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
-    private var currentFrame = 0
-    private var timer: Timer?
-
-    init(text: String) {
-        self.text = text
-    }
-
-    func start() {
-        timer = Timer.scheduledTimer(withTimeInterval: 0.1, repeats: true) { _ in
-            self.draw()
-        }
-    }
-
-    func update(text: String) {
-        self.text = text
-    }
-
-    func stop() {
-        timer?.invalidate()
-        print("\r\u{001B}[K", terminator: "")  // Clear line
-    }
-
-    private func draw() {
-        currentFrame = (currentFrame + 1) % frames.count
-        print("\r\(frames[currentFrame]) \(text)", terminator: "")
-        fflush(stdout)
-    }
 }

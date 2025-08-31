@@ -1,3 +1,5 @@
+// Earlier minimal RecentActivityView removed to avoid redeclaration
+
 //  RecentActivityView.swift
 //  PinakleanApp
 //

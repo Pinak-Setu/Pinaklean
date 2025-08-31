@@ -446,6 +446,9 @@ jobs:
         with:
           swift-version: "5.9"
 
+      - name: Resolve dependencies
+        run: cd PinakleanApp ; swift package resolve
+
       - name: Build Production Release
         run: |
           cd PinakleanApp

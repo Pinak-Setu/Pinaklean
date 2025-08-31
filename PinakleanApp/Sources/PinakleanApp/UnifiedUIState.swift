@@ -187,29 +187,29 @@ final class UnifiedUIState: ObservableObject {
 
     private func setupAccessibilityObservers() {
         #if os(macOS)
-        NotificationCenter.default.addObserver(
-            self,
-            selector: #selector(accessibilityChanged),
-            name: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
-            object: nil
-        )
+            NotificationCenter.default.addObserver(
+                self,
+                selector: #selector(accessibilityChanged),
+                name: NSWorkspace.accessibilityDisplayOptionsDidChangeNotification,
+                object: nil
+            )
         #endif
     }
 
     @objc private func accessibilityChanged() {
         #if os(macOS)
-        let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
-        if reduceMotion {
-            enableAnimations = false
-        }
+            let reduceMotion = NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+            if reduceMotion {
+                enableAnimations = false
+            }
         #endif
     }
 
     private func accessibleAnimation(_ animation: Animation) -> Animation? {
         #if os(macOS)
-        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            return nil
-        }
+            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                return nil
+            }
         #endif
         return animation
     }
@@ -437,7 +437,7 @@ extension Int64 {
 }
 
 extension Date {
-    func formatted(_ style: Date.RelativeFormatStyle) -> String {
+    func relativeFormatted(_ style: Date.RelativeFormatStyle) -> String {
         self.formatted(style)
     }
 }

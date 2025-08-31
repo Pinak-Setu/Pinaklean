@@ -18,7 +18,7 @@ struct SunburstChart: View {
     let centerText: String?
     let centerValue: String?
 
-    @State private var hoveredSegment: SunburstSegment.ID? = nil
+    @State private var hoveredSegment: SunburstSegment.ID?
     @State private var rotationAngle: Angle = .zero
     @State private var isAnimating: Bool = false
 
@@ -201,7 +201,7 @@ struct WedgePath: Shape {
         )
 
         if innerRadius > 0 {
-            let _ = CGPoint(
+            _ = CGPoint(
                 x: centerPoint.x + innerRadius * cos(CGFloat(startAngle.radians)),
                 y: centerPoint.y + innerRadius * sin(CGFloat(startAngle.radians))
             )

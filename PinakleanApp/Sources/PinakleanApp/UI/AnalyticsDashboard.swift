@@ -153,7 +153,8 @@ struct StorageBarItem: View {
                     RoundedRectangle(cornerRadius: 4)
                         .fill(color.opacity(0.7))
                         .frame(
-                            width: total > 0 ? (geometry.size.width * CGFloat(value) / CGFloat(total)) : 0,
+                            width: total > 0
+                                ? (geometry.size.width * CGFloat(value) / CGFloat(total)) : 0,
                             height: 8
                         )
                 }
@@ -178,7 +179,7 @@ struct AnalyticsDashboard_Previews: PreviewProvider {
             duplicates: 500_000_000
         )
 
-        AnalyticsDashboard()
+        return AnalyticsDashboard()
             .environmentObject(mockUIState)
             .frame(width: 900, height: 700)
             .preferredColorScheme(.light)

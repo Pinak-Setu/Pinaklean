@@ -138,17 +138,12 @@ struct SankeyFlowView: View {
                 )
 
                 // Animated flow particles
-                TimelineView(.animation) { timeline in
-                    let time = timeline.date.timeIntervalSinceReferenceDate
-                    let progress = sin(time * 2) * 0.5 + 0.5
-
-                    FlowParticle(
-                        from: sourcePos,
-                        to: targetPos,
-                        progress: progress * animationPhase,
-                        color: flow.color
-                    )
-                }
+                FlowParticle(
+                    from: sourcePos,
+                    destinationPoint: targetPos,
+                    progress: 0.5,
+                    color: flow.color
+                )
             }
         }
     }
@@ -187,14 +182,14 @@ struct SankeyFlowPath: Shape {
 /// Animated particle for flow visualization
 struct FlowParticle: View {
     let from: CGPoint
-    let to: CGPoint
+    let destinationPoint: CGPoint
     let progress: Double
     let color: Color
 
     var body: some View {
         let position = CGPoint(
-            x: from.x + (to.x - from.x) * progress,
-            y: from.y + (to.y - from.y) * progress
+            x: from.x + (destinationPoint.x - from.x) * progress,
+            y: from.y + (destinationPoint.y - from.y) * progress
         )
 
         Circle()
@@ -211,13 +206,13 @@ struct FlowParticle: View {
 struct SankeyNode: Identifiable {
     var id: Int
     let label: String
-    let x: Double  // 0.0 to 1.0
-    let y: Double  // 0.0 to 1.0
+    let xCoordinate: Double  // 0.0 to 1.0
+    let yCoordinate: Double  // 0.0 to 1.0
     let color: Color
     let isWide: Bool = false
 
     func position(in size: CGSize) -> CGPoint {
-        CGPoint(x: x * size.width, y: y * size.height)
+        CGPoint(x: xCoordinate * size.width, y: yCoordinate * size.height)
     }
 }
 
@@ -236,13 +231,16 @@ struct SankeyFlow: Identifiable {
 struct SankeyDiagram_Previews: PreviewProvider {
     static var previews: some View {
         let sampleNodes: [SankeyNode] = [
-            SankeyNode(id: 0, label: "Scanned Files", x: 0.1, y: 0.3, color: .blue),
-            SankeyNode(id: 1, label: "Safe to Clean", x: 0.1, y: 0.7, color: .green),
             SankeyNode(
-                id: 2, label: "Cleanup Engine", x: 0.5, y: 0.5, color: .orange),
+                id: 0, label: "Scanned Files", xCoordinate: 0.1, yCoordinate: 0.3, color: .blue),
             SankeyNode(
-                id: 3, label: "Space Recovered", x: 0.9, y: 0.4, color: .purple),
-            SankeyNode(id: 4, label: "Protected Files", x: 0.9, y: 0.8, color: .red),
+                id: 1, label: "Safe to Clean", xCoordinate: 0.1, yCoordinate: 0.7, color: .green),
+            SankeyNode(
+                id: 2, label: "Cleanup Engine", xCoordinate: 0.5, yCoordinate: 0.5, color: .orange),
+            SankeyNode(
+                id: 3, label: "Space Recovered", xCoordinate: 0.9, yCoordinate: 0.4, color: .purple),
+            SankeyNode(
+                id: 4, label: "Protected Files", xCoordinate: 0.9, yCoordinate: 0.8, color: .red),
         ]
 
         let sampleFlows: [SankeyFlow] = [

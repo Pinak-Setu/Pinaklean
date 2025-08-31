@@ -531,22 +531,14 @@ jobs:
           # Sign the application (optional for development)
           echo "Application ready for signing and notarization"
 
-      - name: Install create-dmg
-        run: brew install create-dmg
-
       - name: Create DMG
         run: |
           cd PinakleanApp
-          create-dmg \
-            --volname "Pinaklean Installer" \
-            --window-pos 200 120 \
-            --window-size 800 400 \
-            --icon-size 100 \
-            --icon "build/release/Pinaklean.app" 200 190 \
-            --hide-extension "build/release/Pinaklean.app" \
-            --app-drop-link 600 185 \
-            "Pinaklean-1.0.0.dmg" \
-            "build/release/Pinaklean.app"
+          mkdir dmg
+          cp -r build/release/Pinaklean.app dmg/
+          ln -s /Applications dmg/
+          hdiutil create -volname "Pinaklean Installer" -srcfolder dmg -ov -format UDZO Pinaklean-1.0.0.dmg
+          rm -rf dmg
 
       - name: Upload DMG Artifact
         uses: actions/upload-artifact@v4

@@ -426,7 +426,7 @@ jobs:
           fi
 
       - name: Upload TDD Report
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: tdd-summary-report
           path: tdd-report.md
@@ -532,7 +532,7 @@ jobs:
           echo "Application ready for signing and notarization"
 
       - name: Upload Build Artifacts
-        uses: actions/upload-artifact@v3
+        uses: actions/upload-artifact@v4
         with:
           name: pinaklean-app-bundle
           path: ./PinakleanApp/build/release/Pinaklean.app

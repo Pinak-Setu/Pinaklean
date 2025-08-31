@@ -6,6 +6,8 @@ disabled_rules:
   - redundant_discardable_let
   - opening_brace
   - unneeded_synthesized_initializer
+  - comma
+  - unused_closure_parameter
 
 included:
   - PinakleanApp/Sources

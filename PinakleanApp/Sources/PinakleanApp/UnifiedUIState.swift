@@ -56,9 +56,27 @@ final class UnifiedUIState: ObservableObject {
 
     // MARK: - Feature Flags
 
-    @Published var showAdvancedFeatures: Bool = false
-    @Published var enableAnimations: Bool = true
-    @Published var showExperimentalCharts: Bool = false
+    @Published var showAdvancedFeatures: Bool = false {
+        didSet {
+            if !isInitializing {
+                UserDefaults.standard.set(showAdvancedFeatures, forKey: "showAdvancedFeatures")
+            }
+        }
+    }
+    @Published var enableAnimations: Bool = true {
+        didSet {
+            if !isInitializing {
+                UserDefaults.standard.set(enableAnimations, forKey: "enableAnimations")
+            }
+        }
+    }
+    @Published var showExperimentalCharts: Bool = false {
+        didSet {
+            if !isInitializing {
+                UserDefaults.standard.set(showExperimentalCharts, forKey: "showExperimentalCharts")
+            }
+        }
+    }
 
     // MARK: - Internal State
 
@@ -383,16 +401,17 @@ final class UnifiedUIState: ObservableObject {
     // MARK: - Private Methods
 
     private func loadDefaults() {
-        enableAnimations = UserDefaults.standard.bool(forKey: "enableAnimations")
-        showAdvancedFeatures = UserDefaults.standard.bool(forKey: "showAdvancedFeatures")
-        showExperimentalCharts = UserDefaults.standard.bool(forKey: "showExperimentalCharts")
+        let defaults = UserDefaults.standard
 
         // Handle defaults with proper fallback for first-time users
-        let defaults = UserDefaults.standard
+        enableAnimations = defaults.object(forKey: "enableAnimations") as? Bool ?? true
         enableDryRun = defaults.object(forKey: "enableDryRun") as? Bool ?? false
 
         let backupFromDefaults = defaults.object(forKey: "enableBackup") as? Bool
         enableBackup = backupFromDefaults ?? true
+
+        showAdvancedFeatures = defaults.object(forKey: "showAdvancedFeatures") as? Bool ?? false
+        showExperimentalCharts = defaults.object(forKey: "showExperimentalCharts") as? Bool ?? false
     }
 
     private func setupAccessibilityObservers() {

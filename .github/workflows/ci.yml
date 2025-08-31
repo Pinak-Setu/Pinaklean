@@ -75,24 +75,29 @@ jobs:
           cd PinakleanApp
           swift build --configuration ${{ matrix.configuration }}
 
-      - name: Run Unit Tests with Coverage (skip if none)
+      - name: Run Unit Tests with Coverage (skip if no test targets)
         run: |
           cd PinakleanApp
-          if [ -d Tests ] && [ "$(find Tests -name '*.swift' | wc -l)" -gt 0 ]; then
+          if swift package describe --type json | grep -q '"type"\s*:\s*"test"'; then
             swift test --enable-code-coverage --parallel
           else
-            echo "No tests found under PinakleanApp/Tests. Skipping tests."
+            echo "No test targets defined in Package.swift. Skipping tests."
           fi
 
       - name: Generate Coverage Report (if available)
         run: |
           cd PinakleanApp
-          PROF_FILE=$(ls .build/**/debug/codecov/default.profdata 2>/dev/null | head -n1)
-          TEST_BIN=$(ls .build/**/debug/*.xctest/Contents/MacOS/* 2>/dev/null | head -n1)
-          if [ -n "$PROF_FILE" ] && [ -n "$TEST_BIN" ]; then
-            xcrun llvm-cov export "$TEST_BIN" -instr-profile "$PROF_FILE" -format=lcov > coverage.lcov
+          if swift package describe --type json | grep -q '"type"\s*:\s*"test"'; then
+            PROF_FILE=$(ls .build/**/debug/codecov/default.profdata 2>/dev/null | head -n1)
+            TEST_BIN=$(ls .build/**/debug/*.xctest/Contents/MacOS/* 2>/dev/null | head -n1)
+            if [ -n "$PROF_FILE" ] && [ -n "$TEST_BIN" ]; then
+              xcrun llvm-cov export "$TEST_BIN" -instr-profile "$PROF_FILE" -format=lcov > coverage.lcov
+            else
+              echo "Coverage artifacts not found; skipping coverage export."
+              : > coverage.lcov
+            fi
           else
-            echo "Coverage artifacts not found; skipping coverage export."
+            echo "No test targets defined; skipping coverage export."
             : > coverage.lcov
           fi
 

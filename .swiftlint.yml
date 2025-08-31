@@ -1,11 +1,3 @@
-<file_path>
-Pinaklean/.swiftlint.yml
-</file_path>
-
-<edit_description>
-Create .swiftlint.yml configuration file with default rules and disabled file_length warning to allow CI to run SwiftLint successfully
-</edit_description>
-
 disabled_rules:
   - file_length
   - multiple_closures_with_trailing_closure

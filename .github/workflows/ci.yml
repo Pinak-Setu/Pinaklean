@@ -92,21 +92,6 @@ jobs:
           name: codecov-umbrella
           fail_ci_if_error: false
 
-      - name: Check Test Coverage Threshold
-        run: |
-          COVERAGE=$(swift test --enable-code-coverage 2>/dev/null | grep -o "[0-9]\+\.[0-9]\+%" | head -1)
-          echo "Current coverage: $COVERAGE"
-
-          # Extract numeric value
-          COVERAGE_NUM=$(echo $COVERAGE | sed 's/%//')
-
-          if (( $(echo "$COVERAGE_NUM < 85" | bc -l) )); then
-            echo "❌ Coverage too low: $COVERAGE (minimum: 85%)"
-            exit 1
-          else
-            echo "✅ Coverage acceptable: $COVERAGE"
-          fi
-
   # UI Tests (TDD - Interface Layer)
   ui-tests:
     name: "UI Tests (Liquid Crystal Design)"

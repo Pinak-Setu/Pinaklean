@@ -56,7 +56,7 @@ struct CustomTabBar: View {
             color: DesignSystem.shadow.radius > 0 ? Color.black.opacity(0.2) : Color.clear,
             radius: DesignSystem.shadow.radius,
             x: 0,
-            y: DesignSystem.shadow.y
+            y: DesignSystem.shadow.yOffset
         )
         .padding(.horizontal)
         .accessibilityElement(children: .contain)

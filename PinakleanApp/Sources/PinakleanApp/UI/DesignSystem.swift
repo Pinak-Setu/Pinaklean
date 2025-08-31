@@ -5,12 +5,7 @@ import SwiftUI
 /// Shadow configuration for consistent elevation effects
 struct Shadow {
     let radius: CGFloat
-    let y: CGFloat
-
-    init(radius: CGFloat, y: CGFloat) {
-        self.radius = radius
-        self.y = y
-    }
+    let yOffset: CGFloat
 }
 
 /// Pinaklean's "Liquid Crystal" design system
@@ -65,16 +60,16 @@ enum DesignSystem {
     // MARK: - Shadows
 
     /// Standard shadow for floating elements
-    static let shadow = Shadow(radius: 20, y: 10)
+    static let shadow = Shadow(radius: 20, yOffset: 10)
 
     /// Soft shadow for subtle elevation
-    static let shadowSoft = Shadow(radius: 8, y: 4)
+    static let shadowSoft = Shadow(radius: 8, yOffset: 4)
 
     /// Minimal shadow for thin elements
-    static let shadowMinimal = Shadow(radius: 4, y: 2)
+    static let shadowMinimal = Shadow(radius: 4, yOffset: 2)
 
     /// Strong shadow for modal overlays
-    static let shadowStrong = Shadow(radius: 30, y: 15)
+    static let shadowStrong = Shadow(radius: 30, yOffset: 15)
 
     // MARK: - Animations
 
@@ -225,23 +220,28 @@ extension Color {
         let hex = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
         var int: UInt64 = 0
         Scanner(string: hex).scanHexInt64(&int)
-        let a, r, g, b: UInt64
+        let alpha: UInt64
+        let red: UInt64
+        let green: UInt64
+        let blue: UInt64
         switch hex.count {
-        case 3: // RGB (12-bit)
-            (a, r, g, b) = (255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17)
-        case 6: // RGB (24-bit)
-            (a, r, g, b) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
-        case 8: // ARGB (32-bit)
-            (a, r, g, b) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
+        case 3:  // RGB (12-bit)
+            (alpha, red, green, blue) = (
+                255, (int >> 8) * 17, (int >> 4 & 0xF) * 17, (int & 0xF) * 17
+            )
+        case 6:  // RGB (24-bit)
+            (alpha, red, green, blue) = (255, int >> 16, int >> 8 & 0xFF, int & 0xFF)
+        case 8:  // ARGB (32-bit)
+            (alpha, red, green, blue) = (int >> 24, int >> 16 & 0xFF, int >> 8 & 0xFF, int & 0xFF)
         default:
-            (a, r, g, b) = (1, 1, 1, 0)
+            (alpha, red, green, blue) = (1, 1, 1, 0)
         }
         self.init(
             .sRGB,
-            red: Double(r) / 255,
-            green: Double(g) / 255,
-            blue: Double(b) / 255,
-            opacity: Double(a) / 255
+            red: Double(red) / 255,
+            green: Double(green) / 255,
+            blue: Double(blue) / 255,
+            opacity: Double(alpha) / 255
         )
     }
 }
@@ -254,9 +254,9 @@ extension Animation {
     /// - Returns: Animation if condition is true and motion is not reduced, nil otherwise
     static func conditional(_ condition: Bool, animation: Animation) -> Animation? {
         #if os(macOS)
-        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            return nil
-        }
+            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                return nil
+            }
         #endif
         return condition ? animation : nil
     }
@@ -270,9 +270,9 @@ extension DesignSystem {
     /// - Returns: Animation if motion is not reduced, nil otherwise
     static func accessibleAnimation(_ animation: Animation) -> Animation? {
         #if os(macOS)
-        if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-            return nil
-        }
+            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
+                return nil
+            }
         #endif
         return animation
     }

@@ -47,7 +47,7 @@ struct FrostCard<Content: View>: View {
             content
                 .padding(DesignSystem.spacing)
         }
-        .shadow(color: Color.black.opacity(0.1), radius: shadow.radius, x: 0, y: shadow.y)
+        .shadow(color: Color.black.opacity(0.1), radius: shadow.radius, x: 0, y: shadow.yOffset)
         .compositingGroup()  // Ensures blur works properly
         .accessibilityElement(children: .combine)
     }
@@ -179,13 +179,13 @@ extension FrostCard {
     /// FrostCard with scale animation
     func scaleAnimation(_ scale: CGFloat = 1.0) -> some View {
         self.scaleEffect(scale)
-            .animation(DesignSystem.spring)
+            .animation(DesignSystem.spring, value: scale)
     }
 
     /// FrostCard with opacity animation
     func opacityAnimation(_ opacity: Double = 1.0) -> some View {
         self.opacity(opacity)
-            .animation(DesignSystem.easeInOut)
+            .animation(DesignSystem.easeInOut, value: opacity)
     }
 }
 
@@ -194,9 +194,10 @@ extension FrostCard {
 extension FrostCard {
     /// Apply modifier conditionally
     @ViewBuilder
-    func `if`<Content: View>(
+    func `if`<T: View>(
         _ condition: Bool,
-        transform: (Self) -> Content
+        transform: (Self) -> T
+
     ) -> some View {
         if condition {
             transform(self)

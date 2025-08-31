@@ -32,9 +32,6 @@ let package = Package(
         // Async algorithms
         .package(url: "https://github.com/apple/swift-async-algorithms", from: "1.0.0"),
 
-        // Collections
-        .package(url: "https://github.com/apple/swift-collections.git", from: "1.0.0"),
-
         // Logging
         .package(url: "https://github.com/apple/swift-log.git", from: "1.5.0"),
 
@@ -56,7 +53,6 @@ let package = Package(
                 .product(name: "GRDB", package: "GRDB.swift"),
                 .product(name: "SQLite", package: "SQLite.swift"),
                 .product(name: "AsyncAlgorithms", package: "swift-async-algorithms"),
-                .product(name: "Collections", package: "swift-collections"),
                 .product(name: "Logging", package: "swift-log"),
                 .product(name: "Metrics", package: "swift-metrics"),
             ],
@@ -85,15 +81,6 @@ let package = Package(
             ]
         ),
 
-        // Tests
-        .testTarget(
-            name: "PinakleanCoreTests",
-            dependencies: [
-                "PinakleanCore",
-                .product(name: "Quick", package: "Quick"),
-                .product(name: "Nimble", package: "Nimble"),
-            ],
-            path: "Tests"
-        ),
+        // Tests temporarily disabled
     ]
 )

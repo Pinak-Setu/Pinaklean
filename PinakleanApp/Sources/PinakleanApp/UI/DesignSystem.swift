@@ -43,6 +43,12 @@ enum DesignSystem {
     /// Text tertiary color for muted content
     static let textTertiary = Color.secondary.opacity(0.7)
 
+    /// Surface color for cards and backgrounds
+    static let surface = Color.white.opacity(0.05)
+
+    /// Border color for outlines
+    static let border = Color.white.opacity(0.1)
+
     // MARK: - Materials & Effects
 
     /// Ultra thin material for glassmorphism
@@ -155,6 +161,9 @@ enum DesignSystem {
 
     /// Extra large spacing (32pt)
     static let spacingXLarge: CGFloat = 32
+
+    /// Medium spacing (20pt)
+    static let spacingMedium: CGFloat = 20
 
     // MARK: - Corner Radii
 

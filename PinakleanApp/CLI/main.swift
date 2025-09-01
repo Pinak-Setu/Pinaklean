@@ -129,7 +129,9 @@ struct PinakleanCLI: AsyncParsableCommand {
 
     mutating func run() async throws {
         let spinner = PinakleanCLI.Spinner(text: "Initializing Pinaklean Engine...")
-        spinner.start()
+        if !json {
+            spinner.start()
+        }
 
         let engine = try await PinakleanEngine()
 
@@ -143,7 +145,9 @@ struct PinakleanCLI: AsyncParsableCommand {
         config.verboseLogging = verbose
         engine.configure(config)
 
-        spinner.update(text: "Scanning for cleanable files...")
+        if !json {
+            spinner.update(text: "Scanning for cleanable files...")
+        }
 
         // Parse categories
         let scanCategories = parseCategories(categories)
@@ -151,7 +155,9 @@ struct PinakleanCLI: AsyncParsableCommand {
         // Perform scan
         let results = try await engine.scan(categories: scanCategories)
 
-        spinner.stop()
+        if !json {
+            spinner.stop()
+        }
 
         // Display results
         if json {

@@ -89,7 +89,16 @@ let package = Package(
                 .product(name: "Quick", package: "Quick"),
                 .product(name: "Nimble", package: "Nimble")
             ],
-            path: "Tests"
+            path: "Tests/App"
+        ),
+        .testTarget(
+            name: "PinakleanCLITests",
+            dependencies: [
+                "PinakleanCLI",
+                .product(name: "Quick", package: "Quick"),
+                .product(name: "Nimble", package: "Nimble")
+            ],
+            path: "Tests/CLI"
         ),
     ]
 )

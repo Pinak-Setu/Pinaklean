@@ -263,11 +263,10 @@ extension Animation {
     ///   - animation: Animation to apply if condition is true
     /// - Returns: Animation if condition is true and motion is not reduced, nil otherwise
     static func conditional(_ condition: Bool, animation: Animation) -> Animation? {
-        #if os(macOS)
-            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-                return nil
-            }
-        #endif
+        // Respect DesignSystem override first, then system setting
+        if DesignSystem.isReduceMotionEnabled() {
+            return nil
+        }
         return condition ? animation : nil
     }
 }
@@ -275,15 +274,34 @@ extension Animation {
 // MARK: - Convenience Functions
 
 extension DesignSystem {
+    // MARK: Reduce Motion Override
+    private static var reduceMotionOverride: Bool?
+
+    /// Set reduce motion override for tests or previews
+    /// - Parameter value: true to force reduce motion on, false to force off, nil to clear override
+    static func setReduceMotionOverride(_ value: Bool?) {
+        reduceMotionOverride = value
+    }
+
+    /// Determine whether reduce motion is enabled, honoring override if set
+    static func isReduceMotionEnabled() -> Bool {
+        if let override = reduceMotionOverride {
+            return override
+        }
+        #if os(macOS)
+            return NSWorkspace.shared.accessibilityDisplayShouldReduceMotion
+        #else
+            return false
+        #endif
+    }
+
     /// Get animation considering accessibility
     /// - Parameter animation: Desired animation
     /// - Returns: Animation if motion is not reduced, nil otherwise
     static func accessibleAnimation(_ animation: Animation) -> Animation? {
-        #if os(macOS)
-            if NSWorkspace.shared.accessibilityDisplayShouldReduceMotion {
-                return nil
-            }
-        #endif
+        if isReduceMotionEnabled() {
+            return nil
+        }
         return animation
     }
 

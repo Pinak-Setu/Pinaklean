@@ -295,4 +295,25 @@ extension DesignSystem {
     static func safeCornerRadius(for size: CGSize, multiplier: CGFloat = 0.1) -> CGFloat {
         min(size.width, size.height) * multiplier
     }
+
+    /// Expose gradient color stops for testing and previews
+    static func gradientPrimaryColors() -> [Color] {
+        [primary, accent.opacity(0.3)]
+    }
+
+    static func gradientGlassColors() -> [Color] {
+        [glass.opacity(0.2), glass.opacity(0.1)]
+    }
+
+    static func gradientBackgroundColors() -> [Color] {
+        [Color.blue.opacity(0.05), Color.purple.opacity(0.03)]
+    }
+
+    static func gradientSuccessColors() -> [Color] {
+        [success.opacity(0.1), success.opacity(0.05)]
+    }
+
+    static func gradientWarningColors() -> [Color] {
+        [warning.opacity(0.1), warning.opacity(0.05)]
+    }
 }

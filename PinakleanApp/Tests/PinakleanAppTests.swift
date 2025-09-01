@@ -611,6 +611,25 @@ final class PinakleanAppTests: XCTestCase {
         XCTAssertTrue(true, "SettingsView notification actions are properly wired to NotificationManager")
     }
 
+    // UI-006: Validate shadow presets numerically (proxy for visual snapshot)
+    func testShadowPresetValues() throws {
+        // Standard shadow
+        XCTAssertEqual(DesignSystem.shadow.radius, 20)
+        XCTAssertEqual(DesignSystem.shadow.yOffset, 10)
+
+        // Soft shadow
+        XCTAssertEqual(DesignSystem.shadowSoft.radius, 8)
+        XCTAssertEqual(DesignSystem.shadowSoft.yOffset, 4)
+
+        // Minimal shadow
+        XCTAssertEqual(DesignSystem.shadowMinimal.radius, 4)
+        XCTAssertEqual(DesignSystem.shadowMinimal.yOffset, 2)
+
+        // Strong shadow
+        XCTAssertEqual(DesignSystem.shadowStrong.radius, 30)
+        XCTAssertEqual(DesignSystem.shadowStrong.yOffset, 15)
+    }
+
     // UI-001: Unit tests for Color(hex:) initializer and edge cases
     func testColorHexParsing_RGB24Bit() throws {
         // FFD700 (Topaz Yellow)

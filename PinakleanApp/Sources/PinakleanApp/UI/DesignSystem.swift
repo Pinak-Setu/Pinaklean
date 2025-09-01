@@ -220,6 +220,52 @@ enum DesignSystem {
     static let fontCaptionSmall = Font.system(size: 11, weight: .regular, design: .rounded)
 }
 
+// MARK: - Component Appearance Specs
+
+/// Elevation levels for FrostCard
+enum FrostCardElevation {
+    case compact
+    case standard
+    case elevated
+}
+
+/// Appearance contract for FrostCard
+struct FrostCardAppearance {
+    let cornerRadius: CGFloat
+    let shadow: Shadow
+    let borderWidth: CGFloat
+    let borderOpacity: Double
+}
+
+extension DesignSystem {
+    /// Provide appearance tokens for FrostCard by elevation level
+    static func frostCardAppearance(for elevation: FrostCardElevation) -> FrostCardAppearance {
+        switch elevation {
+        case .compact:
+            return FrostCardAppearance(
+                cornerRadius: cornerRadius,
+                shadow: shadowSoft,
+                borderWidth: borderWidthThin,
+                borderOpacity: 0.2
+            )
+        case .standard:
+            return FrostCardAppearance(
+                cornerRadius: cornerRadiusLarge,
+                shadow: shadow,
+                borderWidth: borderWidthThin,
+                borderOpacity: 0.2
+            )
+        case .elevated:
+            return FrostCardAppearance(
+                cornerRadius: cornerRadiusLarge,
+                shadow: shadowStrong,
+                borderWidth: borderWidthThin,
+                borderOpacity: 0.2
+            )
+        }
+    }
+}
+
 // MARK: - Extensions
 
 extension Color {

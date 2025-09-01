@@ -23,6 +23,10 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   # TDD Test Suite
   test-tdd:
@@ -434,7 +438,7 @@ jobs:
           retention-days: 30
 
       - name: Comment on PR
-        if: github.event_name == 'pull_request'
+        if: github.event_name == 'pull_request' && github.token != ''
         uses: actions/github-script@v6
         with:
           script: |

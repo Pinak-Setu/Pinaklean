@@ -735,6 +735,42 @@ final class PinakleanAppTests: XCTestCase {
         let contrastWithWhite = wcagContrastRatio(rgb1: accentRGB, rgb2: white)
         XCTAssertGreaterThanOrEqual(max(contrastWithBlack, contrastWithWhite), 4.5)
     }
+
+    // UI-004: Validate gradients render with expected color stops
+    func testGradientPrimaryColorsMatchTokens() throws {
+        let stops = DesignSystem.gradientPrimaryColors()
+        XCTAssertEqual(stops.count, 2)
+        XCTAssertEqual(stops[0], DesignSystem.primary)
+        XCTAssertEqual(stops[1], DesignSystem.accent.opacity(0.3))
+    }
+
+    func testGradientGlassColorsMatchTokens() throws {
+        let stops = DesignSystem.gradientGlassColors()
+        XCTAssertEqual(stops.count, 2)
+        XCTAssertEqual(stops[0], DesignSystem.glass.opacity(0.2))
+        XCTAssertEqual(stops[1], DesignSystem.glass.opacity(0.1))
+    }
+
+    func testGradientBackgroundColorsMatchTokens() throws {
+        let stops = DesignSystem.gradientBackgroundColors()
+        XCTAssertEqual(stops.count, 2)
+        XCTAssertEqual(stops[0], Color.blue.opacity(0.05))
+        XCTAssertEqual(stops[1], Color.purple.opacity(0.03))
+    }
+
+    func testGradientSuccessColorsMatchTokens() throws {
+        let stops = DesignSystem.gradientSuccessColors()
+        XCTAssertEqual(stops.count, 2)
+        XCTAssertEqual(stops[0], DesignSystem.success.opacity(0.1))
+        XCTAssertEqual(stops[1], DesignSystem.success.opacity(0.05))
+    }
+
+    func testGradientWarningColorsMatchTokens() throws {
+        let stops = DesignSystem.gradientWarningColors()
+        XCTAssertEqual(stops.count, 2)
+        XCTAssertEqual(stops[0], DesignSystem.warning.opacity(0.1))
+        XCTAssertEqual(stops[1], DesignSystem.warning.opacity(0.05))
+    }
 }
 
 

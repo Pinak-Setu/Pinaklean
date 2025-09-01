@@ -610,6 +610,46 @@ final class PinakleanAppTests: XCTestCase {
         // (The actual wiring is verified through compilation - buttons call NotificationManager methods)
         XCTAssertTrue(true, "SettingsView notification actions are properly wired to NotificationManager")
     }
+
+    // UI-001: Unit tests for Color(hex:) initializer and edge cases
+    func testColorHexParsing_RGB24Bit() throws {
+        // FFD700 (Topaz Yellow)
+        let color = Color(hex: "FFD700")
+        let expected = Color(.sRGB, red: 255.0/255.0, green: 215.0/255.0, blue: 0.0/255.0, opacity: 1.0)
+        XCTAssertEqual(color, expected)
+    }
+
+    func testColorHexParsing_withLeadingHash() throws {
+        let color = Color(hex: "#DC143C") // Crimson
+        let expected = Color(.sRGB, red: 220.0/255.0, green: 20.0/255.0, blue: 60.0/255.0, opacity: 1.0)
+        XCTAssertEqual(color, expected)
+    }
+
+    func testColorHexParsing_lowercase() throws {
+        let color = Color(hex: "ffd700")
+        let expected = Color(.sRGB, red: 1.0, green: 215.0/255.0, blue: 0.0/255.0, opacity: 1.0)
+        XCTAssertEqual(color, expected)
+    }
+
+    func testColorHexParsing_RGB12Bit() throws {
+        // FD7 -> (255, 221, 119)
+        let color = Color(hex: "FD7")
+        let expected = Color(.sRGB, red: 255.0/255.0, green: 221.0/255.0, blue: 119.0/255.0, opacity: 1.0)
+        XCTAssertEqual(color, expected)
+    }
+
+    func testColorHexParsing_ARGB32Bit() throws {
+        // FFFD700 -> Actually 8 digits: AARRGGBB (FF FF D7 00)
+        let color = Color(hex: "FFFFD700")
+        let expected = Color(.sRGB, red: 255.0/255.0, green: 215.0/255.0, blue: 0.0/255.0, opacity: 255.0/255.0)
+        XCTAssertEqual(color, expected)
+    }
+
+    func testColorHexParsing_invalidFallsBack() throws {
+        // Fallback should be solid black for invalid input
+        let color = Color(hex: "ZZZ")
+        XCTAssertEqual(color, .black)
+    }
 }
 
 

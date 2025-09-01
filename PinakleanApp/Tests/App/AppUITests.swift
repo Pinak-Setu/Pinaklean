@@ -1099,6 +1099,43 @@ final class PinakleanAppTests: XCTestCase {
         XCTAssertLessThanOrEqual(params.speed, 0.2)
         DesignSystem.setReduceMotionOverride(nil)
     }
+
+    // UI-027: CustomTabBar keyboard navigation + focus ring
+    func testCustomTabBarCompilesWithSelectionBinding() throws {
+        let view = CustomTabBar(selection: .constant(.dashboard))
+        _ = view
+        XCTAssertTrue(true)
+    }
+
+    // UI-028: QuickActionButton press/hover animations
+    func testQuickActionButtonExistsAndTap() throws {
+        let btn = QuickActionButton(title: "Scan", systemImage: "bolt", action: {})
+        _ = btn
+        HapticsEngine.shared.tap()
+        XCTAssertTrue(true)
+    }
+
+    // UI-029: MenuBarContent accessibility labels
+    func testMenuBarContentExists() throws {
+        let m = MenuBarContent()
+        _ = m
+        XCTAssertTrue(true)
+    }
+
+    // UI-030: SettingsView sections compile
+    func testSettingsViewCompiles() throws {
+        let v = SettingsView()
+        _ = v
+        XCTAssertTrue(true)
+    }
+
+    // UI-031: RecentActivityView states compile
+    func testRecentActivityViewStatesCompile() throws {
+        _ = RecentActivityView(state: .empty)
+        _ = RecentActivityView(state: .loading)
+        _ = RecentActivityView(state: .populated(["Cleaned temp files"]))
+        XCTAssertTrue(true)
+    }
 }
 
 

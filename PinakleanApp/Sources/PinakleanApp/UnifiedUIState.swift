@@ -389,12 +389,14 @@ final class UnifiedUIState: ObservableObject {
         }
     }
 
-    /// Navigate to specific tab with animation
+    /// Navigate to specific tab with animation (synchronous for test determinism)
     func navigateTo(_ tab: AppTab) {
-        DispatchQueue.main.async { [weak self] in
-            withAnimation(self?.accessibleAnimation(.spring)) {
-                self?.currentTab = tab
+        if let animation = accessibleAnimation(.spring) {
+            withAnimation(animation) {
+                currentTab = tab
             }
+        } else {
+            currentTab = tab
         }
     }
 

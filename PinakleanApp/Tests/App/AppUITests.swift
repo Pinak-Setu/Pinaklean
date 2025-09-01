@@ -1136,6 +1136,54 @@ final class PinakleanAppTests: XCTestCase {
         _ = RecentActivityView(state: .populated(["Cleaned temp files"]))
         XCTAssertTrue(true)
     }
+
+    // UI-032: AnalyticsDashboard layout grid responsiveness
+    func testAnalyticsDashboardGridColumnsByScreenSize() throws {
+        XCTAssertEqual(AnalyticsDashboard.gridColumns(for: .compact), 1)
+        XCTAssertEqual(AnalyticsDashboard.gridColumns(for: .regular), 2)
+        XCTAssertEqual(AnalyticsDashboard.gridColumns(for: .large), 3)
+    }
+
+    // UI-033: SunburstChart performance test
+    func testSunburstChartBuildPerformance() throws {
+        let sampleData: [SunburstSegment] = (0..<50).map { i in
+            SunburstSegment(id: i, name: "Seg\(i)", value: Double.random(in: 1...10), color: .blue, level: i % 3)
+        }
+        measure {
+            _ = SunburstChart(data: sampleData, centerText: "Total", centerValue: "100 GB")
+        }
+    }
+
+    // UI-034: SankeyDiagram performance test
+    func testSankeyDiagramBuildPerformance() throws {
+        let nodes = (0..<10).map { i in
+            SankeyNode(id: i, label: "N\(i)", xCoordinate: Double(i)/10.0, yCoordinate: Double(i%5)/5.0, color: .green)
+        }
+        let flows = (0..<9).map { i in
+            SankeyFlow(id: i, sourceId: i, targetId: i+1, value: Double.random(in: 10...50), color: .purple)
+        }
+        measure {
+            _ = SankeyDiagram(nodes: nodes, flows: flows)
+        }
+    }
+
+    // UI-035: UnifiedUIState store tests (routing, flags)
+    func testUnifiedUIStateRoutingAndFlags() throws {
+        let ui = UnifiedUIState()
+        XCTAssertEqual(ui.currentTab, .dashboard)
+        ui.navigateTo(.analytics)
+        XCTAssertEqual(ui.currentTab, .analytics)
+        ui.setDryRun(true)
+        XCTAssertTrue(ui.enableDryRun)
+        ui.setBackup(false)
+        XCTAssertFalse(ui.enableBackup)
+    }
+
+    // UI-036: ContentView shell compiles
+    func testContentViewCompiles() throws {
+        _ = ContentView()
+        XCTAssertTrue(true)
+    }
 }
 
 

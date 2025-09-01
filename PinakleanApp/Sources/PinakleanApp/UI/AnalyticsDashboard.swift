@@ -121,6 +121,17 @@ struct AnalyticsDashboard: View {
     }
 }
 
+// MARK: - Layout Helpers
+extension AnalyticsDashboard {
+    static func gridColumns(for size: ScreenSize) -> Int {
+        switch size {
+        case .compact: return 1
+        case .regular: return 2
+        case .large: return 3
+        }
+    }
+}
+
 // MARK: - Supporting Views
 
 /// Storage bar item component

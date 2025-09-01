@@ -13,3 +13,14 @@ ci/open:
 ci/dash:
 	gh dash
 
+# MCP servers (requires Node/npm for npx and uvx for Python-based servers)
+.PHONY: mcp/filesystem mcp/memory mcp/git
+mcp/filesystem:
+	npx -y @modelcontextprotocol/server-filesystem .
+
+mcp/memory:
+	npx -y @modelcontextprotocol/server-memory
+
+mcp/git:
+	uvx mcp-server-git --repository ./
+

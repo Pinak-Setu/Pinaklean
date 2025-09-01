@@ -771,6 +771,35 @@ final class PinakleanAppTests: XCTestCase {
         XCTAssertEqual(stops[0], DesignSystem.warning.opacity(0.1))
         XCTAssertEqual(stops[1], DesignSystem.warning.opacity(0.05))
     }
+
+    // UI-005: Validate animation helpers respect Reduce Motion setting via override hook
+    func testAccessibleAnimationRespectsReduceMotionOverride() throws {
+        // Reduce motion ON -> animations suppressed
+        DesignSystem.setReduceMotionOverride(true)
+        XCTAssertNil(DesignSystem.accessibleAnimation(.linear(duration: 0.1)))
+
+        // Reduce motion OFF -> animation allowed
+        DesignSystem.setReduceMotionOverride(false)
+        XCTAssertNotNil(DesignSystem.accessibleAnimation(.linear(duration: 0.1)))
+
+        // Cleanup
+        DesignSystem.setReduceMotionOverride(nil)
+    }
+
+    func testConditionalAnimationRespectsReduceMotionAndCondition() throws {
+        // When reduce motion is ON, should suppress regardless of condition
+        DesignSystem.setReduceMotionOverride(true)
+        XCTAssertNil(Animation.conditional(true, animation: .easeInOut(duration: 0.2)))
+        XCTAssertNil(Animation.conditional(false, animation: .easeInOut(duration: 0.2)))
+
+        // When reduce motion is OFF, should follow condition
+        DesignSystem.setReduceMotionOverride(false)
+        XCTAssertNotNil(Animation.conditional(true, animation: .easeInOut(duration: 0.2)))
+        XCTAssertNil(Animation.conditional(false, animation: .easeInOut(duration: 0.2)))
+
+        // Cleanup
+        DesignSystem.setReduceMotionOverride(nil)
+    }
 }
 
 

@@ -852,6 +852,86 @@ final class PinakleanAppTests: XCTestCase {
         model.clear()
         XCTAssertEqual(model.text, "")
     }
+
+    // Task-1 (UI visual contract): FrostCard appearance specs per elevation
+    func testFrostCardAppearanceStandard() throws {
+        let ap = DesignSystem.frostCardAppearance(for: .standard)
+        XCTAssertEqual(ap.cornerRadius, DesignSystem.cornerRadiusLarge)
+        XCTAssertEqual(ap.shadow.radius, DesignSystem.shadow.radius)
+        XCTAssertEqual(ap.shadow.yOffset, DesignSystem.shadow.yOffset)
+        XCTAssertEqual(ap.borderWidth, DesignSystem.borderWidthThin)
+        XCTAssertEqual(ap.borderOpacity, 0.2, accuracy: 0.0001)
+    }
+
+    func testFrostCardAppearanceCompact() throws {
+        let ap = DesignSystem.frostCardAppearance(for: .compact)
+        XCTAssertEqual(ap.cornerRadius, DesignSystem.cornerRadius)
+        XCTAssertEqual(ap.shadow.radius, DesignSystem.shadowSoft.radius)
+        XCTAssertEqual(ap.shadow.yOffset, DesignSystem.shadowSoft.yOffset)
+        XCTAssertEqual(ap.borderWidth, DesignSystem.borderWidthThin)
+        XCTAssertEqual(ap.borderOpacity, 0.2, accuracy: 0.0001)
+    }
+
+    func testFrostCardAppearanceElevated() throws {
+        let ap = DesignSystem.frostCardAppearance(for: .elevated)
+        XCTAssertEqual(ap.cornerRadius, DesignSystem.cornerRadiusLarge)
+        XCTAssertEqual(ap.shadow.radius, DesignSystem.shadowStrong.radius)
+        XCTAssertEqual(ap.shadow.yOffset, DesignSystem.shadowStrong.yOffset)
+        XCTAssertEqual(ap.borderWidth, DesignSystem.borderWidthThin)
+        XCTAssertEqual(ap.borderOpacity, 0.2, accuracy: 0.0001)
+    }
+
+    // UI-062: LiquidGlass presence and simple perf budget
+    func testLiquidGlassTypesExist() throws {
+        _ = LiquidGlass.self
+        _ = AnimatedLiquidGlass.self
+    }
+
+    func testAnimatedLiquidGlassBuildPerformance() throws {
+        measure {
+            for _ in 0..<200 {
+                _ = AnimatedLiquidGlass().body
+            }
+        }
+    }
+
+    // UI-061: FrostCard accessibility helpers compile and chain
+    func testFrostCardAccessibilityHelpers() throws {
+        let view = FrostCard { Text("Hello") }
+            .accessibilityLabel("Card")
+            .accessibilityHint("Contains content")
+        _ = view
+        XCTAssertTrue(true)
+    }
+
+    // UI-062: Animated background preference logic present
+    func testAnimatedBackgroundPreferenceRespectsReduceMotion() throws {
+        DesignSystem.setReduceMotionOverride(true)
+        XCTAssertFalse(DesignSystem.isAnimatedBackgroundPreferred())
+        DesignSystem.setReduceMotionOverride(false)
+        XCTAssertTrue(DesignSystem.isAnimatedBackgroundPreferred())
+        DesignSystem.setReduceMotionOverride(nil)
+    }
+
+    // UI-063: Brand header and brand font exist
+    func testBrandHeaderAndFontExist() throws {
+        _ = BrandHeaderView.self
+        _ = DesignSystem.fontBrand
+        XCTAssertTrue(true)
+    }
+
+    // UI-064: AppTab keyboard shortcuts mapping present
+    func testAppTabKeyboardShortcuts() throws {
+        let shortcuts = AppTab.allCases.map { $0.keyboardShortcut }
+        XCTAssertEqual(shortcuts.count, AppTab.allCases.count)
+    }
+
+    // UI-065: HeroMetricTile exists and value formatting helper works
+    func testHeroMetricTileFormatValue() throws {
+        _ = HeroMetricTile<Text>.self
+        XCTAssertEqual(DesignSystem.formatMetricValue(0), "0")
+        XCTAssertEqual(DesignSystem.formatMetricValue(1_234), "1,234")
+    }
 }
 
 

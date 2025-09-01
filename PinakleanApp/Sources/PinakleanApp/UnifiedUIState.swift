@@ -501,6 +501,18 @@ enum AppTab: CaseIterable, Identifiable {
         case .analytics: return "chart.bar"
         }
     }
+
+    /// Keyboard shortcut mapping for quick navigation (1..6)
+    var keyboardShortcut: Character {
+        switch self {
+        case .dashboard: return "1"
+        case .scan: return "2"
+        case .recommendations: return "3"
+        case .clean: return "4"
+        case .settings: return "5"
+        case .analytics: return "6"
+        }
+    }
 }
 
 /// Transition direction for animations

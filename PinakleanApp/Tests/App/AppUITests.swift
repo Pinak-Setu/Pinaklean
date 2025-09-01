@@ -1224,6 +1224,52 @@ final class PinakleanAppTests: XCTestCase {
         _ = hindi
         XCTAssertTrue(true)
     }
+
+    // UI-042: Locale switcher updates state and brand font can be resolved
+    func testLocaleSwitcherUpdatesState() throws {
+        let ui = UnifiedUIState()
+        ui.setLocale("hi")
+        XCTAssertEqual(ui.selectedLocale, "hi")
+        _ = DesignSystem.brandFont(forLanguage: ui.selectedLocale)
+    }
+
+    // UI-043: Feature flags for risky UI (charts)
+    func testExperimentalChartsFlagControlsCharts() throws {
+        let ui = UnifiedUIState()
+        ui.showExperimentalCharts = false
+        XCTAssertFalse(AnalyticsDashboard.isChartsEnabled(state: ui))
+        ui.showExperimentalCharts = true
+        XCTAssertTrue(AnalyticsDashboard.isChartsEnabled(state: ui))
+    }
+
+    // UI-044: Loading skeleton components compile (list and block)
+    func testSkeletonViewsExist() throws {
+        _ = SkeletonLine.self
+        _ = SkeletonBlock.self
+        XCTAssertTrue(true)
+    }
+
+    // UI-045: Refresh behavior updates dashboard timestamp
+    func testRefreshDashboardUpdatesTimestamp() throws {
+        let ui = UnifiedUIState()
+        let before = ui.lastScanDate
+        ui.refreshDashboard()
+        let after = ui.lastScanDate
+        XCTAssertNotEqual(before, after)
+    }
+
+    // UI-046: Multi-select helpers
+    func testSelectionHelpersSelectAllNoneInvert() throws {
+        let ui = UnifiedUIState()
+        let ids = [UUID(), UUID(), UUID()]
+        ui.selectAll(ids)
+        XCTAssertEqual(ui.selectedCount, 3)
+        ui.invertSelection(in: ids)
+        XCTAssertEqual(ui.selectedCount, 0)
+        ui.selectAll(ids)
+        ui.selectNone()
+        XCTAssertEqual(ui.selectedCount, 0)
+    }
 }
 
 

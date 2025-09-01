@@ -9,3 +9,7 @@ ci/rerun:
 ci/open:
 	@bash scripts/ci-open-latest.sh
 
+.PHONY: ci/dash
+ci/dash:
+	gh dash
+

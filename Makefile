@@ -24,3 +24,7 @@ mcp/memory:
 mcp/git:
 	uvx mcp-server-git --repository ./
 
+.PHONY: ui/diagram
+ui/diagram:
+	npx -y @mermaid-js/mermaid-cli -i ui.mmd -o ui.png
+

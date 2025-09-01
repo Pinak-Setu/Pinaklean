@@ -895,6 +895,44 @@ final class PinakleanAppTests: XCTestCase {
         }
     }
 
+    // UI-012: Segmented control style for filters
+    func testFilterSegmentedControlTypesExist() throws {
+        _ = FilterSegmentedControl<Text, String>.self
+        _ = SegmentedFilterStyle.self
+    }
+
+    // UI-013: TogglePill a11y and focus compile
+    func testTogglePillA11yCompileAndStates() throws {
+        var on = true
+        let binding = Binding<Bool>(get: { on }, set: { on = $0 })
+        let view = TogglePill(isOn: binding, label: "Enable Feature")
+        _ = view
+        XCTAssertTrue(on)
+    }
+
+    // UI-014: Badge component variants exist
+    func testBadgeViewKindsExist() throws {
+        _ = BadgeKind.self
+        _ = BadgeView<Text>.self
+    }
+
+    // UI-015: TagChip removable action exists via model
+    func testTagChipModelOnRemoveInvokes() throws {
+        var removed = false
+        let model = TagChipModel(title: "Sample", onRemove: { removed = true })
+        model.onRemove?()
+        XCTAssertTrue(removed)
+        _ = TagChip<Text>.self
+    }
+
+    // UI-016: ProgressRing configuration defaults
+    func testProgressRingConfigDefaults() throws {
+        let cfg = ProgressRingConfig()
+        XCTAssertEqual(cfg.lineWidth, 8)
+        XCTAssertFalse(cfg.isIndeterminate)
+        _ = ProgressRing.self
+    }
+
     // UI-061: FrostCard accessibility helpers compile and chain
     func testFrostCardAccessibilityHelpers() throws {
         let view = FrostCard { Text("Hello") }

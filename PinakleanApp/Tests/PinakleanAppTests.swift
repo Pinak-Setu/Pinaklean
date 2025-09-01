@@ -650,6 +650,31 @@ final class PinakleanAppTests: XCTestCase {
         let color = Color(hex: "ZZZ")
         XCTAssertEqual(color, .black)
     }
+
+    // UI-002: Unit tests for DesignSystem.safeCornerRadius(for:multiplier:)
+    func testSafeCornerRadius_usesSmallerDimension_timesDefaultMultiplier() throws {
+        let size = CGSize(width: 200, height: 100)
+        let radius = DesignSystem.safeCornerRadius(for: size) // default 0.1
+        XCTAssertEqual(radius, 10.0, accuracy: 0.0001)
+    }
+
+    func testSafeCornerRadius_handlesSquareSizes() throws {
+        let size = CGSize(width: 80, height: 80)
+        let radius = DesignSystem.safeCornerRadius(for: size)
+        XCTAssertEqual(radius, 8.0, accuracy: 0.0001)
+    }
+
+    func testSafeCornerRadius_respectsCustomMultiplier() throws {
+        let size = CGSize(width: 50, height: 30)
+        let radius = DesignSystem.safeCornerRadius(for: size, multiplier: 0.2)
+        XCTAssertEqual(radius, 6.0, accuracy: 0.0001) // min(50,30)=30 * 0.2 = 6
+    }
+
+    func testSafeCornerRadius_zeroSize_isZero() throws {
+        let size = CGSize(width: 0, height: 0)
+        let radius = DesignSystem.safeCornerRadius(for: size)
+        XCTAssertEqual(radius, 0.0, accuracy: 0.0001)
+    }
 }
 
 

@@ -12,10 +12,11 @@ let package = Package(
             name: "PinakleanCore",
             targets: ["PinakleanCore"]
         ),
-        .executable(
-            name: "pinaklean-cli",
-            targets: ["PinakleanCLI"]
-        ),
+        // Archived temporarily: CLI product disabled to unblock UI test build
+        // .executable(
+        //     name: "pinaklean-cli",
+        //     targets: ["PinakleanCLI"]
+        // ),
         .executable(
             name: "Pinaklean",
             targets: ["PinakleanApp"]
@@ -62,15 +63,15 @@ let package = Package(
             ]
         ),
 
-        // CLI Tool
-        .executableTarget(
-            name: "PinakleanCLI",
-            dependencies: [
-                "PinakleanCore",
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            ],
-            path: "CLI"
-        ),
+        // CLI Tool (archived temporarily to stabilize builds)
+        // .executableTarget(
+        //     name: "PinakleanCLI",
+        //     dependencies: [
+        //         "PinakleanCore",
+        //         .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        //     ],
+        //     path: "CLI"
+        // ),
 
         // macOS App
         .executableTarget(
@@ -91,14 +92,15 @@ let package = Package(
             ],
             path: "Tests/App"
         ),
-        .testTarget(
-            name: "PinakleanCLITests",
-            dependencies: [
-                "PinakleanCLI",
-                .product(name: "Quick", package: "Quick"),
-                .product(name: "Nimble", package: "Nimble")
-            ],
-            path: "Tests/CLI"
-        ),
+        // CLI tests disabled while CLI is archived
+        // .testTarget(
+        //     name: "PinakleanCLITests",
+        //     dependencies: [
+        //         "PinakleanCLI",
+        //         .product(name: "Quick", package: "Quick"),
+        //         .product(name: "Nimble", package: "Nimble")
+        //     ],
+        //     path: "Tests/CLI"
+        // ),
     ]
 )

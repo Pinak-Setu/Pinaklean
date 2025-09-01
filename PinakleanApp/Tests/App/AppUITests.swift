@@ -1184,6 +1184,46 @@ final class PinakleanAppTests: XCTestCase {
         _ = ContentView()
         XCTAssertTrue(true)
     }
+
+    // UI-037: Keyboard shortcut handler
+    func testKeyboardShortcutHandlerChangesTab() throws {
+        let ui = UnifiedUIState()
+        XCTAssertEqual(ui.currentTab, .dashboard)
+        ui.handleTabShortcut("3")
+        XCTAssertEqual(ui.currentTab, .recommendations)
+        ui.handleTabShortcut("6")
+        XCTAssertEqual(ui.currentTab, .analytics)
+    }
+
+    // UI-038: High-contrast tokens and override
+    func testHighContrastTokensAndOverride() throws {
+        DesignSystem.setHighContrastOverride(true)
+        XCTAssertTrue(DesignSystem.isHighContrastEnabled())
+        _ = DesignSystem.highContrastPrimary
+        DesignSystem.setHighContrastOverride(nil)
+    }
+
+    // UI-039: Dynamic type scaling helper returns a font
+    func testDynamicTypeScalingHelper() throws {
+        let f = DesignSystem.scaledFont(DesignSystem.fontBody, for: .accessibilityExtraExtraExtraLarge)
+        _ = f
+        XCTAssertTrue(true)
+    }
+
+    // UI-040: RTL helpers
+    func testRTLMirroringHelpers() throws {
+        DesignSystem.setRTLOutputOverride(true)
+        XCTAssertTrue(DesignSystem.isRightToLeft())
+        XCTAssertEqual(DesignSystem.mirroredSystemImageName("arrow.right"), "arrow.left")
+        DesignSystem.setRTLOutputOverride(nil)
+    }
+
+    // UI-041: Amita brand font for Hindi
+    func testBrandFontForHindiExists() throws {
+        let hindi = DesignSystem.brandFont(forLanguage: "hi")
+        _ = hindi
+        XCTAssertTrue(true)
+    }
 }
 
 

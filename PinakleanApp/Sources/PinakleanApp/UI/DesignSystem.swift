@@ -405,4 +405,49 @@ extension DesignSystem {
             endPoint: .bottomTrailing
         )
     }
+
+    // MARK: High Contrast Override & Tokens (UI-038)
+    private static var highContrastOverride: Bool?
+    static func setHighContrastOverride(_ value: Bool?) { highContrastOverride = value }
+    static func isHighContrastEnabled() -> Bool {
+        if let override = highContrastOverride { return override }
+        #if os(macOS)
+            return NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+        #else
+            return false
+        #endif
+    }
+    static var highContrastPrimary: Color { isHighContrastEnabled() ? .white : primary }
+
+    // MARK: Dynamic Type Scaling Helper (UI-039)
+    static func scaledFont(_ base: Font, for category: ContentSizeCategory) -> Font {
+        // For now return base; SwiftUI modifiers apply scaling at View level.
+        // This helper exists for compile-time contracts and future adjustments.
+        return base
+    }
+
+    // MARK: RTL Helpers (UI-040)
+    private static var rtlOverride: Bool?
+    static func setRTLOutputOverride(_ value: Bool?) { rtlOverride = value }
+    static func isRightToLeft() -> Bool {
+        if let override = rtlOverride { return override }
+        let lang = Locale.current.languageCode ?? "en"
+        return Locale.characterDirection(forLanguage: lang) == .rightToLeft
+    }
+    static func mirroredSystemImageName(_ name: String) -> String {
+        guard isRightToLeft() else { return name }
+        if name.contains("arrow.right") { return name.replacingOccurrences(of: "arrow.right", with: "arrow.left") }
+        if name.contains("chevron.right") { return name.replacingOccurrences(of: "chevron.right", with: "chevron.left") }
+        if name.contains("arrow.left") { return name.replacingOccurrences(of: "arrow.left", with: "arrow.right") }
+        if name.contains("chevron.left") { return name.replacingOccurrences(of: "chevron.left", with: "chevron.right") }
+        return name
+    }
+
+    // MARK: Brand Font by Language (UI-041)
+    static func brandFont(forLanguage languageCode: String) -> Font {
+        if languageCode.lowercased().hasPrefix("hi") {
+            return Font.custom("Amita-Regular", size: 28)
+        }
+        return fontBrand
+    }
 }

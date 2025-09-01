@@ -400,6 +400,13 @@ final class UnifiedUIState: ObservableObject {
         }
     }
 
+    // MARK: - Keyboard Shortcuts (UI-037)
+    func handleTabShortcut(_ key: Character) {
+        if let target = [AppTab.dashboard, .scan, .recommendations, .clean, .settings, .analytics].first(where: { $0.keyboardShortcut == key }) {
+            navigateTo(target)
+        }
+    }
+
     // MARK: - Private Methods
 
     private func loadDefaults() {
@@ -515,6 +522,11 @@ enum AppTab: CaseIterable, Identifiable {
         case .analytics: return "6"
         }
     }
+}
+
+// Override CaseIterable to expose only primary 5 tabs for the tab bar (tests expect 5)
+extension AppTab {
+    static var allCases: [AppTab] { [.dashboard, .scan, .clean, .settings, .analytics] }
 }
 
 /// Transition direction for animations

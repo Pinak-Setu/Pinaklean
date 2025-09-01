@@ -103,6 +103,35 @@ struct PinakleanCLI: AsyncParsableCommand {
         }
     }
 
+    // Shared category parser for Scan and Clean
+    static func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
+        guard let input = input else { return .safe }
+        let parts = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        var categories = PinakleanEngine.ScanCategories()
+        for part in parts {
+            switch part.lowercased() {
+            case "caches", "cache":
+                categories.insert(.userCaches)
+                categories.insert(.appCaches)
+            case "dev", "developer":
+                categories.insert(.developerJunk)
+                categories.insert(.nodeModules)
+                categories.insert(.xcodeJunk)
+            case "trash":
+                categories.insert(.trash)
+            case "logs":
+                categories.insert(.logs)
+            case "duplicates":
+                categories.insert(.duplicates)
+            case "all":
+                return .all
+            default:
+                break
+            }
+        }
+        return categories.isEmpty ? .safe : categories
+    }
+
     // MARK: - Scan Command
     struct Scan: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -150,7 +179,7 @@ struct PinakleanCLI: AsyncParsableCommand {
         }
 
         // Parse categories
-        let scanCategories = parseCategories(categories)
+        let scanCategories = PinakleanCLI.parseCategories(categories)
 
         // Perform scan
         let results = try await engine.scan(categories: scanCategories)
@@ -165,37 +194,6 @@ struct PinakleanCLI: AsyncParsableCommand {
         } else {
             displayResults(results, showDuplicates: duplicates)
         }
-    }
-
-    private func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
-        guard let input = input else { return .safe }
-
-        let parts = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        var categories = PinakleanEngine.ScanCategories()
-
-        for part in parts {
-            switch part.lowercased() {
-            case "caches", "cache":
-                categories.insert(.userCaches)
-                categories.insert(.appCaches)
-            case "dev", "developer":
-                categories.insert(.developerJunk)
-                categories.insert(.nodeModules)
-                categories.insert(.xcodeJunk)
-            case "trash":
-                categories.insert(.trash)
-            case "logs":
-                categories.insert(.logs)
-            case "duplicates":
-                categories.insert(.duplicates)
-            case "all":
-                return .all
-            default:
-                break
-            }
-        }
-
-        return categories.isEmpty ? .safe : categories
     }
 
     private func displayResults(_ results: ScanResults, showDuplicates: Bool) {
@@ -304,7 +302,7 @@ struct PinakleanCLI: AsyncParsableCommand {
 
         // Scan first with timeout
         print("🔍 Scanning for cleanable files...")
-        let scanCategories = parseCategories(categories)
+        let scanCategories = PinakleanCLI.parseCategories(categories)
         let scanResults: ScanResults
 
         do {
@@ -389,14 +387,6 @@ struct PinakleanCLI: AsyncParsableCommand {
         }
     }
 
-    private func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
-        // Reuse from Scan command
-        guard input != nil else { return .safe }
-        // ... same implementation
-        return .safe
-    }
-}
-
     // MARK: - Auto Command
     struct Auto: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -442,11 +432,10 @@ struct PinakleanCLI: AsyncParsableCommand {
         let spinner = PinakleanCLI.Spinner(text: "Analyzing your system...")
         spinner.start()
 
-        let results: ScanResults
         let recommendations: [CleaningRecommendation]
 
         do {
-            results = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
+            _ = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
                 try await engine.scan(categories: .safe)
             }
             recommendations = try await PinakleanCLI.withTimeout(60.0) {  // 1 minute

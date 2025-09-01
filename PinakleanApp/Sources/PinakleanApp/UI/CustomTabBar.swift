@@ -156,12 +156,7 @@ struct CustomTabBar_Previews: PreviewProvider {
 
 // MARK: - Extensions
 
-extension AppTab {
-    /// All available tabs for the tab bar
-    static var allCases: [AppTab] {
-        [.dashboard, .scan, .clean, .settings, .analytics]
-    }
-}
+// AppTab.allCases is defined centrally in `UnifiedUIState.swift` to avoid duplication
 
 extension CustomTabBar {
     /// Custom tab bar with custom tabs

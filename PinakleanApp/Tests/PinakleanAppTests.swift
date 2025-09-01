@@ -675,6 +675,66 @@ final class PinakleanAppTests: XCTestCase {
         let radius = DesignSystem.safeCornerRadius(for: size)
         XCTAssertEqual(radius, 0.0, accuracy: 0.0001)
     }
+
+    // UI-003: Validate DesignSystem color tokens meet AA with black/white text
+    private func wcagRelativeLuminance(r: Double, g: Double, b: Double) -> Double {
+        func channel(_ c: Double) -> Double {
+            let cs = c / 255.0
+            return cs <= 0.03928 ? (cs / 12.92) : pow((cs + 0.055) / 1.055, 2.4)
+        }
+        let rl = 0.2126 * channel(r) + 0.7152 * channel(g) + 0.0722 * channel(b)
+        return rl
+    }
+
+    private func wcagContrastRatio(rgb1: (Double, Double, Double), rgb2: (Double, Double, Double)) -> Double {
+        let L1 = wcagRelativeLuminance(r: rgb1.0, g: rgb1.1, b: rgb1.2)
+        let L2 = wcagRelativeLuminance(r: rgb2.0, g: rgb2.1, b: rgb2.2)
+        let (lighter, darker) = (max(L1, L2), min(L1, L2))
+        return (lighter + 0.05) / (darker + 0.05)
+    }
+
+    private func hexToRGB(_ hex: String) -> (Double, Double, Double) {
+        let str = hex.trimmingCharacters(in: CharacterSet.alphanumerics.inverted)
+        var int: UInt64 = 0
+        Scanner(string: str).scanHexInt64(&int)
+        switch str.count {
+        case 3:
+            let r = Double((int >> 8) * 17)
+            let g = Double(((int >> 4) & 0xF) * 17)
+            let b = Double((int & 0xF) * 17)
+            return (r, g, b)
+        case 6:
+            let r = Double(int >> 16)
+            let g = Double((int >> 8) & 0xFF)
+            let b = Double(int & 0xFF)
+            return (r, g, b)
+        case 8:
+            let r = Double((int >> 16) & 0xFF)
+            let g = Double((int >> 8) & 0xFF)
+            let b = Double(int & 0xFF)
+            return (r, g, b)
+        default:
+            return (0, 0, 0)
+        }
+    }
+
+    func testPrimaryColorHasAAContrastWithBlackOrWhite() throws {
+        let primaryRGB = hexToRGB("#FFD700")
+        let black: (Double, Double, Double) = (0, 0, 0)
+        let white: (Double, Double, Double) = (255, 255, 255)
+        let contrastWithBlack = wcagContrastRatio(rgb1: primaryRGB, rgb2: black)
+        let contrastWithWhite = wcagContrastRatio(rgb1: primaryRGB, rgb2: white)
+        XCTAssertGreaterThanOrEqual(max(contrastWithBlack, contrastWithWhite), 4.5)
+    }
+
+    func testAccentColorHasAAContrastWithBlackOrWhite() throws {
+        let accentRGB = hexToRGB("#DC143C")
+        let black: (Double, Double, Double) = (0, 0, 0)
+        let white: (Double, Double, Double) = (255, 255, 255)
+        let contrastWithBlack = wcagContrastRatio(rgb1: accentRGB, rgb2: black)
+        let contrastWithWhite = wcagContrastRatio(rgb1: accentRGB, rgb2: white)
+        XCTAssertGreaterThanOrEqual(max(contrastWithBlack, contrastWithWhite), 4.5)
+    }
 }
 
 

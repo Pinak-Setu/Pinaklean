@@ -93,6 +93,9 @@ final class UnifiedUIState: ObservableObject {
     // Internal flags for initialization
     private var isInitializing = true
 
+    // MARK: - Locale
+    @Published var selectedLocale: String = "en"
+
     // MARK: - Initialization
 
     init() {
@@ -184,6 +187,23 @@ final class UnifiedUIState: ObservableObject {
 
     func clearSelection() { selectedItemIds.removeAll() }
 
+    /// Select all provided identifiers
+    func selectAll(_ ids: [UUID]) { selectedItemIds = Set(ids) }
+
+    /// Select none (alias of clearSelection)
+    func selectNone() { clearSelection() }
+
+    /// Invert selection constrained to a provided set
+    func invertSelection(in ids: [UUID]) {
+        let idSet = Set(ids)
+        var next: Set<UUID> = selectedItemIds
+        for id in idSet {
+            if next.contains(id) { next.remove(id) } else { next.insert(id) }
+        }
+        // Keep only ids within provided set
+        selectedItemIds = next.intersection(idSet)
+    }
+
     // MARK: - Settings Management
     func setDryRun(_ enabled: Bool) {
         enableDryRun = enabled
@@ -215,6 +235,11 @@ final class UnifiedUIState: ObservableObject {
                 self?.simulateScanResults()
             }
         }
+    }
+
+    /// Manual refresh for dashboard metrics timestamp
+    func refreshDashboard() {
+        lastScanDate = Date()
     }
 
     // MARK: - Clean Control
@@ -421,6 +446,11 @@ final class UnifiedUIState: ObservableObject {
 
         showAdvancedFeatures = defaults.object(forKey: "showAdvancedFeatures") as? Bool ?? false
         showExperimentalCharts = defaults.object(forKey: "showExperimentalCharts") as? Bool ?? false
+    }
+
+    /// Update app locale/language code (basic string tracking for tests/UI)
+    func setLocale(_ code: String) {
+        selectedLocale = code
     }
 
     private func setupAccessibilityObservers() {

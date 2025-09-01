@@ -130,6 +130,11 @@ extension AnalyticsDashboard {
         case .large: return 3
         }
     }
+
+    /// UI-043: Feature flag to enable/disable charts rendering
+    static func isChartsEnabled(state: UnifiedUIState) -> Bool {
+        state.showExperimentalCharts
+    }
 }
 
 // MARK: - Supporting Views

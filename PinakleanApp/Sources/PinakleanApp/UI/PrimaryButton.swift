@@ -41,3 +41,47 @@ public struct SearchFieldModel {
     }
 }
 
+// UI-063: Branded header view with brand font and icon
+public struct BrandHeaderView: View {
+    public init() {}
+    public var body: some View {
+        HStack(spacing: 8) {
+            Image(systemName: "sparkles")
+                .foregroundColor(DesignSystem.primary)
+            Text(AppStrings.appTitle)
+                .font(DesignSystem.fontBrand)
+                .foregroundColor(DesignSystem.textPrimary)
+        }
+        .padding(.vertical, 8)
+    }
+}
+
+// UI-065: Hero metric tile component
+public struct HeroMetricTile<Content: View>: View {
+    let title: String
+    let value: Int64
+    let content: () -> Content
+
+    public init(title: String, value: Int64, @ViewBuilder content: @escaping () -> Content) {
+        self.title = title
+        self.value = value
+        self.content = content
+    }
+
+    public var body: some View {
+        FrostCard {
+            VStack(alignment: .leading, spacing: 8) {
+                Text(title)
+                    .font(DesignSystem.fontCaption)
+                    .foregroundColor(DesignSystem.textSecondary)
+                HStack(alignment: .firstTextBaseline, spacing: 8) {
+                    Text(DesignSystem.formatMetricValue(value))
+                        .font(DesignSystem.fontTitle)
+                        .foregroundColor(DesignSystem.primary)
+                    content()
+                }
+            }
+        }
+    }
+}
+

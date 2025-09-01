@@ -218,6 +218,9 @@ enum DesignSystem {
 
     /// Caption small font style
     static let fontCaptionSmall = Font.system(size: 11, weight: .regular, design: .rounded)
+
+    /// Brand display font (fallback to serif if custom font unavailable)
+    static let fontBrand = Font.system(size: 28, weight: .bold, design: .serif)
 }
 
 // MARK: - Component Appearance Specs
@@ -379,5 +382,18 @@ extension DesignSystem {
 
     static func gradientWarningColors() -> [Color] {
         [warning.opacity(0.1), warning.opacity(0.05)]
+    }
+
+    /// Whether animated backgrounds are preferred (disabled if reduce motion is enabled)
+    static func isAnimatedBackgroundPreferred() -> Bool {
+        return !isReduceMotionEnabled()
+    }
+
+    /// Format large metric values with grouping separators (e.g., 1,234)
+    static func formatMetricValue(_ value: Int64) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter.string(from: NSNumber(value: value)) ?? String(value)
     }
 }

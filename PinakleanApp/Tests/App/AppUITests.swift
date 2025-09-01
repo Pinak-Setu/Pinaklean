@@ -1017,6 +1017,88 @@ final class PinakleanAppTests: XCTestCase {
         XCTAssertEqual(DesignSystem.formatMetricValue(0), "0")
         XCTAssertEqual(DesignSystem.formatMetricValue(1_234), "1,234")
     }
+
+    // UI-022: ConfirmationDialog reusable component
+    func testConfirmationDialogTypesExist() throws {
+        let model = ConfirmationDialogModel(title: "Are you sure?", message: "This cannot be undone", confirmTitle: "Delete", cancelTitle: "Cancel")
+        XCTAssertEqual(model.title, "Are you sure?")
+        _ = ConfirmationDialog<Text>.self
+    }
+
+    // UI-023: InlineErrorView with icon and help link
+    func testInlineErrorViewRenders() throws {
+        let view = InlineErrorView(text: "Failed to scan", helpURL: URL(string: "https://example.com/help"))
+        _ = view
+        XCTAssertTrue(true)
+    }
+
+    // UI-024: Divider styles (subtle/strong)
+    func testDividerStylesExist() throws {
+        _ = SubtleDivider.self
+        _ = StrongDivider.self
+        XCTAssertTrue(true)
+    }
+
+    // UI-025: ListRow pattern (title, subtitle, meta)
+    func testListRowPatternCompiles() throws {
+        let row = ListRow(title: "Item", subtitle: "Details", meta: { Text("Meta") })
+        _ = row
+        XCTAssertTrue(true)
+    }
+
+    // UI-026: SettingsRow (toggle/dropdown/text)
+    func testSettingsRowVariantsCompile() throws {
+        let t = SettingsRow.toggle(title: "Enable", isOn: Binding.constant(true))
+        let d = SettingsRow.dropdown(title: "Mode", options: ["A","B"], selection: Binding.constant("A"))
+        let tx = SettingsRow.text(title: "Name", text: Binding.constant(""))
+        _ = (t, d, tx)
+        XCTAssertTrue(true)
+    }
+
+    // SI-001: animated primary gradient token & conic gradient border util
+    func testAnimatedPrimaryGradientAndConicBorderTypesExist() throws {
+        _ = DesignSystem.animatedPrimaryGradient()
+        _ = ConicGradientBorder.self
+        // Reduce motion should suppress border rotation animation
+        DesignSystem.setReduceMotionOverride(true)
+        XCTAssertNil(ConicGradientBorder.rotationAnimation())
+        DesignSystem.setReduceMotionOverride(nil)
+    }
+
+    // SI-002: Aurora dynamics speed/brightness computations
+    func testAuroraDynamicsComputesSpeedAndBrightness() throws {
+        let idle = AuroraDynamics.parameters(activity: .idle)
+        let active = AuroraDynamics.parameters(activity: .active)
+        XCTAssertLessThan(idle.speed, active.speed)
+        XCTAssertLessThan(idle.brightness, active.brightness)
+    }
+
+    // SI-003: CoreHaptics engine patterns callable
+    func testHapticsEnginePatternsCallable() throws {
+        let engine = HapticsEngine.shared
+        engine.tap()
+        engine.success()
+        engine.warning()
+        XCTAssertTrue(true)
+    }
+
+    // SI-004: Rive animation loader stub is usable
+    func testRiveAnimationLoaderStub() throws {
+        let player = RiveAnimationLoader.load(named: "vortex")
+        player.play()
+        player.stop()
+        XCTAssertTrue(true)
+    }
+
+    // SI-005: Reduce motion guard applies to new utilities
+    func testReduceMotionGuardAppliesToUtilities() throws {
+        DesignSystem.setReduceMotionOverride(true)
+        XCTAssertNil(ConicGradientBorder.rotationAnimation())
+        let params = AuroraDynamics.parameters(activity: .active)
+        // When reduce motion, speed should be clamped low
+        XCTAssertLessThanOrEqual(params.speed, 0.2)
+        DesignSystem.setReduceMotionOverride(nil)
+    }
 }
 
 

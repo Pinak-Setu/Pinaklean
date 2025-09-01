@@ -396,4 +396,13 @@ extension DesignSystem {
         formatter.groupingSeparator = ","
         return formatter.string(from: NSNumber(value: value)) ?? String(value)
     }
+
+    /// Animated primary gradient token (Deep Indigo → Vibrant Cyan)
+    static func animatedPrimaryGradient() -> LinearGradient {
+        LinearGradient(
+            colors: [Color(hex: "#4F46E5"), Color(hex: "#22D3EE")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
 }

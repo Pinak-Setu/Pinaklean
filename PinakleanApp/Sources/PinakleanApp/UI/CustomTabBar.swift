@@ -22,6 +22,12 @@ struct CustomTabBar: View {
         self.tabs = tabs
     }
 
+    /// Convenience init to match tests using `selection:` label
+    init(selection: Binding<AppTab>, tabs: [AppTab] = AppTab.allCases) {
+        self._selectedTab = selection
+        self.tabs = tabs
+    }
+
     var body: some View {
         ZStack {
             // Glassmorphic background

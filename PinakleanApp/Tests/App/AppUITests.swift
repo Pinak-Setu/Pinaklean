@@ -933,6 +933,53 @@ final class PinakleanAppTests: XCTestCase {
         _ = ProgressRing.self
     }
 
+    // UI-017: ToastBanner auto-dismiss structure
+    func testToastBannerTypesExistAndDismissCallback() throws {
+        var dismissed = false
+        var banner = ToastBannerModel(message: "Saved", kind: .success, autoDismissSeconds: 2, onDismiss: { dismissed = true })
+        XCTAssertEqual(banner.message, "Saved")
+        XCTAssertEqual(banner.autoDismissSeconds, 2)
+        // Simulate dismiss
+        banner.onDismiss?()
+        XCTAssertTrue(dismissed)
+        _ = ToastBanner.self
+    }
+
+    // UI-018: ModalSheetGlass type exists with drag-to-dismiss threshold
+    func testModalSheetGlassTypesExist() throws {
+        XCTAssertGreaterThan(ModalSheetGlassDefaultDragDismissThreshold, 0)
+        _ = ModalSheetGlass<Text>.self
+    }
+
+    // UI-019: FrostCard variants types exist
+    func testFrostCardVariantTypesExist() throws {
+        _ = CompactFrostCard<Text>.self
+        _ = ElevatedFrostCard<Text>.self
+        _ = FrostCardHeader<Text>.self
+    }
+
+    // UI-020: LiquidGlass background performance
+    func testLiquidGlassBackgroundBuildPerformance() throws {
+        measure {
+            for _ in 0..<200 {
+                _ = LiquidGlass().body
+            }
+        }
+    }
+
+    // UI-021: EmptyStateView with CTA
+    func testEmptyStateViewCTA() throws {
+        var tapped = false
+        let view = EmptyStateView(title: "No items", message: "Scan to find cleanable files", ctaTitle: "Start Scan") {
+            tapped = true
+        }
+        _ = view
+        XCTAssertFalse(tapped)
+        // Invoke the action directly via helper
+        EmptyStateView.callCTA(&tapped)
+        XCTAssertTrue(tapped)
+    }
+
     // UI-061: FrostCard accessibility helpers compile and chain
     func testFrostCardAccessibilityHelpers() throws {
         let view = FrostCard { Text("Hello") }

@@ -1225,6 +1225,41 @@ final class PinakleanAppTests: XCTestCase {
         XCTAssertTrue(true)
     }
 
+    // UI-047: Contextual menus with keyboard support
+    func testContextualMenuWrapperExists() throws {
+        _ = ContextualMenuWrapper<Text>.self
+        _ = KeyboardShortcutSupport.shortcutForAction("delete")
+    }
+
+    // UI-048: In-app notifications center UI
+    func testNotificationsCenterViewCompiles() throws {
+        let v = NotificationsCenterView()
+        _ = v
+        XCTAssertTrue(true)
+    }
+
+    // UI-049: Onboarding/welcome screen with safety tips
+    func testOnboardingViewCompiles() throws {
+        let v = OnboardingView()
+        _ = v
+        XCTAssertTrue(true)
+    }
+
+    // UI-050: First-run permissions prompt UX
+    func testFirstRunPermissionsFlowUpdatesState() throws {
+        let ui = UnifiedUIState()
+        XCTAssertTrue(ui.isFirstRun)
+        ui.completeFirstRunPermissions()
+        XCTAssertFalse(ui.isFirstRun)
+    }
+
+    // UI-051: Error boundary view for recoverable failures
+    func testErrorBoundaryViewCompiles() throws {
+        let v = ErrorBoundary(fallback: { Text("Error") }) { Text("OK") }
+        _ = v
+        XCTAssertTrue(true)
+    }
+
     // UI-042: Locale switcher updates state and brand font can be resolved
     func testLocaleSwitcherUpdatesState() throws {
         let ui = UnifiedUIState()

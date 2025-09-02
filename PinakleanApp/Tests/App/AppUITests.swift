@@ -1238,6 +1238,22 @@ final class PinakleanAppTests: XCTestCase {
         XCTAssertTrue(retried)
     }
 
+    // UI-057: Window width breakpoints
+    func testWindowSizeBreakpoints() throws {
+        XCTAssertEqual(DesignSystem.windowSizeCategory(for: 600), .compact)
+        XCTAssertEqual(DesignSystem.windowSizeCategory(for: 800), .regular)
+        XCTAssertEqual(DesignSystem.windowSizeCategory(for: 1400), .large)
+    }
+
+    // UI-053: UILogger/UIMetrics hooks compile and can be called
+    func testUILoggerHooksCompile() throws {
+        UILogger.log(.debug, "test-log", metadata: ["k": .string("v")])
+        UIMetrics.recordViewAppeared()
+        // Compile-time signal only
+        XCTAssertTrue(true)
+    }
+
+
     // UI-047: Contextual menus with keyboard support
     func testContextualMenuWrapperExists() throws {
         _ = ContextualMenuWrapper<Text>.self

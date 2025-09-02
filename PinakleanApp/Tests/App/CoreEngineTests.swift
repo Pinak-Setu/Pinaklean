@@ -11,6 +11,12 @@ final class CoreEngineTests: XCTestCase {
     
     override func setUp() async throws {
         try await super.setUp()
+        // Gate: run these real filesystem tests only when explicitly enabled
+        // In CI, run basic tests; in local development, require explicit flag
+        if ProcessInfo.processInfo.environment["PINAKLEAN_ENGINE_E2E"] != "1" && 
+           ProcessInfo.processInfo.environment["CI"] != "true" {
+            throw XCTSkip("Skipping CoreEngineTests (set PINAKLEAN_ENGINE_E2E=1 to enable)")
+        }
         
         // Create temporary directory for testing
         tempDirectory = FileManager.default.temporaryDirectory

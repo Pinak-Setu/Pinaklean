@@ -451,3 +451,20 @@ extension DesignSystem {
         return fontBrand
     }
 }
+
+// MARK: - Window Size Breakpoints (UI-057)
+enum WindowSizeCategory {
+    case compact
+    case regular
+    case large
+}
+
+extension DesignSystem {
+    /// Categorize window width into compact/regular/large buckets
+    /// Defaults chosen for macOS windowed layouts, adjustable later if needed
+    static func windowSizeCategory(for width: CGFloat) -> WindowSizeCategory {
+        if width < 700 { return .compact }
+        if width < 1100 { return .regular }
+        return .large
+    }
+}

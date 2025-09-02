@@ -34,7 +34,7 @@ jobs:
 
       - name: Test (PinakleanApp)
         working-directory: PinakleanApp
-        run: swift test --parallel --sanitize=address
+        run: CI=true swift test --parallel --sanitize=address
 
       - name: Generate Coverage
         if: always()
@@ -42,10 +42,17 @@ jobs:
         run: |
           swift test --enable-code-coverage || true
           mkdir -p coverage
-          xcrun llvm-cov export \
-            .build/debug/PinakleanCorePackageTests.xctest/Contents/MacOS/PinakleanCorePackageTests \
-            -format text \
-            -instr-profile .build/debug/codecov/default.profdata > coverage/coverage.txt || true
+          # Find the actual test binary dynamically
+          TEST_BIN=$(find .build -name "*.xctest" -type d | head -n1)
+          PROF_FILE=$(find .build -name "default.profdata" | head -n1)
+          if [ -n "$TEST_BIN" ] && [ -n "$PROF_FILE" ]; then
+            xcrun llvm-cov export \
+              "$TEST_BIN/Contents/MacOS/$(basename "$TEST_BIN" .xctest)" \
+              -format text \
+              -instr-profile "$PROF_FILE" > coverage/coverage.txt || true
+          else
+            echo "Coverage artifacts not found; creating empty coverage file" > coverage/coverage.txt
+          fi
 
       - name: Upload Coverage Artifact
         if: always()

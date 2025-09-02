@@ -9,6 +9,16 @@ ci/rerun:
 ci/open:
 	@bash scripts/ci-open-latest.sh
 
+.PHONY: integration/smoke sbom licenses
+integration/smoke:
+	cd PinakleanApp && PINAKLEAN_CLI_E2E=1 swift run pinaklean-cli --help || true
+
+sbom:
+	npx @cyclonedx/cyclonedx-npm --output-file sbom.json || true
+
+licenses:
+	npx license-checker --summary --production || true
+
 .PHONY: ci/dash
 ci/dash:
 	gh dash

@@ -77,7 +77,7 @@ jobs:
       - name: Build for testing (${{ matrix.configuration }})
         run: |
           cd PinakleanApp
-          swift build --configuration ${{ matrix.configuration }}
+          swift build --configuration ${{ matrix.configuration }} --target PinakleanApp
 
       - name: Run Unit Tests with Coverage (skip if no test targets)
         run: |

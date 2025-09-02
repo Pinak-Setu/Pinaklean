@@ -12,7 +12,6 @@ let package = Package(
             name: "PinakleanCore",
             targets: ["PinakleanCore"]
         ),
-        // Archived temporarily: CLI product disabled to unblock UI test build
         // .executable(
         //     name: "pinaklean-cli",
         //     targets: ["PinakleanCLI"]
@@ -42,6 +41,10 @@ let package = Package(
         // Testing
         .package(url: "https://github.com/Quick/Quick.git", from: "7.0.0"),
         .package(url: "https://github.com/Quick/Nimble.git", from: "13.0.0"),
+        // Snapshots (guarded in CI)
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.11.0"),
+        // DocC plugin
+        .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.3.0"),
 
         // Auto-updates (temporarily disabled)
         // .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.5.0"),
@@ -63,7 +66,7 @@ let package = Package(
             ]
         ),
 
-        // CLI Tool (archived temporarily to stabilize builds)
+        // CLI Tool (temporarily disabled until compile issues are resolved)
         // .executableTarget(
         //     name: "PinakleanCLI",
         //     dependencies: [
@@ -88,7 +91,8 @@ let package = Package(
             dependencies: [
                 "PinakleanApp",
                 .product(name: "Quick", package: "Quick"),
-                .product(name: "Nimble", package: "Nimble")
+                .product(name: "Nimble", package: "Nimble"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
             ],
             path: "Tests/App"
         ),

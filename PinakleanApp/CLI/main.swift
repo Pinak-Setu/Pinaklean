@@ -12,15 +12,15 @@ struct PinakleanCLI: AsyncParsableCommand {
         abstract: "🧹 Safe macOS cleanup toolkit for developers",
         version: "2.0.0",
         subcommands: [
-            PinakleanCLI.Scan.self,
-            PinakleanCLI.Clean.self,
-            PinakleanCLI.Auto.self,
-            PinakleanCLI.Backup.self,
-            PinakleanCLI.Restore.self,
-            PinakleanCLI.Config.self,
-            PinakleanCLI.Interactive.self,
+            Scan.self,
+            Clean.self,
+            Auto.self,
+            Backup.self,
+            Restore.self,
+            Config.self,
+            Interactive.self,
         ],
-        defaultSubcommand: PinakleanCLI.Interactive.self
+        defaultSubcommand: Interactive.self
     )
 
     // MARK: - Signal Handling Properties
@@ -251,6 +251,7 @@ struct PinakleanCLI: AsyncParsableCommand {
         let data = try encoder.encode(results)
         print(String(data: data, encoding: .utf8) ?? "{}")
     }
+}
 }
 
     // MARK: - Clean Command
@@ -514,8 +515,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             print("  Failed: \(cleanResults.failedItems.count) items (check permissions)")
         }
     }
-}
-
     // MARK: - Backup Command
     struct Backup: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -649,8 +648,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             )
         }
     }
-}
-
     // MARK: - Restore Command
     struct Restore: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -677,8 +674,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
-}
-
     // MARK: - Config Command
     struct Config: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -737,8 +732,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             print("Use --show to display config or --set key=value to set.")
         }
     }
-}
-
     // MARK: - Interactive Command (Default)
     struct Interactive: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -830,5 +823,4 @@ struct PinakleanCLI: AsyncParsableCommand {
 
             """)
     }
-}
 }

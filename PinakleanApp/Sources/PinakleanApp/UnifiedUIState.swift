@@ -105,6 +105,9 @@ final class UnifiedUIState: ObservableObject {
         isInitializing = false
     }
 
+    // First run flag for permissions/onboarding
+    @Published var isFirstRun: Bool = true
+
     // MARK: - Public Methods
 
     /// Add a new notification
@@ -130,6 +133,11 @@ final class UnifiedUIState: ObservableObject {
                 self.notifications.removeFirst()
             }
         }
+    }
+
+    /// Mark first run permissions completed
+    func completeFirstRunPermissions() {
+        isFirstRun = false
     }
 
     // MARK: - Derived State

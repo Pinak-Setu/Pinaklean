@@ -23,6 +23,8 @@ public class PinakleanEngine: ObservableObject {
     private var incrementalIndexer: IncrementalIndexer!
     private var backupManager: CloudBackupManager!
     private var ragManager: RAGManager!
+    private var realFileScanner: RealFileScanner!
+    private var realFileCleaner: RealFileCleaner!
     private let logger = Logger(subsystem: "com.pinaklean", category: "Engine")
 
     // MARK: - Configuration
@@ -156,6 +158,8 @@ public class PinakleanEngine: ObservableObject {
             self.incrementalIndexer = try await IncrementalIndexer()
             self.backupManager = CloudBackupManager()
             self.ragManager = try await RAGManager()
+            self.realFileScanner = RealFileScanner(securityAuditor: self.securityAuditor, parallelProcessor: self.parallelProcessor)
+            self.realFileCleaner = RealFileCleaner()
 
             logger.info("Pinaklean Engine initialized successfully")
 
@@ -198,47 +202,17 @@ public class PinakleanEngine: ObservableObject {
         defer { isScanning = false }
         if Task.isCancelled { throw EngineError.operationCancelled }
 
-        logger.info("Starting scan with categories: \(categories.rawValue)")
+        logger.info("Starting real scan with categories: \(categories.rawValue)")
+
+        // Use real file scanner instead of simulation
+        let items = try await realFileScanner.scanSystem(categories: categories) { progress in
+            self.scanProgress = progress
+            self.currentOperation = "Scanning files... \(Int(progress * 100))%"
+        }
 
         var results = ScanResults()
-        let scanTasks = createScanTasks(for: categories)
-        let totalTasks = Double(scanTasks.count)
-        var completedTasks = 0.0
-
-        // Execute scans in parallel with timeout protection
-        try await withThrowingTaskGroup(of: [CleanableItem].self) { group in
-            // Add timeout task
-            group.addTask {
-                try await Task.sleep(nanoseconds: UInt64(600 * 1_000_000_000))  // 10 minutes timeout
-                throw EngineError.scanTimeout
-            }
-
-            for task in scanTasks {
-                group.addTask {
-                    if Task.isCancelled { throw EngineError.operationCancelled }
-                    return try await self.executeScanTask(task)
-                }
-            }
-
-            // Process results with cancellation support
-            while completedTasks < totalTasks {
-                if Task.isCancelled {
-                    group.cancelAll()
-                    throw EngineError.operationCancelled
-                }
-                if let items = try await group.next() {
-                    // Skip timeout result
-                    if !Task.isCancelled {
-                        completedTasks += 1
-                        scanProgress = completedTasks / totalTasks
-                        results.items.append(contentsOf: items)
-                        results.totalSize += items.reduce(0) { $0 + $1.size }
-                    }
-                }
-            }
-
-            group.cancelAll()
-        }
+        results.items = items
+        results.totalSize = items.reduce(0) { $0 + $1.size }
 
         // Apply smart detection if enabled (with timeout)
         if self.configuration.enableSmartDetection {
@@ -311,36 +285,8 @@ public class PinakleanEngine: ObservableObject {
             }
         }
 
-        var results = CleanResults()
-        let _ = Double(items.count)
-        let _ = 0.0
-
-        // Group items by type for efficient cleaning
-        let groupedItems = Dictionary(grouping: items) { $0.category }
-
-        for (category, categoryItems) in groupedItems {
-            self.currentOperation = "Cleaning \(category)..."
-            if Task.isCancelled { throw EngineError.operationCancelled }
-
-            if configuration.dryRun {
-                // Dry run - just simulate
-                results.deletedItems.append(contentsOf: categoryItems)
-                results.freedSpace += categoryItems.reduce(0) { $0 + $1.size }
-            } else {
-                // Actual deletion with parallel processing and timeout
-                do {
-                    let deleted: [CleanableItem] = try await withTimeout(600.0) {  // 10 minutes per category
-                        if Task.isCancelled { throw EngineError.operationCancelled }
-                        return try await self.parallelProcessor.deleteItems(categoryItems)
-                    }
-                    results.deletedItems.append(contentsOf: deleted)
-                    results.freedSpace += deleted.reduce(0) { $0 + $1.size }
-                } catch {
-                    logger.error("Failed to clean \(category): \(error)")
-                    // Add failed items to track what couldn't be deleted
-                }
-            }
-        }
+        // Use real file cleaner instead of simulation
+        var results = try await realFileCleaner.cleanFiles(items, dryRun: configuration.dryRun)
 
         // Record results
         results.timestamp = Date()

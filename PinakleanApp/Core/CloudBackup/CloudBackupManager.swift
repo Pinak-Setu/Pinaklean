@@ -3,6 +3,7 @@ import Compression
 import CryptoKit
 // swiftlint:disable file_length
 import Foundation
+import Logging
 
 // MARK: - Free Cloud Backup Strategy
 // 1. iCloud Drive (5GB free) - Primary
@@ -12,6 +13,7 @@ import Foundation
 
 /// Main cloud backup manager supporting multiple free providers
 public actor CloudBackupManager {
+    private let logger = Logger(label: "Pinaklean.CloudBackup")
 
     // MARK: - Free Tier Limits
     private enum CloudLimits {

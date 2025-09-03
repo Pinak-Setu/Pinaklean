@@ -75,6 +75,15 @@ private struct MainShellView: View {
     }
 }
 
+// UI-036: Public ContentView shell wrapper for tests/previews
+public struct ContentView: View {
+    @StateObject private var uiState = UnifiedUIState()
+    public init() {}
+    public var body: some View {
+        MainShellView().environmentObject(uiState)
+    }
+}
+
 // MARK: - Clean View
 
 private struct CleanView: View {

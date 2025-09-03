@@ -22,6 +22,12 @@ struct CustomTabBar: View {
         self.tabs = tabs
     }
 
+    /// Convenience init to match tests using `selection:` label
+    init(selection: Binding<AppTab>, tabs: [AppTab] = AppTab.allCases) {
+        self._selectedTab = selection
+        self.tabs = tabs
+    }
+
     var body: some View {
         ZStack {
             // Glassmorphic background
@@ -150,12 +156,7 @@ struct CustomTabBar_Previews: PreviewProvider {
 
 // MARK: - Extensions
 
-extension AppTab {
-    /// All available tabs for the tab bar
-    static var allCases: [AppTab] {
-        [.dashboard, .scan, .clean, .settings, .analytics]
-    }
-}
+// AppTab.allCases is defined centrally in `UnifiedUIState.swift` to avoid duplication
 
 extension CustomTabBar {
     /// Custom tab bar with custom tabs

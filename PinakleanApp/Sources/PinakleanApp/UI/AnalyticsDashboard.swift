@@ -121,6 +121,22 @@ struct AnalyticsDashboard: View {
     }
 }
 
+// MARK: - Layout Helpers
+extension AnalyticsDashboard {
+    static func gridColumns(for size: ScreenSize) -> Int {
+        switch size {
+        case .compact: return 1
+        case .regular: return 2
+        case .large: return 3
+        }
+    }
+
+    /// UI-043: Feature flag to enable/disable charts rendering
+    static func isChartsEnabled(state: UnifiedUIState) -> Bool {
+        state.showExperimentalCharts
+    }
+}
+
 // MARK: - Supporting Views
 
 /// Storage bar item component

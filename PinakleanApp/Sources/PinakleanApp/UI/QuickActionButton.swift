@@ -182,6 +182,10 @@ struct QuickActionButton_Previews: PreviewProvider {
 // MARK: - Animation Extensions
 
 extension QuickActionButton {
+    /// Convenience initializer matching tests (title, systemImage, action)
+    init(title: String, systemImage: String, action: @escaping () -> Void) {
+        self.init(icon: systemImage, title: title, action: action)
+    }
     /// Disable animations (for accessibility)
     func disableAnimations() -> some View {
         self.transaction { transaction in

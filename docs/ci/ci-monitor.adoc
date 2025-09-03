@@ -1,0 +1,64 @@
+= Pinaklean CI Monitor
+:doctype: article
+:toc:
+:icons: font
+
+This guide explains how to use the local CI monitor to watch GitHub Actions runs, surface failures quickly, and auto-heal common issues.
+
+== Overview
+
+The monitor script polls recent GitHub Actions runs and:
+
+- Detects failures and in-progress jobs
+- Retrieves brief failure logs for quick triage
+- Applies safe auto-fixes when repeated failures are detected
+- Triggers a new CI run after fixes
+
+Script location:
+
+- `scripts/ci-monitor.sh`
+
+== Prerequisites
+
+- GitHub CLI (`gh`) installed and authenticated
+- `jq` installed
+- macOS shell (`bash`/`zsh`)
+
+== Configuration
+
+Adjust these values at the top of the script if needed:
+
+- `REPO_PATH`: Absolute path to your local repository clone
+- `CHECK_INTERVAL`: Polling interval in seconds (default: 30)
+- `MAX_FAILURES`: Number of consecutive failures before auto-fix attempts (default: 3)
+
+== How it works
+
+When failures reach `MAX_FAILURES`, the script runs the following safe remediations:
+
+- Remove compiled CoreML Info.plist artifacts under `*/Models/*` (to avoid churn)
+- Run `swiftlint --fix` (if installed)
+- Clean Swift Package build artifacts
+- Create an empty commit to trigger a fresh CI run
+
+== Usage
+
+From the repository root:
+
+```bash
+./scripts/ci-monitor.sh
+```
+
+The script writes timestamped logs to the repository root, for later inspection.
+
+== Notes and Safety
+
+- The script is idempotent and avoids destructive changes to source code
+- Auto-fix steps are conservative and target common CI flakiness only
+- You can stop the monitor with Ctrl+C; it will exit cleanly
+
+== Troubleshooting
+
+- Ensure `gh auth status` shows you are logged in
+- Verify `jq` is installed: `brew install jq`
+- Increase `CHECK_INTERVAL` if you hit API rate limits

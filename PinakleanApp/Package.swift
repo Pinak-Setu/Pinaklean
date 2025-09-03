@@ -62,7 +62,7 @@ let package = Package(
             ],
             path: "Core",
             resources: [
-                .process("Resources")
+                .process("Resources/Models")
             ]
         ),
 

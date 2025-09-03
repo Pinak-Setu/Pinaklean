@@ -1,21 +1,78 @@
 # macOS
 .DS_Store
+*.DS_Store
 
 # backups
 pinaklean_backups/
 
 # node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
 
-# test temp
-/tmp/
-
-# Swift
+# Swift/Xcode
 .build/
+.swiftpm/
+DerivedData/
 *.xcodeproj/xcuserdata/
 *.xcodeproj/project.xcworkspace/xcuserdata/
 *.xcscmblueprint
+*.xcarchive
+*.ipa
+*.dSYM.zip
+*.dSYM
 
-# logs
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+.venv/
+venv/
+ENV/
+env/
+
+# Logs
 test_results_*.log
 *.log
+logs/
+ci_monitor_*.log
+
+# Archives and large binaries
+*.zip
+*.tar.gz
+*.tar.bz2
+*.7z
+*.dmg
+*.pkg
+
+# CodeQL (large analysis tools)
+codeql/
+codeql.zip
+
+# Build outputs
+build/
+dist/
+.next/
+.turbo/
+out/
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+
+# Temporary files
+*.tmp
+*.temp
+.cache/
+.tmp/

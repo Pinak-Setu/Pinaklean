@@ -1,0 +1,44 @@
+disable-default-queries: false
+
+query-filters:
+  - include:
+      tags contain:
+        - security
+        - correctness
+        - maintainability
+        - performance
+
+paths:
+  - PinakleanApp
+  - exclude:
+      - PinakleanApp/.build/
+      - PinakleanApp/.swiftpm/
+      - PinakleanApp/Package.resolved
+      - "**/*.test.swift"
+      - "**/Tests/**"
+
+queries:
+  - uses: codeql/swift-queries
+  - uses: codeql/swift-experimental-queries
+
+packs:
+  - codeql/swift-queries:security-and-quality
+  - codeql/swift-queries:security-experimental
+  - codeql/swift-queries:quality-experimental
+
+paths-ignore:
+  - "**/node_modules"
+  - "**/build/**"
+  - "**/.build/**"
+  - "**/DerivedData/**"
+  - "**/*.pbxproj"
+  - "**/*.xcworkspace"
+  - "**/*.xcodeproj"
+  - "**/Package.resolved"
+
+sarif:
+  run:
+    automation-details:
+      id: "codeql/swift"
+      version: "2.22.4"
+  category: "codeql/swift-analysis"

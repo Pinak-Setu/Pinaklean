@@ -46,6 +46,9 @@ let package = Package(
         // DocC plugin
         .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.3.0"),
 
+        // View Hierarchy Testing
+        .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.0"),
+
         // Auto-updates (temporarily disabled)
         // .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.5.0"),
     ],
@@ -92,7 +95,8 @@ let package = Package(
                 "PinakleanApp",
                 .product(name: "Quick", package: "Quick"),
                 .product(name: "Nimble", package: "Nimble"),
-                .product(name: "SnapshotTesting", package: "swift-snapshot-testing")
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "ViewInspector", package: "ViewInspector")
             ],
             path: "Tests/App"
         ),

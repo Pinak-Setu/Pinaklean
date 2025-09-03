@@ -13,9 +13,21 @@ struct MainShellView: View {
                 BrandHeaderView()
                 
                 // Content area that will switch based on the selected tab
-                Spacer()
-                Text("Selected Tab: \(selectedTab.rawValue)")
-                Spacer()
+                Group {
+                    switch selectedTab {
+                    case .dashboard:
+                        DashboardView()
+                    case .scan:
+                        ScanView()
+                    case .clean:
+                        CleanView()
+                    case .settings:
+                        SettingsView()
+                    case .analytics:
+                        AnalyticsDashboard()
+                    }
+                }
+                .frame(maxWidth: .infinity, maxHeight: .infinity)
                 
                 CustomTabBar(selectedTab: $selectedTab)
             }

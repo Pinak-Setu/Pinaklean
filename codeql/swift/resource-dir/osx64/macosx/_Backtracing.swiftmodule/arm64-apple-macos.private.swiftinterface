@@ -1,0 +1,1023 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 (swift-6.1.2-RELEASE)
+// swift-module-flags: -disable-objc-attr-requires-foundation-module -target arm64-apple-macosx13.0 -enable-objc-interop -enable-library-evolution -module-link-name swift_Backtracing -parse-stdlib -swift-version 5 -O -library-level api -enforce-exclusivity=unchecked -target-min-inlining-version min -enable-experimental-feature NoncopyableGenerics2 -enable-experimental-feature SuppressedAssociatedTypes -enable-experimental-feature SE427NoInferenceOnExtension -enable-experimental-feature AllowUnsafeAttribute -enable-experimental-feature NonescapableTypes -enable-experimental-feature LifetimeDependence -enable-experimental-feature ExtensionImportVisiblity -module-name _Backtracing
+// swift-module-flags-ignorable: -enable-lexical-lifetimes=false -enable-ossa-modules -interface-compiler-version 6.1.2
+import Swift
+public struct Backtrace : Swift.CustomStringConvertible, Swift.Sendable {
+  public typealias Address = Swift.UInt64
+  public enum UnwindAlgorithm {
+    case auto
+    case fast
+    case precise
+    public static func == (a: _Backtracing.Backtrace.UnwindAlgorithm, b: _Backtracing.Backtrace.UnwindAlgorithm) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public enum Frame : Swift.CustomStringConvertible, Swift.Sendable {
+    case programCounter(_Backtracing.Backtrace.Address)
+    case returnAddress(_Backtracing.Backtrace.Address)
+    case asyncResumePoint(_Backtracing.Backtrace.Address)
+    case omittedFrames(Swift.Int)
+    case truncated
+    public var originalProgramCounter: _Backtracing.Backtrace.Address {
+      get
+    }
+    public var adjustedProgramCounter: _Backtracing.Backtrace.Address {
+      get
+    }
+    public func description(width: Swift.Int) -> Swift.String
+    public var description: Swift.String {
+      get
+    }
+    @_spi(Internal) public var jsonBody: Swift.String {
+      @_spi(Internal) get
+    }
+    @_spi(Internal) public var jsonDescription: Swift.String {
+      @_spi(Internal) get
+    }
+  }
+  public struct Image : Swift.CustomStringConvertible, Swift.Sendable {
+    public var name: Swift.String
+    public var path: Swift.String
+    public var buildID: [Swift.UInt8]?
+    public var baseAddress: _Backtracing.Backtrace.Address
+    public var endOfText: _Backtracing.Backtrace.Address
+    public func description(width: Swift.Int) -> Swift.String
+    public var description: Swift.String {
+      get
+    }
+  }
+  public var architecture: Swift.String
+  public var addressWidth: Swift.Int
+  public var frames: [_Backtracing.Backtrace.Frame]
+  public var images: [_Backtracing.Backtrace.Image]?
+  public struct SharedCacheInfo : Swift.Sendable {
+    public var uuid: [Swift.UInt8]
+    public var baseAddress: _Backtracing.Backtrace.Address
+    public var noCache: Swift.Bool
+  }
+  public var sharedCacheInfo: _Backtracing.Backtrace.SharedCacheInfo?
+  public func formatAddress(_ address: _Backtracing.Backtrace.Address, prefix: Swift.Bool = true) -> Swift.String
+  @inline(never) @_semantics("use_frame_pointer") public static func capture(algorithm: _Backtracing.Backtrace.UnwindAlgorithm = .auto, limit: Swift.Int? = 64, offset: Swift.Int = 0, top: Swift.Int = 16) throws -> _Backtracing.Backtrace
+  @_spi(Internal) public static func capture<Ctx, Rdr>(from context: Ctx, using memoryReader: Rdr, images: [_Backtracing.Backtrace.Image]?, algorithm: _Backtracing.Backtrace.UnwindAlgorithm = .auto, limit: Swift.Int? = 64, offset: Swift.Int = 0, top: Swift.Int = 16) throws -> _Backtracing.Backtrace where Ctx : _Backtracing.Context, Rdr : _Backtracing.MemoryReader
+  public static func captureImages() -> [_Backtracing.Backtrace.Image]
+  @_spi(Internal) public static func captureImages(for process: Any) -> [_Backtracing.Backtrace.Image]
+  public static func captureSharedCacheInfo() -> _Backtracing.Backtrace.SharedCacheInfo?
+  @_spi(Internal) public static func captureSharedCacheInfo(for t: Any) -> _Backtracing.Backtrace.SharedCacheInfo?
+  public func symbolicated(with images: [_Backtracing.Backtrace.Image]? = nil, sharedCacheInfo: _Backtracing.Backtrace.SharedCacheInfo? = nil, showInlineFrames: Swift.Bool = true, showSourceLocations: Swift.Bool = true, useSymbolCache: Swift.Bool = true) -> _Backtracing.SymbolicatedBacktrace?
+  public var description: Swift.String {
+    get
+  }
+}
+@_spi(Formatting) public protocol BacktraceFormattingTheme {
+  @_spi(Formatting) func frameIndex(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func programCounter(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func frameAttribute(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func symbol(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func offset(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func sourceLocation(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func lineNumber(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func code(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func crashedLineNumber(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func crashedLine(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func crashLocation() -> Swift.String
+  @_spi(Formatting) func imageName(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func imageAddressRange(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func imageBuildID(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) func imagePath(_ s: Swift.String) -> Swift.String
+}
+@_spi(Formatting) extension _Backtracing.BacktraceFormattingTheme {
+  @_spi(Formatting) public func frameIndex(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func programCounter(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func frameAttribute(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func symbol(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func offset(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func sourceLocation(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func lineNumber(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func code(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func crashedLineNumber(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func crashedLine(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func crashLocation() -> Swift.String
+  @_spi(Formatting) public func imageName(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func imageAddressRange(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func imageBuildID(_ s: Swift.String) -> Swift.String
+  @_spi(Formatting) public func imagePath(_ s: Swift.String) -> Swift.String
+}
+@_spi(Formatting) public struct BacktraceFormattingOptions {
+  @_spi(Formatting) public var selectedTheme: any _Backtracing.BacktraceFormattingTheme {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldShowSourceCode: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var sourceContextLines: Swift.Int {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldShowAddresses: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var imagesToShow: _Backtracing.BacktraceFormattingOptions.ImagesToShow {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldShowImageNames: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldShowFrameAttributes: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldSkipRuntimeFailures: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldSkipThunkFunctions: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldSkipSystemFrames: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldSanitizePaths: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var shouldDemangle: Swift.Bool {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public var formattingWidth: Swift.Int {
+    @_spi(Formatting) get
+  }
+  @_spi(Formatting) public init()
+  @_spi(Formatting) public static func theme(_ theme: any _Backtracing.BacktraceFormattingTheme) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func theme(_ theme: any _Backtracing.BacktraceFormattingTheme) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func showSourceCode(_ enabled: Swift.Bool = true, contextLines: Swift.Int = 2) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func showSourceCode(_ enabled: Swift.Bool = true, contextLines: Swift.Int = 2) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func showAddresses(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func showAddresses(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public enum ImagesToShow {
+    @_spi(Formatting) case none
+    @_spi(Formatting) case mentioned
+    @_spi(Formatting) case all
+    @_spi(Formatting) public static func == (a: _Backtracing.BacktraceFormattingOptions.ImagesToShow, b: _Backtracing.BacktraceFormattingOptions.ImagesToShow) -> Swift.Bool
+    @_spi(Formatting) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Formatting) public var hashValue: Swift.Int {
+      @_spi(Formatting) get
+    }
+  }
+  @_spi(Formatting) public static func showImages(_ toShow: _Backtracing.BacktraceFormattingOptions.ImagesToShow = .all) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func showImages(_ toShow: _Backtracing.BacktraceFormattingOptions.ImagesToShow = .all) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func showImageNames(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func showImageNames(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func showFrameAttributes(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func showFrameAttributes(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func skipRuntimeFailures(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func skipRuntimeFailures(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func skipThunkFunctions(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func skipThunkFunctions(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func skipSystemFrames(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func skipSystemFrames(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func sanitizePaths(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func sanitizePaths(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func demangle(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func demangle(_ enabled: Swift.Bool = true) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public static func width(_ width: Swift.Int) -> _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public func width(_ width: Swift.Int) -> _Backtracing.BacktraceFormattingOptions
+}
+@_spi(Formatting) public func sanitizePath(_ path: Swift.String) -> Swift.String
+@_spi(Formatting) public struct BacktraceFormatter {
+  @_spi(Formatting) public var options: _Backtracing.BacktraceFormattingOptions
+  @_spi(Formatting) public struct Themes {
+    @_spi(Formatting) public struct PlainTheme : _Backtracing.BacktraceFormattingTheme {
+    }
+    @_spi(Formatting) public static let plain: _Backtracing.BacktraceFormatter.Themes.PlainTheme
+  }
+  @_spi(Formatting) public init(_ options: _Backtracing.BacktraceFormattingOptions)
+  @_spi(Formatting) public enum TableRow {
+    @_spi(Formatting) case columns([Swift.String])
+    @_spi(Formatting) case raw(Swift.String)
+  }
+  @_spi(Formatting) public enum Alignment {
+    @_spi(Formatting) case left
+    @_spi(Formatting) case right
+    @_spi(Formatting) case center
+    @_spi(Formatting) public static func == (a: _Backtracing.BacktraceFormatter.Alignment, b: _Backtracing.BacktraceFormatter.Alignment) -> Swift.Bool
+    @_spi(Formatting) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Formatting) public var hashValue: Swift.Int {
+      @_spi(Formatting) get
+    }
+  }
+  @_spi(Formatting) public static func formatTable(_ rows: [_Backtracing.BacktraceFormatter.TableRow], alignments: [_Backtracing.BacktraceFormatter.Alignment] = []) -> Swift.String
+  @_spi(Formatting) public func formatColumns(frame: _Backtracing.Backtrace.Frame, addressWidth: Swift.Int, index: Swift.Int? = nil) -> [Swift.String]
+  @_spi(Formatting) public func formatRows(frame: _Backtracing.Backtrace.Frame, addressWidth: Swift.Int, index: Swift.Int? = nil) -> [_Backtracing.BacktraceFormatter.TableRow]
+  @_spi(Formatting) public func format(frame: _Backtracing.Backtrace.Frame, addressWidth: Swift.Int, index: Swift.Int? = nil) -> Swift.String
+  @_spi(Formatting) public func format(frames: some Sequence<Backtrace.Frame>, addressWidth: Swift.Int) -> Swift.String
+  @_spi(Formatting) public func format(backtrace: _Backtracing.Backtrace) -> Swift.String
+  @_spi(Formatting) public func formatColumns(frame: _Backtracing.SymbolicatedBacktrace.Frame, addressWidth: Swift.Int, index: Swift.Int? = nil) -> [Swift.String]
+  @_spi(Formatting) public func formatRows(frame: _Backtracing.SymbolicatedBacktrace.Frame, addressWidth: Swift.Int, index: Swift.Int? = nil, showSource: Swift.Bool = true) -> [_Backtracing.BacktraceFormatter.TableRow]
+  @_spi(Formatting) public func format(frame: _Backtracing.SymbolicatedBacktrace.Frame, addressWidth: Swift.Int, index: Swift.Int? = nil, showSource: Swift.Bool = true) -> Swift.String
+  @_spi(Formatting) public func shouldSkip(_ frame: _Backtracing.SymbolicatedBacktrace.Frame) -> Swift.Bool
+  @_spi(Formatting) public func format(frames: some Sequence<SymbolicatedBacktrace.Frame>, addressWidth: Swift.Int) -> Swift.String
+  @_spi(Formatting) public func format(backtrace: _Backtracing.SymbolicatedBacktrace) -> Swift.String
+  @_spi(Formatting) public func formatColumns(image: _Backtracing.Backtrace.Image, addressWidth: Swift.Int) -> [Swift.String]
+  @_spi(Formatting) public func format(images: some Sequence<Backtrace.Image>, addressWidth: Swift.Int) -> Swift.String
+}
+@_spi(MemoryReaders) public class CachingMemoryReader<T> : _Backtracing.MemoryReader where T : _Backtracing.MemoryReader {
+  @_spi(MemoryReaders) public init(for reader: T)
+  @_spi(MemoryReaders) @objc deinit
+  @_spi(MemoryReaders) public func fetch(from address: _Backtracing.CachingMemoryReader<T>.Address, into buffer: Swift.UnsafeMutableRawBufferPointer) throws
+}
+@_spi(Contexts) public enum ContextError : Swift.Error {
+  @_spi(Contexts) case unableToFormTLSAddress
+  @_spi(Contexts) public static func == (a: _Backtracing.ContextError, b: _Backtracing.ContextError) -> Swift.Bool
+  @_spi(Contexts) public func hash(into hasher: inout Swift.Hasher)
+  @_spi(Contexts) public var hashValue: Swift.Int {
+    @_spi(Contexts) get
+  }
+}
+@_spi(Contexts) public protocol Context : Swift.CustomStringConvertible {
+  associatedtype Address : Swift.FixedWidthInteger
+  associatedtype Size : Swift.FixedWidthInteger
+  associatedtype GPRValue : Swift.FixedWidthInteger
+  associatedtype Register : Swift.RawRepresentable where Self.Register.RawValue == Swift.Int
+  @_spi(Contexts) var architecture: Swift.String { get }
+  @_spi(Contexts) var programCounter: Self.GPRValue { get set }
+  @_spi(Contexts) var stackPointer: Self.GPRValue { get set }
+  @_spi(Contexts) var framePointer: Self.GPRValue { get set }
+  @_spi(Contexts) var callFrameAddress: Self.GPRValue { get set }
+  @_spi(Contexts) static var registerCount: Swift.Int { get }
+  @_spi(Contexts) func formTLSAddress(threadLocal: Self.Address) throws -> Self.Address
+  @_spi(Contexts) func getRegister(_ register: Self.Register) -> Self.GPRValue?
+  @_spi(Contexts) mutating func setRegister(_ register: Self.Register, to value: Self.GPRValue?)
+  @_spi(Contexts) mutating func setRegisters(_ registers: [Self.GPRValue?])
+  @_spi(Contexts) static func stripPtrAuth(address: Self.Address) -> Self.Address
+  @_spi(Contexts) static func isAlignedForStack(framePointer: Self.Address) -> Swift.Bool
+}
+@_spi(Contexts) extension _Backtracing.Context {
+  @_spi(Contexts) public func formTLSAddress(threadLocal: Self.Address) throws -> Self.Address
+  @_spi(Contexts) public mutating func setRegisters(_ registers: [Self.GPRValue?])
+  @_spi(Contexts) public static func stripPtrAuth(address: Self.Address) -> Self.Address
+}
+@_spi(Contexts) public struct X86_64Context : _Backtracing.Context {
+  @_spi(Contexts) public typealias Address = Swift.UInt64
+  @_spi(Contexts) public typealias Size = Swift.UInt64
+  @_spi(Contexts) public typealias GPRValue = Swift.UInt64
+  @_spi(Contexts) public typealias Register = _Backtracing.X86_64Register
+  @_spi(Contexts) public var architecture: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public var programCounter: _Backtracing.X86_64Context.Address {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var framePointer: _Backtracing.X86_64Context.Address {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var stackPointer: _Backtracing.X86_64Context.Address {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var callFrameAddress: _Backtracing.X86_64Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public static var registerCount: Swift.Int {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public func getRegister(_ register: _Backtracing.X86_64Context.Register) -> _Backtracing.X86_64Context.GPRValue?
+  @_spi(Contexts) public mutating func setRegister(_ register: _Backtracing.X86_64Context.Register, to value: _Backtracing.X86_64Context.GPRValue?)
+  @_spi(Contexts) public var description: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public static func isAlignedForStack(framePointer: _Backtracing.X86_64Context.Address) -> Swift.Bool
+}
+@_spi(Contexts) public struct I386Context : _Backtracing.Context {
+  @_spi(Contexts) public typealias Address = Swift.UInt32
+  @_spi(Contexts) public typealias Size = Swift.UInt32
+  @_spi(Contexts) public typealias GPRValue = Swift.UInt32
+  @_spi(Contexts) public typealias Register = _Backtracing.I386Register
+  @_spi(Contexts) public var architecture: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public var programCounter: _Backtracing.I386Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var framePointer: _Backtracing.I386Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var stackPointer: _Backtracing.I386Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var callFrameAddress: _Backtracing.I386Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public static var registerCount: Swift.Int {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public func getRegister(_ register: _Backtracing.I386Context.Register) -> _Backtracing.I386Context.GPRValue?
+  @_spi(Contexts) public mutating func setRegister(_ register: _Backtracing.I386Context.Register, to value: _Backtracing.I386Context.GPRValue?)
+  @_spi(Contexts) public var description: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public static func isAlignedForStack(framePointer: _Backtracing.I386Context.Address) -> Swift.Bool
+}
+@_spi(Contexts) public struct ARM64Context : _Backtracing.Context {
+  @_spi(Contexts) public typealias Address = Swift.UInt64
+  @_spi(Contexts) public typealias Size = Swift.UInt64
+  @_spi(Contexts) public typealias GPRValue = Swift.UInt64
+  @_spi(Contexts) public typealias Register = _Backtracing.ARM64Register
+  @_spi(Contexts) public var architecture: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public var programCounter: _Backtracing.ARM64Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var stackPointer: _Backtracing.ARM64Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var framePointer: _Backtracing.ARM64Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var callFrameAddress: _Backtracing.ARM64Context.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public static var registerCount: Swift.Int {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public static func fromHostThread(_ thread: Any) -> _Backtracing.HostContext?
+  @_spi(Contexts) public static func fromHostMContext(_ mcontext: Any) -> _Backtracing.HostContext
+  @_spi(Contexts) @usableFromInline
+  @_silgen_name("_swift_get_cpu_context")
+  internal static func _swift_get_cpu_context() -> _Backtracing.ARM64Context
+  @_spi(Contexts) @_transparent public static func withCurrentContext<T>(fn: (_Backtracing.ARM64Context) throws -> T) rethrows -> T {
+    return try fn(_swift_get_cpu_context())
+  }
+  @_spi(Contexts) public func getRegister(_ reg: _Backtracing.ARM64Context.Register) -> _Backtracing.ARM64Context.GPRValue?
+  @_spi(Contexts) public mutating func setRegister(_ reg: _Backtracing.ARM64Context.Register, to value: _Backtracing.ARM64Context.GPRValue?)
+  @_spi(Contexts) public var description: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public static func isAlignedForStack(framePointer: _Backtracing.ARM64Context.Address) -> Swift.Bool
+  @_spi(Contexts) public static func stripPtrAuth(address: _Backtracing.ARM64Context.Address) -> _Backtracing.ARM64Context.Address
+}
+@_spi(Contexts) public struct ARMContext : _Backtracing.Context {
+  @_spi(Contexts) public typealias Address = Swift.UInt32
+  @_spi(Contexts) public typealias Size = Swift.UInt32
+  @_spi(Contexts) public typealias GPRValue = Swift.UInt32
+  @_spi(Contexts) public typealias Register = _Backtracing.ARMRegister
+  @_spi(Contexts) public var architecture: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public var programCounter: _Backtracing.ARMContext.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var stackPointer: _Backtracing.ARMContext.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var framePointer: _Backtracing.ARMContext.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public var callFrameAddress: _Backtracing.ARMContext.GPRValue {
+    @_spi(Contexts) get
+    @_spi(Contexts) set
+  }
+  @_spi(Contexts) public static var registerCount: Swift.Int {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public func getRegister(_ reg: _Backtracing.ARMContext.Register) -> _Backtracing.ARMContext.GPRValue?
+  @_spi(Contexts) public mutating func setRegister(_ reg: _Backtracing.ARMContext.Register, to value: _Backtracing.ARMContext.GPRValue?)
+  @_spi(Contexts) public var description: Swift.String {
+    @_spi(Contexts) get
+  }
+  @_spi(Contexts) public static func isAlignedForStack(framePointer: _Backtracing.ARMContext.Address) -> Swift.Bool
+}
+@_spi(Contexts) public typealias HostContext = _Backtracing.ARM64Context
+@_spi(Unwinders) public struct FramePointerUnwinder<C, M> : Swift.Sequence, Swift.IteratorProtocol where C : _Backtracing.Context, M : _Backtracing.MemoryReader {
+  @_spi(Unwinders) public typealias Context = C
+  @_spi(Unwinders) public typealias MemoryReader = M
+  @_spi(Unwinders) public typealias Address = _Backtracing.FramePointerUnwinder<C, M>.MemoryReader.Address
+  @_spi(Unwinders) public init(context: _Backtracing.FramePointerUnwinder<C, M>.Context, images: [_Backtracing.Backtrace.Image]?, memoryReader: _Backtracing.FramePointerUnwinder<C, M>.MemoryReader)
+  @_spi(Unwinders) public mutating func next() -> _Backtracing.Backtrace.Frame?
+  @_spi(Unwinders) public typealias Element = _Backtracing.Backtrace.Frame
+  @_spi(Unwinders) public typealias Iterator = _Backtracing.FramePointerUnwinder<C, M>
+}
+@_spi(MemoryReaders) public protocol MemoryReader {
+  @_spi(MemoryReaders) typealias Address = Swift.UInt64
+  @_spi(MemoryReaders) typealias Size = Swift.UInt64
+  @_spi(MemoryReaders) func fetch(from address: Self.Address, into buffer: Swift.UnsafeMutableRawBufferPointer) throws
+  @_spi(MemoryReaders) func fetch<T>(from address: Self.Address, into buffer: Swift.UnsafeMutableBufferPointer<T>) throws
+  @_spi(MemoryReaders) func fetch<T>(from addr: Self.Address, into pointer: Swift.UnsafeMutablePointer<T>) throws
+  @_spi(MemoryReaders) func fetch<T>(from addr: Self.Address, count: Swift.Int, as: T.Type) throws -> [T]
+  @_spi(MemoryReaders) func fetch<T>(from addr: Self.Address, as: T.Type) throws -> T
+  @_spi(MemoryReaders) func fetchString(from addr: Self.Address) throws -> Swift.String?
+}
+@_spi(MemoryReaders) extension _Backtracing.MemoryReader {
+  @_spi(MemoryReaders) public func fetch<T>(from address: Self.Address, into buffer: Swift.UnsafeMutableBufferPointer<T>) throws
+  @_spi(MemoryReaders) public func fetch<T>(from addr: Self.Address, into pointer: Swift.UnsafeMutablePointer<T>) throws
+  @_spi(MemoryReaders) public func fetch<T>(from addr: Self.Address, count: Swift.Int, as: T.Type) throws -> [T]
+  @_spi(MemoryReaders) public func fetch<T>(from addr: Self.Address, as: T.Type) throws -> T
+  @_spi(MemoryReaders) public func fetchString(from addr: Self.Address) throws -> Swift.String?
+}
+@_spi(MemoryReaders) public struct UnsafeLocalMemoryReader : _Backtracing.MemoryReader {
+  @_spi(MemoryReaders) public init()
+  @_spi(MemoryReaders) public func fetch(from address: _Backtracing.UnsafeLocalMemoryReader.Address, into buffer: Swift.UnsafeMutableRawBufferPointer) throws
+}
+@_spi(MemoryReaders) public struct MachError : Swift.Error {
+}
+@_spi(MemoryReaders) public struct RemoteMemoryReader : _Backtracing.MemoryReader {
+  @_spi(MemoryReaders) public init(task: Any)
+  @_spi(MemoryReaders) public func fetch(from address: _Backtracing.RemoteMemoryReader.Address, into buffer: Swift.UnsafeMutableRawBufferPointer) throws
+}
+@_spi(MemoryReaders) public struct LocalMemoryReader : _Backtracing.MemoryReader {
+  @_spi(MemoryReaders) public typealias Address = Swift.UInt64
+  @_spi(MemoryReaders) public typealias Size = Swift.UInt64
+  @_spi(MemoryReaders) public func fetch(from address: _Backtracing.LocalMemoryReader.Address, into buffer: Swift.UnsafeMutableRawBufferPointer) throws
+}
+@_spi(Registers) public enum X86_64Register : Swift.Int, Swift.Strideable, Swift.Comparable {
+  @_spi(Registers) public func advanced(by n: Swift.Int) -> _Backtracing.X86_64Register
+  @_spi(Registers) public func distance(to other: _Backtracing.X86_64Register) -> Swift.Int
+  @_spi(Registers) public static func < (lhs: _Backtracing.X86_64Register, rhs: _Backtracing.X86_64Register) -> Swift.Bool
+  @_spi(Registers) case rax
+  @_spi(Registers) case rdx
+  @_spi(Registers) case rcx
+  @_spi(Registers) case rbx
+  @_spi(Registers) case rsi
+  @_spi(Registers) case rdi
+  @_spi(Registers) case rbp
+  @_spi(Registers) case rsp
+  @_spi(Registers) case r8
+  @_spi(Registers) case r9
+  @_spi(Registers) case r10
+  @_spi(Registers) case r11
+  @_spi(Registers) case r12
+  @_spi(Registers) case r13
+  @_spi(Registers) case r14
+  @_spi(Registers) case r15
+  @_spi(Registers) case ra
+  @_spi(Registers) case xmm0
+  @_spi(Registers) case xmm1
+  @_spi(Registers) case xmm2
+  @_spi(Registers) case xmm3
+  @_spi(Registers) case xmm4
+  @_spi(Registers) case xmm5
+  @_spi(Registers) case xmm6
+  @_spi(Registers) case xmm7
+  @_spi(Registers) case xmm8
+  @_spi(Registers) case xmm9
+  @_spi(Registers) case xmm10
+  @_spi(Registers) case xmm11
+  @_spi(Registers) case xmm12
+  @_spi(Registers) case xmm13
+  @_spi(Registers) case xmm14
+  @_spi(Registers) case xmm15
+  @_spi(Registers) case st0
+  @_spi(Registers) case st1
+  @_spi(Registers) case st2
+  @_spi(Registers) case st3
+  @_spi(Registers) case st4
+  @_spi(Registers) case st5
+  @_spi(Registers) case st6
+  @_spi(Registers) case st7
+  @_spi(Registers) case mm0
+  @_spi(Registers) case mm1
+  @_spi(Registers) case mm2
+  @_spi(Registers) case mm3
+  @_spi(Registers) case mm4
+  @_spi(Registers) case mm5
+  @_spi(Registers) case mm6
+  @_spi(Registers) case mm7
+  @_spi(Registers) case rflags
+  @_spi(Registers) case es
+  @_spi(Registers) case cs
+  @_spi(Registers) case ss
+  @_spi(Registers) case ds
+  @_spi(Registers) case fs
+  @_spi(Registers) case gs
+  @_spi(Registers) case fs_base
+  @_spi(Registers) case gs_base
+  @_spi(Registers) case tr
+  @_spi(Registers) case ldtr
+  @_spi(Registers) case mxcsr
+  @_spi(Registers) case fcw
+  @_spi(Registers) case fsw
+  @_spi(Registers) case xmm16
+  @_spi(Registers) case xmm17
+  @_spi(Registers) case xmm18
+  @_spi(Registers) case xmm19
+  @_spi(Registers) case xmm20
+  @_spi(Registers) case xmm21
+  @_spi(Registers) case xmm22
+  @_spi(Registers) case xmm23
+  @_spi(Registers) case xmm24
+  @_spi(Registers) case xmm25
+  @_spi(Registers) case xmm26
+  @_spi(Registers) case xmm27
+  @_spi(Registers) case xmm28
+  @_spi(Registers) case xmm29
+  @_spi(Registers) case xmm30
+  @_spi(Registers) case xmm31
+  @_spi(Registers) case k0
+  @_spi(Registers) case k1
+  @_spi(Registers) case k2
+  @_spi(Registers) case k3
+  @_spi(Registers) case k4
+  @_spi(Registers) case k5
+  @_spi(Registers) case k6
+  @_spi(Registers) case k7
+  @_spi(Registers) public init?(rawValue: Swift.Int)
+  @_spi(Registers) public typealias RawValue = Swift.Int
+  @_spi(Registers) public typealias Stride = Swift.Int
+  @_spi(Registers) public var rawValue: Swift.Int {
+    @_spi(Registers) get
+  }
+}
+@_spi(Registers) public enum I386Register : Swift.Int, Swift.Strideable, Swift.Comparable {
+  @_spi(Registers) public func advanced(by n: Swift.Int) -> _Backtracing.I386Register
+  @_spi(Registers) public func distance(to other: _Backtracing.I386Register) -> Swift.Int
+  @_spi(Registers) public static func < (lhs: _Backtracing.I386Register, rhs: _Backtracing.I386Register) -> Swift.Bool
+  @_spi(Registers) case eax
+  @_spi(Registers) case ecx
+  @_spi(Registers) case edx
+  @_spi(Registers) case ebx
+  @_spi(Registers) case esp
+  @_spi(Registers) case ebp
+  @_spi(Registers) case esi
+  @_spi(Registers) case edi
+  @_spi(Registers) case ra
+  @_spi(Registers) case eflags
+  @_spi(Registers) case st0
+  @_spi(Registers) case st1
+  @_spi(Registers) case st2
+  @_spi(Registers) case st3
+  @_spi(Registers) case st4
+  @_spi(Registers) case st5
+  @_spi(Registers) case st6
+  @_spi(Registers) case st7
+  @_spi(Registers) case xmm0
+  @_spi(Registers) case xmm1
+  @_spi(Registers) case xmm2
+  @_spi(Registers) case xmm3
+  @_spi(Registers) case xmm4
+  @_spi(Registers) case xmm5
+  @_spi(Registers) case xmm6
+  @_spi(Registers) case xmm7
+  @_spi(Registers) case mm0
+  @_spi(Registers) case mm1
+  @_spi(Registers) case mm2
+  @_spi(Registers) case mm3
+  @_spi(Registers) case mm4
+  @_spi(Registers) case mm5
+  @_spi(Registers) case mm6
+  @_spi(Registers) case mm7
+  @_spi(Registers) case mxcsr
+  @_spi(Registers) case es
+  @_spi(Registers) case cs
+  @_spi(Registers) case ss
+  @_spi(Registers) case ds
+  @_spi(Registers) case fs
+  @_spi(Registers) case gs
+  @_spi(Registers) case tr
+  @_spi(Registers) case ldtr
+  @_spi(Registers) case fs_base
+  @_spi(Registers) case gs_base
+  @_spi(Registers) public init?(rawValue: Swift.Int)
+  @_spi(Registers) public typealias RawValue = Swift.Int
+  @_spi(Registers) public typealias Stride = Swift.Int
+  @_spi(Registers) public var rawValue: Swift.Int {
+    @_spi(Registers) get
+  }
+}
+@_spi(Registers) public enum ARM64Register : Swift.Int, Swift.Strideable, Swift.Comparable {
+  @_spi(Registers) public func advanced(by n: Swift.Int) -> _Backtracing.ARM64Register
+  @_spi(Registers) public func distance(to other: _Backtracing.ARM64Register) -> Swift.Int
+  @_spi(Registers) public static func < (lhs: _Backtracing.ARM64Register, rhs: _Backtracing.ARM64Register) -> Swift.Bool
+  @_spi(Registers) case x0
+  @_spi(Registers) case x1
+  @_spi(Registers) case x2
+  @_spi(Registers) case x3
+  @_spi(Registers) case x4
+  @_spi(Registers) case x5
+  @_spi(Registers) case x6
+  @_spi(Registers) case x7
+  @_spi(Registers) case x8
+  @_spi(Registers) case x9
+  @_spi(Registers) case x10
+  @_spi(Registers) case x11
+  @_spi(Registers) case x12
+  @_spi(Registers) case x13
+  @_spi(Registers) case x14
+  @_spi(Registers) case x15
+  @_spi(Registers) case x16
+  @_spi(Registers) case x17
+  @_spi(Registers) case x18
+  @_spi(Registers) case x19
+  @_spi(Registers) case x20
+  @_spi(Registers) case x21
+  @_spi(Registers) case x22
+  @_spi(Registers) case x23
+  @_spi(Registers) case x24
+  @_spi(Registers) case x25
+  @_spi(Registers) case x26
+  @_spi(Registers) case x27
+  @_spi(Registers) case x28
+  @_spi(Registers) case x29
+  @_spi(Registers) case x30
+  @_spi(Registers) case sp
+  @_spi(Registers) case pc
+  @_spi(Registers) case elr_mode
+  @_spi(Registers) case ra_sign_state
+  @_spi(Registers) case tpidrro_el0
+  @_spi(Registers) case tpidr_el0
+  @_spi(Registers) case tpidr_el1
+  @_spi(Registers) case tpidr_el2
+  @_spi(Registers) case tpidr_el3
+  @_spi(Registers) case vg
+  @_spi(Registers) case ffr
+  @_spi(Registers) case p0
+  @_spi(Registers) case p1
+  @_spi(Registers) case p2
+  @_spi(Registers) case p3
+  @_spi(Registers) case p4
+  @_spi(Registers) case p5
+  @_spi(Registers) case p6
+  @_spi(Registers) case p7
+  @_spi(Registers) case p8
+  @_spi(Registers) case p9
+  @_spi(Registers) case p10
+  @_spi(Registers) case p11
+  @_spi(Registers) case p12
+  @_spi(Registers) case p13
+  @_spi(Registers) case p14
+  @_spi(Registers) case p15
+  @_spi(Registers) case v0
+  @_spi(Registers) case v1
+  @_spi(Registers) case v2
+  @_spi(Registers) case v3
+  @_spi(Registers) case v4
+  @_spi(Registers) case v5
+  @_spi(Registers) case v6
+  @_spi(Registers) case v7
+  @_spi(Registers) case v8
+  @_spi(Registers) case v9
+  @_spi(Registers) case v10
+  @_spi(Registers) case v11
+  @_spi(Registers) case v12
+  @_spi(Registers) case v13
+  @_spi(Registers) case v14
+  @_spi(Registers) case v15
+  @_spi(Registers) case v16
+  @_spi(Registers) case v17
+  @_spi(Registers) case v18
+  @_spi(Registers) case v19
+  @_spi(Registers) case v20
+  @_spi(Registers) case v21
+  @_spi(Registers) case v22
+  @_spi(Registers) case v23
+  @_spi(Registers) case v24
+  @_spi(Registers) case v25
+  @_spi(Registers) case v26
+  @_spi(Registers) case v27
+  @_spi(Registers) case v28
+  @_spi(Registers) case v29
+  @_spi(Registers) case v30
+  @_spi(Registers) case v31
+  @_spi(Registers) case z0
+  @_spi(Registers) case z1
+  @_spi(Registers) case z2
+  @_spi(Registers) case z3
+  @_spi(Registers) case z4
+  @_spi(Registers) case z5
+  @_spi(Registers) case z6
+  @_spi(Registers) case z7
+  @_spi(Registers) case z8
+  @_spi(Registers) case z9
+  @_spi(Registers) case z10
+  @_spi(Registers) case z11
+  @_spi(Registers) case z12
+  @_spi(Registers) case z13
+  @_spi(Registers) case z14
+  @_spi(Registers) case z15
+  @_spi(Registers) case z16
+  @_spi(Registers) case z17
+  @_spi(Registers) case z18
+  @_spi(Registers) case z19
+  @_spi(Registers) case z20
+  @_spi(Registers) case z21
+  @_spi(Registers) case z22
+  @_spi(Registers) case z23
+  @_spi(Registers) case z24
+  @_spi(Registers) case z25
+  @_spi(Registers) case z26
+  @_spi(Registers) case z27
+  @_spi(Registers) case z28
+  @_spi(Registers) case z29
+  @_spi(Registers) case z30
+  @_spi(Registers) case z31
+  @_spi(Registers) public init?(rawValue: Swift.Int)
+  @_spi(Registers) public typealias RawValue = Swift.Int
+  @_spi(Registers) public typealias Stride = Swift.Int
+  @_spi(Registers) public var rawValue: Swift.Int {
+    @_spi(Registers) get
+  }
+}
+@_spi(Registers) public enum ARMRegister : Swift.Int, Swift.Strideable, Swift.Comparable {
+  @_spi(Registers) public func advanced(by n: Swift.Int) -> _Backtracing.ARMRegister
+  @_spi(Registers) public func distance(to other: _Backtracing.ARMRegister) -> Swift.Int
+  @_spi(Registers) public static func < (lhs: _Backtracing.ARMRegister, rhs: _Backtracing.ARMRegister) -> Swift.Bool
+  @_spi(Registers) case r0
+  @_spi(Registers) case r1
+  @_spi(Registers) case r2
+  @_spi(Registers) case r3
+  @_spi(Registers) case r4
+  @_spi(Registers) case r5
+  @_spi(Registers) case r6
+  @_spi(Registers) case r7
+  @_spi(Registers) case r8
+  @_spi(Registers) case r9
+  @_spi(Registers) case r10
+  @_spi(Registers) case r11
+  @_spi(Registers) case r12
+  @_spi(Registers) case r13
+  @_spi(Registers) case r14
+  @_spi(Registers) case r15
+  @_spi(Registers) case old_f0_s0
+  @_spi(Registers) case old_f1_s1
+  @_spi(Registers) case old_f2_s2
+  @_spi(Registers) case old_f3_s3
+  @_spi(Registers) case old_f4_s4
+  @_spi(Registers) case old_f5_s5
+  @_spi(Registers) case old_f6_s6
+  @_spi(Registers) case old_f7_s7
+  @_spi(Registers) case old_s8
+  @_spi(Registers) case old_s9
+  @_spi(Registers) case old_s10
+  @_spi(Registers) case old_s11
+  @_spi(Registers) case old_s12
+  @_spi(Registers) case old_s13
+  @_spi(Registers) case old_s14
+  @_spi(Registers) case old_s15
+  @_spi(Registers) case old_s16
+  @_spi(Registers) case old_s17
+  @_spi(Registers) case old_s18
+  @_spi(Registers) case old_s19
+  @_spi(Registers) case old_s20
+  @_spi(Registers) case old_s21
+  @_spi(Registers) case old_s22
+  @_spi(Registers) case old_s23
+  @_spi(Registers) case old_s24
+  @_spi(Registers) case old_s25
+  @_spi(Registers) case old_s26
+  @_spi(Registers) case old_s27
+  @_spi(Registers) case old_s28
+  @_spi(Registers) case old_s29
+  @_spi(Registers) case old_s30
+  @_spi(Registers) case old_s31
+  @_spi(Registers) case s0
+  @_spi(Registers) case s1
+  @_spi(Registers) case s2
+  @_spi(Registers) case s3
+  @_spi(Registers) case s4
+  @_spi(Registers) case s5
+  @_spi(Registers) case s6
+  @_spi(Registers) case s7
+  @_spi(Registers) case s8
+  @_spi(Registers) case s9
+  @_spi(Registers) case s10
+  @_spi(Registers) case s11
+  @_spi(Registers) case s12
+  @_spi(Registers) case s13
+  @_spi(Registers) case s14
+  @_spi(Registers) case s15
+  @_spi(Registers) case s16
+  @_spi(Registers) case s17
+  @_spi(Registers) case s18
+  @_spi(Registers) case s19
+  @_spi(Registers) case s20
+  @_spi(Registers) case s21
+  @_spi(Registers) case s22
+  @_spi(Registers) case s23
+  @_spi(Registers) case s24
+  @_spi(Registers) case s25
+  @_spi(Registers) case s26
+  @_spi(Registers) case s27
+  @_spi(Registers) case s28
+  @_spi(Registers) case s29
+  @_spi(Registers) case s30
+  @_spi(Registers) case s31
+  @_spi(Registers) case f0
+  @_spi(Registers) case f1
+  @_spi(Registers) case f2
+  @_spi(Registers) case f3
+  @_spi(Registers) case f4
+  @_spi(Registers) case f5
+  @_spi(Registers) case f6
+  @_spi(Registers) case f7
+  @_spi(Registers) case wcgr0_acc0
+  @_spi(Registers) case wcgr1_acc1
+  @_spi(Registers) case wcgr2_acc2
+  @_spi(Registers) case wcgr3_acc3
+  @_spi(Registers) case wcgr4_acc4
+  @_spi(Registers) case wcgr5_acc5
+  @_spi(Registers) case wcgr6_acc6
+  @_spi(Registers) case wcgr7_acc7
+  @_spi(Registers) case wr0
+  @_spi(Registers) case wr1
+  @_spi(Registers) case wr2
+  @_spi(Registers) case wr3
+  @_spi(Registers) case wr4
+  @_spi(Registers) case wr5
+  @_spi(Registers) case wr6
+  @_spi(Registers) case wr7
+  @_spi(Registers) case wr8
+  @_spi(Registers) case wr9
+  @_spi(Registers) case wr10
+  @_spi(Registers) case wr11
+  @_spi(Registers) case wr12
+  @_spi(Registers) case wr13
+  @_spi(Registers) case wr14
+  @_spi(Registers) case wr15
+  @_spi(Registers) case spsr
+  @_spi(Registers) case spsr_fiq
+  @_spi(Registers) case spsr_irq
+  @_spi(Registers) case spsr_abt
+  @_spi(Registers) case spsr_und
+  @_spi(Registers) case spsr_svc
+  @_spi(Registers) case ra_auth_code
+  @_spi(Registers) case r8_usr
+  @_spi(Registers) case r9_usr
+  @_spi(Registers) case r10_usr
+  @_spi(Registers) case r11_usr
+  @_spi(Registers) case r12_usr
+  @_spi(Registers) case r13_usr
+  @_spi(Registers) case r14_usr
+  @_spi(Registers) case r8_fiq
+  @_spi(Registers) case r9_fiq
+  @_spi(Registers) case r10_fiq
+  @_spi(Registers) case r11_fiq
+  @_spi(Registers) case r12_fiq
+  @_spi(Registers) case r13_fiq
+  @_spi(Registers) case r14_fiq
+  @_spi(Registers) case r13_irq
+  @_spi(Registers) case r14_irq
+  @_spi(Registers) case r13_abt
+  @_spi(Registers) case r14_abt
+  @_spi(Registers) case r13_und
+  @_spi(Registers) case r14_und
+  @_spi(Registers) case r13_svc
+  @_spi(Registers) case r14_svc
+  @_spi(Registers) case wc0
+  @_spi(Registers) case wc1
+  @_spi(Registers) case wc2
+  @_spi(Registers) case wc3
+  @_spi(Registers) case wc4
+  @_spi(Registers) case wc5
+  @_spi(Registers) case wc6
+  @_spi(Registers) case wc7
+  @_spi(Registers) case d0
+  @_spi(Registers) case d1
+  @_spi(Registers) case d2
+  @_spi(Registers) case d3
+  @_spi(Registers) case d4
+  @_spi(Registers) case d5
+  @_spi(Registers) case d6
+  @_spi(Registers) case d7
+  @_spi(Registers) case d8
+  @_spi(Registers) case d9
+  @_spi(Registers) case d10
+  @_spi(Registers) case d11
+  @_spi(Registers) case d12
+  @_spi(Registers) case d13
+  @_spi(Registers) case d14
+  @_spi(Registers) case d15
+  @_spi(Registers) case d16
+  @_spi(Registers) case d17
+  @_spi(Registers) case d18
+  @_spi(Registers) case d19
+  @_spi(Registers) case d20
+  @_spi(Registers) case d21
+  @_spi(Registers) case d22
+  @_spi(Registers) case d23
+  @_spi(Registers) case d24
+  @_spi(Registers) case d25
+  @_spi(Registers) case d26
+  @_spi(Registers) case d27
+  @_spi(Registers) case d28
+  @_spi(Registers) case d29
+  @_spi(Registers) case d30
+  @_spi(Registers) case d31
+  @_spi(Registers) case tpidruro
+  @_spi(Registers) case tpidrurw
+  @_spi(Registers) case tpidpr
+  @_spi(Registers) case htpidpr
+  @_spi(Registers) public init?(rawValue: Swift.Int)
+  @_spi(Registers) public typealias RawValue = Swift.Int
+  @_spi(Registers) public typealias Stride = Swift.Int
+  @_spi(Registers) public var rawValue: Swift.Int {
+    @_spi(Registers) get
+  }
+}
+@_spi(Registers) public typealias HostRegister = _Backtracing.ARM64Register
+public struct SymbolicatedBacktrace : Swift.CustomStringConvertible {
+  public var backtrace: _Backtracing.Backtrace
+  public struct SourceLocation : Swift.CustomStringConvertible, Swift.Sendable, Swift.Hashable {
+    public var path: Swift.String
+    public var line: Swift.Int
+    public var column: Swift.Int
+    public var description: Swift.String {
+      get
+    }
+    public static func == (a: _Backtracing.SymbolicatedBacktrace.SourceLocation, b: _Backtracing.SymbolicatedBacktrace.SourceLocation) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public struct Frame : Swift.CustomStringConvertible {
+    public var captured: _Backtracing.Backtrace.Frame
+    public var symbol: _Backtracing.SymbolicatedBacktrace.Symbol?
+    public var inlined: Swift.Bool
+    public var isSwiftRuntimeFailure: Swift.Bool {
+      get
+    }
+    public var isSwiftThunk: Swift.Bool {
+      get
+    }
+    public var isSystem: Swift.Bool {
+      get
+    }
+    public func description(width: Swift.Int) -> Swift.String
+    public var description: Swift.String {
+      get
+    }
+  }
+  public class Symbol : Swift.CustomStringConvertible {
+    public var imageIndex: Swift.Int
+    public var imageName: Swift.String
+    public var rawName: Swift.String
+    public var name: Swift.String {
+      get
+      set
+    }
+    public var offset: Swift.Int
+    public var sourceLocation: _Backtracing.SymbolicatedBacktrace.SourceLocation?
+    public var isSwiftRuntimeFailure: Swift.Bool {
+      get
+    }
+    public var isSwiftThunk: Swift.Bool {
+      get
+    }
+    public var isSystemFunction: Swift.Bool {
+      get
+    }
+    public init(imageIndex: Swift.Int, imageName: Swift.String, rawName: Swift.String, offset: Swift.Int, sourceLocation: _Backtracing.SymbolicatedBacktrace.SourceLocation?)
+    public var description: Swift.String {
+      get
+    }
+    @objc deinit
+  }
+  public var addressWidth: Swift.Int {
+    get
+  }
+  public var architecture: Swift.String {
+    get
+  }
+  public var frames: [_Backtracing.SymbolicatedBacktrace.Frame]
+  public var images: [_Backtracing.Backtrace.Image]
+  public var sharedCacheInfo: _Backtracing.Backtrace.SharedCacheInfo?
+  public var isSwiftRuntimeFailure: Swift.Bool {
+    get
+  }
+  public var swiftRuntimeFailure: Swift.String? {
+    get
+  }
+  public var description: Swift.String {
+    get
+  }
+}
+@_spi(Utils) public func readString(from file: Swift.String) -> Swift.String?
+@_spi(Utils) public func stripWhitespace<S>(_ s: S) -> S.SubSequence where S : Swift.StringProtocol
+extension _Backtracing.Backtrace.UnwindAlgorithm : Swift.Equatable {}
+extension _Backtracing.Backtrace.UnwindAlgorithm : Swift.Hashable {}
+@_spi(Formatting) extension _Backtracing.BacktraceFormattingOptions.ImagesToShow : Swift.Equatable {}
+@_spi(Formatting) extension _Backtracing.BacktraceFormattingOptions.ImagesToShow : Swift.Hashable {}
+@_spi(Formatting) extension _Backtracing.BacktraceFormatter.Alignment : Swift.Equatable {}
+@_spi(Formatting) extension _Backtracing.BacktraceFormatter.Alignment : Swift.Hashable {}
+@_spi(Contexts) extension _Backtracing.ContextError : Swift.Equatable {}
+@_spi(Contexts) extension _Backtracing.ContextError : Swift.Hashable {}
+@_spi(Registers) extension _Backtracing.X86_64Register : Swift.Hashable {}
+@_spi(Registers) extension _Backtracing.X86_64Register : Swift.RawRepresentable {}
+@_spi(Registers) extension _Backtracing.I386Register : Swift.Hashable {}
+@_spi(Registers) extension _Backtracing.I386Register : Swift.RawRepresentable {}
+@_spi(Registers) extension _Backtracing.ARM64Register : Swift.Hashable {}
+@_spi(Registers) extension _Backtracing.ARM64Register : Swift.RawRepresentable {}
+@_spi(Registers) extension _Backtracing.ARMRegister : Swift.Hashable {}
+@_spi(Registers) extension _Backtracing.ARMRegister : Swift.RawRepresentable {}

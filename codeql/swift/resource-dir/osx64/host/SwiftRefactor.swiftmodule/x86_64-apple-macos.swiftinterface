@@ -1,0 +1,113 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.9 clang-1600.0.30.1)
+// swift-module-flags: -target x86_64-apple-macosx13.0 -enable-objc-interop -enable-library-evolution -module-link-name SwiftRefactor -swift-version 5 -O -module-abi-name CompilerSwiftRefactor -module-name SwiftRefactor -package-name Toolchain
+import Swift
+import SwiftBasicFormat
+import SwiftParser
+import SwiftSyntax
+import SwiftSyntaxBuilder
+import _Concurrency
+import _SwiftConcurrencyShims
+public struct AddSeparatorsToIntegerLiteral : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax lit: SwiftSyntax.IntegerLiteralExprSyntax, in context: Swift.Void) -> SwiftSyntax.IntegerLiteralExprSyntax?
+  public typealias Context = Swift.Void
+  public typealias Input = SwiftSyntax.IntegerLiteralExprSyntax
+  public typealias Output = SwiftSyntax.IntegerLiteralExprSyntax
+}
+public struct CallToTrailingClosures : SwiftRefactor.SyntaxRefactoringProvider {
+  public struct Context {
+    public let startAtArgument: Swift.Int
+    public init(startAtArgument: Swift.Int = 0)
+  }
+  public static func refactor(syntax call: SwiftSyntax.FunctionCallExprSyntax, in context: SwiftRefactor.CallToTrailingClosures.Context = Context()) -> SwiftSyntax.FunctionCallExprSyntax?
+  public typealias Input = SwiftSyntax.FunctionCallExprSyntax
+  public typealias Output = SwiftSyntax.FunctionCallExprSyntax
+}
+public struct ConvertComputedPropertyToStored : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax: SwiftSyntax.VariableDeclSyntax, in context: ()) -> SwiftSyntax.VariableDeclSyntax?
+  public typealias Context = ()
+  public typealias Input = SwiftSyntax.VariableDeclSyntax
+  public typealias Output = SwiftSyntax.VariableDeclSyntax
+}
+public struct ConvertComputedPropertyToZeroParameterFunction : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax: SwiftSyntax.VariableDeclSyntax, in context: Swift.Void) -> SwiftSyntax.FunctionDeclSyntax?
+  public typealias Context = Swift.Void
+  public typealias Input = SwiftSyntax.VariableDeclSyntax
+  public typealias Output = SwiftSyntax.FunctionDeclSyntax
+}
+public struct ConvertStoredPropertyToComputed : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax: SwiftSyntax.VariableDeclSyntax, in context: ()) -> SwiftSyntax.VariableDeclSyntax?
+  public typealias Context = ()
+  public typealias Input = SwiftSyntax.VariableDeclSyntax
+  public typealias Output = SwiftSyntax.VariableDeclSyntax
+}
+public struct ConvertZeroParameterFunctionToComputedProperty : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax: SwiftSyntax.FunctionDeclSyntax, in context: ()) -> SwiftSyntax.VariableDeclSyntax?
+  public typealias Context = ()
+  public typealias Input = SwiftSyntax.FunctionDeclSyntax
+  public typealias Output = SwiftSyntax.VariableDeclSyntax
+}
+public struct ExpandEditorPlaceholder : SwiftRefactor.EditRefactoringProvider {
+  public struct Context {
+    public let indentationWidth: SwiftSyntax.Trivia?
+    public init(indentationWidth: SwiftSyntax.Trivia? = nil)
+  }
+  public static func textRefactor(syntax token: SwiftSyntax.TokenSyntax, in context: SwiftRefactor.ExpandEditorPlaceholder.Context = Context()) -> [SwiftSyntax.SourceEdit]
+  public typealias Input = SwiftSyntax.TokenSyntax
+}
+public struct ExpandEditorPlaceholdersToTrailingClosures : SwiftRefactor.SyntaxRefactoringProvider {
+  public struct Context {
+    public let indentationWidth: SwiftSyntax.Trivia?
+    public init(indentationWidth: SwiftSyntax.Trivia? = nil)
+  }
+  public static func refactor(syntax call: SwiftSyntax.FunctionCallExprSyntax, in context: SwiftRefactor.ExpandEditorPlaceholdersToTrailingClosures.Context = Context()) -> SwiftSyntax.FunctionCallExprSyntax?
+  public typealias Input = SwiftSyntax.FunctionCallExprSyntax
+  public typealias Output = SwiftSyntax.FunctionCallExprSyntax
+}
+public struct FormatRawStringLiteral : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax lit: SwiftSyntax.StringLiteralExprSyntax, in context: Swift.Void) -> SwiftSyntax.StringLiteralExprSyntax?
+  public typealias Context = Swift.Void
+  public typealias Input = SwiftSyntax.StringLiteralExprSyntax
+  public typealias Output = SwiftSyntax.StringLiteralExprSyntax
+}
+extension SwiftSyntax.IntegerLiteralExprSyntax {
+  public func split() -> (prefix: Swift.String, value: Swift.Substring)
+}
+public struct MigrateToNewIfLetSyntax : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax node: SwiftSyntax.IfExprSyntax, in context: ()) -> SwiftSyntax.IfExprSyntax?
+  public typealias Context = ()
+  public typealias Input = SwiftSyntax.IfExprSyntax
+  public typealias Output = SwiftSyntax.IfExprSyntax
+}
+public struct OpaqueParameterToGeneric : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax decl: SwiftSyntax.DeclSyntax, in context: Swift.Void) -> SwiftSyntax.DeclSyntax?
+  public typealias Context = Swift.Void
+  public typealias Input = SwiftSyntax.DeclSyntax
+  public typealias Output = SwiftSyntax.DeclSyntax
+}
+public protocol EditRefactoringProvider {
+  associatedtype Input : SwiftSyntax.SyntaxProtocol
+  associatedtype Context = Swift.Void
+  static func textRefactor(syntax: Self.Input, in context: Self.Context) -> [SwiftSyntax.SourceEdit]
+}
+extension SwiftRefactor.EditRefactoringProvider where Self.Context == () {
+  public static func textRefactor(syntax: Self.Input) -> [SwiftSyntax.SourceEdit]
+}
+public protocol SyntaxRefactoringProvider : SwiftRefactor.EditRefactoringProvider {
+  associatedtype Input = SwiftSyntax.MissingSyntax
+  associatedtype Output : SwiftSyntax.SyntaxProtocol
+  associatedtype Context = Swift.Void
+  static func refactor(syntax: Self.Input, in context: Self.Context) -> Self.Output?
+}
+extension SwiftRefactor.SyntaxRefactoringProvider where Self.Context == () {
+  public static func refactor(syntax: Self.Input) -> Self.Output?
+}
+extension SwiftRefactor.SyntaxRefactoringProvider {
+  public static func textRefactor(syntax: Self.Input, in context: Self.Context) -> [SwiftSyntax.SourceEdit]
+}
+public struct RemoveSeparatorsFromIntegerLiteral : SwiftRefactor.SyntaxRefactoringProvider {
+  public static func refactor(syntax lit: SwiftSyntax.IntegerLiteralExprSyntax, in context: Swift.Void) -> SwiftSyntax.IntegerLiteralExprSyntax?
+  public typealias Context = Swift.Void
+  public typealias Input = SwiftSyntax.IntegerLiteralExprSyntax
+  public typealias Output = SwiftSyntax.IntegerLiteralExprSyntax
+}

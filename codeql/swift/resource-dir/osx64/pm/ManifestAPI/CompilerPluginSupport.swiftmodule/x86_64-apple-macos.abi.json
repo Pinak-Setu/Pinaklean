@@ -1,0 +1,249 @@
+{
+  "ABIRoot": {
+    "kind": "Root",
+    "name": "CompilerPluginSupport",
+    "printedName": "CompilerPluginSupport",
+    "children": [
+      {
+        "kind": "Import",
+        "name": "PackageDescription",
+        "printedName": "PackageDescription",
+        "declKind": "Import",
+        "moduleName": "CompilerPluginSupport",
+        "declAttributes": [
+          "SPIAccessControl",
+          "RawDocComment"
+        ]
+      },
+      {
+        "kind": "TypeDecl",
+        "name": "Target",
+        "printedName": "Target",
+        "children": [
+          {
+            "kind": "Function",
+            "name": "macro",
+            "printedName": "macro(name:dependencies:path:exclude:sources:packageAccess:swiftSettings:linkerSettings:plugins:)",
+            "children": [
+              {
+                "kind": "TypeNominal",
+                "name": "Target",
+                "printedName": "PackageDescription.Target",
+                "usr": "s:18PackageDescription6TargetC"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "String",
+                "printedName": "Swift.String",
+                "usr": "s:SS"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[PackageDescription.Target.Dependency]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Dependency",
+                    "printedName": "PackageDescription.Target.Dependency",
+                    "usr": "s:18PackageDescription6TargetC10DependencyO"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "Swift.String?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Array",
+                "printedName": "[Swift.String]",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "String",
+                    "printedName": "Swift.String",
+                    "usr": "s:SS"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sa"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[Swift.String]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[Swift.String]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "String",
+                        "printedName": "Swift.String",
+                        "usr": "s:SS"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Bool",
+                "printedName": "Swift.Bool",
+                "hasDefaultArg": true,
+                "usr": "s:Sb"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[PackageDescription.SwiftSetting]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[PackageDescription.SwiftSetting]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "SwiftSetting",
+                        "printedName": "PackageDescription.SwiftSetting",
+                        "usr": "s:18PackageDescription12SwiftSettingV"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[PackageDescription.LinkerSetting]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[PackageDescription.LinkerSetting]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "LinkerSetting",
+                        "printedName": "PackageDescription.LinkerSetting",
+                        "usr": "s:18PackageDescription13LinkerSettingV"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              },
+              {
+                "kind": "TypeNominal",
+                "name": "Optional",
+                "printedName": "[PackageDescription.Target.PluginUsage]?",
+                "children": [
+                  {
+                    "kind": "TypeNominal",
+                    "name": "Array",
+                    "printedName": "[PackageDescription.Target.PluginUsage]",
+                    "children": [
+                      {
+                        "kind": "TypeNominal",
+                        "name": "PluginUsage",
+                        "printedName": "PackageDescription.Target.PluginUsage",
+                        "usr": "s:18PackageDescription6TargetC11PluginUsageO"
+                      }
+                    ],
+                    "usr": "s:Sa"
+                  }
+                ],
+                "hasDefaultArg": true,
+                "usr": "s:Sq"
+              }
+            ],
+            "declKind": "Func",
+            "usr": "s:18PackageDescription6TargetC21CompilerPluginSupportE5macro4name12dependencies4path7exclude7sources13packageAccess13swiftSettings06linkerP07pluginsACSS_SayAC10DependencyOGSSSgSaySSGASSgSbSayAA12SwiftSettingVGSgSayAA06LinkerU0VGSgSayAC0E5UsageOGSgtFZ",
+            "mangledName": "$s18PackageDescription6TargetC21CompilerPluginSupportE5macro4name12dependencies4path7exclude7sources13packageAccess13swiftSettings06linkerP07pluginsACSS_SayAC10DependencyOGSSSgSaySSGASSgSbSayAA12SwiftSettingVGSgSayAA06LinkerU0VGSgSayAC0E5UsageOGSgtFZ",
+            "moduleName": "CompilerPluginSupport",
+            "static": true,
+            "declAttributes": [
+              "Final",
+              "Available"
+            ],
+            "isFromExtension": true,
+            "funcSelfKind": "NonMutating"
+          }
+        ],
+        "declKind": "Class",
+        "usr": "s:18PackageDescription6TargetC",
+        "mangledName": "$s18PackageDescription6TargetC",
+        "moduleName": "PackageDescription",
+        "declAttributes": [
+          "Final"
+        ],
+        "isExternal": true,
+        "conformances": [
+          {
+            "kind": "Conformance",
+            "name": "Copyable",
+            "printedName": "Copyable",
+            "usr": "s:s8CopyableP",
+            "mangledName": "$ss8CopyableP"
+          },
+          {
+            "kind": "Conformance",
+            "name": "Escapable",
+            "printedName": "Escapable",
+            "usr": "s:s9EscapableP",
+            "mangledName": "$ss9EscapableP"
+          }
+        ]
+      }
+    ],
+    "json_format_version": 8
+  },
+  "ConstValues": [
+    {
+      "filePath": "\/Users\/ec2-user\/jenkins\/workspace\/oss-swift-6.1-package-macos\/swiftpm\/Sources\/CompilerPluginSupport\/TargetExtensions.swift",
+      "kind": "Array",
+      "offset": 729,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ec2-user\/jenkins\/workspace\/oss-swift-6.1-package-macos\/swiftpm\/Sources\/CompilerPluginSupport\/TargetExtensions.swift",
+      "kind": "Array",
+      "offset": 790,
+      "length": 2,
+      "value": "[]"
+    },
+    {
+      "filePath": "\/Users\/ec2-user\/jenkins\/workspace\/oss-swift-6.1-package-macos\/swiftpm\/Sources\/CompilerPluginSupport\/TargetExtensions.swift",
+      "kind": "BooleanLiteral",
+      "offset": 858,
+      "length": 4,
+      "value": "true"
+    }
+  ]
+}

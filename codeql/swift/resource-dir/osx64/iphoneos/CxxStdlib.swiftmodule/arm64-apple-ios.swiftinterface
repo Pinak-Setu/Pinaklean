@@ -1,0 +1,144 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 (swift-6.1.2-RELEASE)
+// swift-module-flags: -target arm64-apple-ios7.0 -enable-objc-interop -enable-library-evolution -static -swift-version 5 -O -library-level api -enforce-exclusivity=unchecked -target-min-inlining-version min -enable-experimental-feature NoncopyableGenerics2 -enable-experimental-feature SuppressedAssociatedTypes -enable-experimental-feature SE427NoInferenceOnExtension -enable-experimental-feature AllowUnsafeAttribute -enable-experimental-feature NonescapableTypes -enable-experimental-feature LifetimeDependence -enable-experimental-feature ExtensionImportVisiblity -enable-experimental-feature AssumeResilientCxxTypes -module-name CxxStdlib
+// swift-module-flags-ignorable: -enable-lexical-lifetimes=false -enable-ossa-modules -interface-compiler-version 6.1.2
+@_exported import Cxx
+@_exported import CxxStdlib
+import CxxStdlibShim
+import Swift
+extension std.chrono.seconds {
+  @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
+  public init(_ duration: Duration)
+}
+extension std.chrono.milliseconds {
+  @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
+  public init(_ duration: Duration)
+}
+extension std.chrono.microseconds {
+  @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
+  public init(_ duration: Duration)
+}
+extension std.chrono.nanoseconds {
+  @available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
+  public init(_ duration: Duration)
+}
+@available(macOS 13.0, iOS 16.0, watchOS 9.0, tvOS 16.0, *)
+extension Duration {
+  public init(_ seconds: std.chrono.seconds)
+  public init(_ milliseconds: std.chrono.milliseconds)
+  public init(_ microseconds: std.chrono.microseconds)
+  public init(_ nanoseconds: std.chrono.nanoseconds)
+}
+extension std.string {
+  public init(_ string: String)
+  public init(_ string: UnsafePointer<CChar>?)
+}
+extension std.u16string {
+  public init(_ string: String)
+}
+extension std.u32string {
+  public init(_ string: String)
+}
+extension std.string : ExpressibleByStringLiteral {
+  public init(stringLiteral value: String)
+  public typealias ExtendedGraphemeClusterLiteralType = Swift.String
+  public typealias StringLiteralType = Swift.String
+  public typealias UnicodeScalarLiteralType = Swift.String
+}
+extension std.u16string : ExpressibleByStringLiteral {
+  public init(stringLiteral value: String)
+  public typealias ExtendedGraphemeClusterLiteralType = Swift.String
+  public typealias StringLiteralType = Swift.String
+  public typealias UnicodeScalarLiteralType = Swift.String
+}
+extension std.u32string : ExpressibleByStringLiteral {
+  public init(stringLiteral value: String)
+  public typealias ExtendedGraphemeClusterLiteralType = Swift.String
+  public typealias StringLiteralType = Swift.String
+  public typealias UnicodeScalarLiteralType = Swift.String
+}
+extension std.string : Equatable, Comparable {
+  public static func == (lhs: std.string, rhs: std.string) -> Bool
+  public static func < (lhs: std.string, rhs: std.string) -> Bool
+  public static func += (lhs: inout std.string, rhs: std.string)
+  @inlinable public mutating func append(_ other: std.string) {
+    __appendUnsafe(other)  
+  }
+  public static func + (lhs: std.string, rhs: std.string) -> std.string
+}
+extension std.u16string : Equatable, Comparable {
+  public static func == (lhs: std.u16string, rhs: std.u16string) -> Bool
+  public static func < (lhs: std.u16string, rhs: std.u16string) -> Bool
+  public static func += (lhs: inout std.u16string, rhs: std.u16string)
+  @inlinable public mutating func append(_ other: std.u16string) {
+    __appendUnsafe(other)  
+  }
+  public static func + (lhs: std.u16string, rhs: std.u16string) -> std.u16string
+}
+extension std.u32string : Equatable, Comparable {
+  public static func == (lhs: std.u32string, rhs: std.u32string) -> Bool
+  public static func < (lhs: std.u32string, rhs: std.u32string) -> Bool
+  public static func += (lhs: inout std.u32string, rhs: std.u32string)
+  @inlinable public mutating func append(_ other: std.u32string) {
+    __appendUnsafe(other)  
+  }
+  public static func + (lhs: std.u32string, rhs: std.u32string) -> std.u32string
+}
+extension std.string : Hashable {
+  public func hash(into hasher: inout Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension std.u16string : Hashable {
+  public func hash(into hasher: inout Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension std.u32string : Hashable {
+  public func hash(into hasher: inout Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension std.string : CustomDebugStringConvertible {
+  public var debugDescription: String {
+    get
+  }
+}
+extension std.u16string : CustomDebugStringConvertible {
+  public var debugDescription: String {
+    get
+  }
+}
+extension std.u32string : CustomDebugStringConvertible {
+  public var debugDescription: String {
+    get
+  }
+}
+extension std.string : CustomStringConvertible {
+  public var description: String {
+    get
+  }
+}
+extension std.u16string : CustomStringConvertible {
+  public var description: String {
+    get
+  }
+}
+extension std.u32string : CustomStringConvertible {
+  public var description: String {
+    get
+  }
+}
+extension String {
+  public init(_ cxxString: std.string)
+  public init(_ cxxU16String: std.u16string)
+  public init(_ cxxU32String: std.u32string)
+}
+extension String {
+  public init(_ cxxStringView: std.string_view)
+  public init(_ cxxU16StringView: std.u16string_view)
+  public init(_ cxxU32StringView: std.u32string_view)
+}

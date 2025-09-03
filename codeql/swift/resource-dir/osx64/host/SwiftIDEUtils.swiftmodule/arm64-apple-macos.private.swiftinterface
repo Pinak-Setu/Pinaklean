@@ -1,0 +1,162 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.9 clang-1600.0.30.1)
+// swift-module-flags: -target arm64-apple-macosx13.0 -enable-objc-interop -enable-library-evolution -module-link-name SwiftIDEUtils -swift-version 5 -O -module-abi-name CompilerSwiftIDEUtils -module-name SwiftIDEUtils -package-name Toolchain
+import Swift
+import SwiftDiagnostics
+import SwiftParser
+@_spi(RawSyntax) import SwiftSyntax
+import _Concurrency
+import _SwiftConcurrencyShims
+@_spi(Compiler) public struct DeclNameLocation : Swift.Equatable {
+  @_spi(Compiler) public enum Argument : Swift.Equatable {
+    @_spi(Compiler) case labeled(firstName: Swift.Range<SwiftSyntax.AbsolutePosition>, secondName: Swift.Range<SwiftSyntax.AbsolutePosition>?)
+    @_spi(Compiler) case labeledCall(label: Swift.Range<SwiftSyntax.AbsolutePosition>, colon: Swift.Range<SwiftSyntax.AbsolutePosition>)
+    @_spi(Compiler) case unlabeled(argumentPosition: SwiftSyntax.AbsolutePosition)
+    @_spi(Compiler) public var range: Swift.Range<SwiftSyntax.AbsolutePosition> {
+      @_spi(Compiler) get
+    }
+    @_spi(Compiler) public static func == (a: SwiftIDEUtils.DeclNameLocation.Argument, b: SwiftIDEUtils.DeclNameLocation.Argument) -> Swift.Bool
+  }
+  @_spi(Compiler) public enum Arguments : Swift.Equatable {
+    @_spi(Compiler) case noArguments
+    @_spi(Compiler) case call([SwiftIDEUtils.DeclNameLocation.Argument], firstTrailingClosureIndex: Swift.Int?)
+    @_spi(Compiler) case parameters([SwiftIDEUtils.DeclNameLocation.Argument])
+    @_spi(Compiler) case enumCaseParameters([SwiftIDEUtils.DeclNameLocation.Argument])
+    @_spi(Compiler) case noncollapsibleParameters([SwiftIDEUtils.DeclNameLocation.Argument])
+    @_spi(Compiler) case selector([SwiftIDEUtils.DeclNameLocation.Argument])
+    @_spi(Compiler) public static func == (a: SwiftIDEUtils.DeclNameLocation.Arguments, b: SwiftIDEUtils.DeclNameLocation.Arguments) -> Swift.Bool
+  }
+  @_spi(Compiler) public enum Context {
+    @_spi(Compiler) case `default`
+    @_spi(Compiler) case selector
+    @_spi(Compiler) case comment
+    @_spi(Compiler) case stringLiteral
+    @_spi(Compiler) public static func == (a: SwiftIDEUtils.DeclNameLocation.Context, b: SwiftIDEUtils.DeclNameLocation.Context) -> Swift.Bool
+    @_spi(Compiler) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Compiler) public var hashValue: Swift.Int {
+      @_spi(Compiler) get
+    }
+  }
+  @_spi(Compiler) public let baseNameRange: Swift.Range<SwiftSyntax.AbsolutePosition>
+  @_spi(Compiler) public let arguments: SwiftIDEUtils.DeclNameLocation.Arguments
+  @_spi(Compiler) public let context: SwiftIDEUtils.DeclNameLocation.Context
+  @_spi(Compiler) public let isActive: Swift.Bool
+  @_spi(Compiler) public static func == (a: SwiftIDEUtils.DeclNameLocation, b: SwiftIDEUtils.DeclNameLocation) -> Swift.Bool
+}
+@_spi(FixItApplier) public enum FixItApplier {
+  @_spi(FixItApplier) public static func applyFixes(from diagnostics: [SwiftDiagnostics.Diagnostic], filterByMessages messages: [Swift.String]?, to tree: any SwiftSyntax.SyntaxProtocol) -> Swift.String
+  @_spi(FixItApplier) public static func apply(edits: [SwiftSyntax.SourceEdit], to tree: any SwiftSyntax.SyntaxProtocol) -> Swift.String
+}
+@_spi(Compiler) @_hasMissingDesignatedInitializers public class NameMatcher : SwiftSyntax.SyntaxAnyVisitor {
+  @_spi(Compiler) public static func resolve(baseNamePositions: some Sequence<AbsolutePosition>, in tree: some SyntaxProtocol) -> [SwiftIDEUtils.DeclNameLocation]
+  @_spi(Compiler) override public func visitAny(_ node: SwiftSyntax.Syntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ token: SwiftSyntax.TokenSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.AttributeSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.DeclReferenceExprSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.EnumCaseElementSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.FunctionCallExprSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.FunctionDeclSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.IfConfigDeclSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visitPost(_ node: SwiftSyntax.IfConfigDeclSyntax)
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.InitializerDeclSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.MacroDeclSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.MacroExpansionDeclSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visitPost(_ node: SwiftSyntax.MacroExpansionDeclSyntax)
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.MacroExpansionExprSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visitPost(_ node: SwiftSyntax.MacroExpansionExprSyntax)
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.SubscriptCallExprSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) override public func visit(_ node: SwiftSyntax.SubscriptDeclSyntax) -> SwiftSyntax.SyntaxVisitorContinueKind
+  @_spi(Compiler) @objc deinit
+}
+extension SwiftIDEUtils.SyntaxClassification {
+  @available(*, deprecated, renamed: "ifConfigDirective")
+  public static var poundDirective: SwiftIDEUtils.SyntaxClassification {
+    get
+  }
+  @available(*, deprecated, renamed: "ifConfigDirective")
+  public static var buildConfigId: SwiftIDEUtils.SyntaxClassification {
+    get
+  }
+  @available(*, deprecated, message: "String interpolation anchors are now classified as .none")
+  public static var stringInterpolationAnchor: SwiftIDEUtils.SyntaxClassification {
+    get
+  }
+  @available(*, deprecated, renamed: "type")
+  public static var typeIdentifier: SwiftIDEUtils.SyntaxClassification {
+    get
+  }
+  @available(*, deprecated, renamed: "operator")
+  public static var operatorIdentifier: SwiftIDEUtils.SyntaxClassification {
+    get
+  }
+  @available(*, deprecated, renamed: "floatLiteral")
+  public static var floatingLiteral: SwiftIDEUtils.SyntaxClassification {
+    get
+  }
+}
+extension SwiftSyntax.SyntaxProtocol {
+  public var classifications: SwiftIDEUtils.SyntaxClassifications {
+    get
+  }
+  public func classifications(in range: Swift.Range<SwiftSyntax.AbsolutePosition>) -> SwiftIDEUtils.SyntaxClassifications
+  @available(*, deprecated, message: "Use classification(at: AbsolutePosition) instead.")
+  public func classification(at offset: Swift.Int) -> SwiftIDEUtils.SyntaxClassifiedRange?
+  public func classification(at position: SwiftSyntax.AbsolutePosition) -> SwiftIDEUtils.SyntaxClassifiedRange?
+}
+public enum SyntaxClassification : Swift.Sendable {
+  case attribute
+  case blockComment
+  case docBlockComment
+  case docLineComment
+  case dollarIdentifier
+  case editorPlaceholder
+  case floatLiteral
+  case identifier
+  case ifConfigDirective
+  case integerLiteral
+  case keyword
+  case lineComment
+  case none
+  case `operator`
+  case regexLiteral
+  case stringLiteral
+  case type
+  case argumentLabel
+  public static func == (a: SwiftIDEUtils.SyntaxClassification, b: SwiftIDEUtils.SyntaxClassification) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension SwiftSyntax.TokenSyntax {
+  public var tokenClassification: SwiftIDEUtils.SyntaxClassifiedRange {
+    get
+  }
+}
+public struct SyntaxClassifiedRange : Swift.Equatable, Swift.Sendable {
+  public var kind: SwiftIDEUtils.SyntaxClassification
+  public var range: Swift.Range<SwiftSyntax.AbsolutePosition>
+  @available(*, deprecated, message: "Use range.lowerBound.utf8Offset instead")
+  public var offset: Swift.Int {
+    get
+  }
+  @available(*, deprecated, message: "Use range.utf8Length instead")
+  public var length: Swift.Int {
+    get
+  }
+  @available(*, deprecated, message: "Use range.upperBound.utf8Offset instead")
+  public var endOffset: Swift.Int {
+    get
+  }
+  public static func == (a: SwiftIDEUtils.SyntaxClassifiedRange, b: SwiftIDEUtils.SyntaxClassifiedRange) -> Swift.Bool
+}
+public struct SyntaxClassifications : Swift.Sequence, Swift.Sendable {
+  public typealias Iterator = Swift.Array<SwiftIDEUtils.SyntaxClassifiedRange>.Iterator
+  public init(_ node: SwiftSyntax.Syntax, in range: Swift.Range<SwiftSyntax.AbsolutePosition>)
+  public func makeIterator() -> SwiftIDEUtils.SyntaxClassifications.Iterator
+  public typealias Element = Swift.IndexingIterator<Swift.Array<SwiftIDEUtils.SyntaxClassifiedRange>>.Element
+}
+@_spi(Compiler) extension SwiftIDEUtils.DeclNameLocation.Context : Swift.Equatable {}
+@_spi(Compiler) extension SwiftIDEUtils.DeclNameLocation.Context : Swift.Hashable {}
+extension SwiftIDEUtils.SyntaxClassification : Swift.Equatable {}
+extension SwiftIDEUtils.SyntaxClassification : Swift.Hashable {}

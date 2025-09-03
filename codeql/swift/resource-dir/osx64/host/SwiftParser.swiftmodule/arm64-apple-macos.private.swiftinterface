@@ -1,0 +1,1771 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.9 clang-1600.0.30.1)
+// swift-module-flags: -target arm64-apple-macosx13.0 -enable-objc-interop -enable-library-evolution -module-link-name SwiftParser -swift-version 5 -O -module-abi-name CompilerSwiftParser -module-name SwiftParser -package-name Toolchain
+import Swift
+@_spi(RawSyntax) @_spi(ExperimentalLanguageFeatures) @_spi(BumpPtrAllocator) import SwiftSyntax
+import _Concurrency
+import _SwiftConcurrencyShims
+extension SwiftSyntax.AccessorDeclListSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.AccessorDeclListSyntax
+}
+extension SwiftSyntax.AttributeListSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.AttributeListSyntax
+}
+extension SwiftSyntax.CodeBlockItemListSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.CodeBlockItemListSyntax
+}
+extension SwiftSyntax.MemberBlockItemListSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.MemberBlockItemListSyntax
+}
+extension SwiftSyntax.ExprSyntax {
+  public var interpretedAsVersionTuple: SwiftSyntax.VersionTupleSyntax? {
+    get
+  }
+}
+public typealias ReusedNodeCallback = (_ node: SwiftSyntax.Syntax) -> ()
+final public class IncrementalParseTransition {
+  @available(*, deprecated, message: "Use initializer taking `IncrementalParseResult` instead")
+  public init(previousTree: SwiftSyntax.SourceFileSyntax, edits: SwiftParser.ConcurrentEdits, lookaheadRanges: SwiftParser.LookaheadRanges, reusedNodeCallback: SwiftParser.ReusedNodeCallback? = nil)
+  public init(previousIncrementalParseResult: SwiftParser.IncrementalParseResult, edits: SwiftParser.ConcurrentEdits, reusedNodeCallback: SwiftParser.ReusedNodeCallback? = nil)
+  @objc deinit
+}
+public struct ConcurrentEdits : Swift.Sendable {
+  public let edits: [SwiftSyntax.SourceEdit]
+  public init(concurrent: [SwiftSyntax.SourceEdit]) throws
+  public init(fromSequential sequentialEdits: [SwiftSyntax.SourceEdit])
+  public init(_ single: SwiftSyntax.SourceEdit)
+  public static func _isValidConcurrentEditArray(_ edits: [SwiftSyntax.SourceEdit]) -> Swift.Bool
+}
+public enum IdentifierCheckContext {
+  case variableName
+  case memberAccess
+  public static func == (a: SwiftParser.IdentifierCheckContext, b: SwiftParser.IdentifierCheckContext) -> Swift.Bool
+  public func hash(into hasher: inout Swift.Hasher)
+  public var hashValue: Swift.Int {
+    get
+  }
+}
+extension Swift.String {
+  public func isValidSwiftIdentifier(for context: SwiftParser.IdentifierCheckContext) -> Swift.Bool
+}
+public struct Parser {
+  public var lookaheadRanges: SwiftParser.LookaheadRanges {
+    get
+  }
+  public init(_ input: Swift.String, maximumNestingLevel: Swift.Int? = nil, parseTransition: SwiftParser.IncrementalParseTransition? = nil, swiftVersion: SwiftParser.Parser.SwiftVersion? = nil)
+  public init(_ input: Swift.UnsafeBufferPointer<Swift.UInt8>, maximumNestingLevel: Swift.Int? = nil, parseTransition: SwiftParser.IncrementalParseTransition? = nil, arena: SwiftSyntax.ParsingSyntaxArena? = nil, swiftVersion: SwiftParser.Parser.SwiftVersion? = nil)
+  @_spi(ExperimentalLanguageFeatures) public init(_ input: Swift.String, maximumNestingLevel: Swift.Int? = nil, parseTransition: SwiftParser.IncrementalParseTransition? = nil, swiftVersion: SwiftParser.Parser.SwiftVersion? = nil, experimentalFeatures: SwiftParser.Parser.ExperimentalFeatures)
+  @_spi(ExperimentalLanguageFeatures) public init(_ input: Swift.UnsafeBufferPointer<Swift.UInt8>, maximumNestingLevel: Swift.Int? = nil, parseTransition: SwiftParser.IncrementalParseTransition? = nil, arena: SwiftSyntax.ParsingSyntaxArena? = nil, swiftVersion: SwiftParser.Parser.SwiftVersion? = nil, experimentalFeatures: SwiftParser.Parser.ExperimentalFeatures)
+}
+public struct LookaheadTracker {
+  public init()
+}
+public struct LookaheadRanges : Swift.Sendable {
+  public init()
+}
+extension SwiftParser.Parser {
+  public static func parse(source: Swift.String) -> SwiftSyntax.SourceFileSyntax
+  @_spi(ExperimentalLanguageFeatures) public static func parse(source: Swift.UnsafeBufferPointer<Swift.UInt8>, swiftVersion: SwiftParser.Parser.SwiftVersion? = nil, experimentalFeatures: SwiftParser.Parser.ExperimentalFeatures) -> SwiftSyntax.SourceFileSyntax
+  public static func parse(source: Swift.UnsafeBufferPointer<Swift.UInt8>, maximumNestingLevel: Swift.Int? = nil, swiftVersion: SwiftParser.Parser.SwiftVersion? = nil) -> SwiftSyntax.SourceFileSyntax
+  @available(*, deprecated, message: "Use parseIncrementally with `IncrementalParseResult` return instead")
+  @_disfavoredOverload public static func parseIncrementally(source: Swift.String, parseTransition: SwiftParser.IncrementalParseTransition?) -> (tree: SwiftSyntax.SourceFileSyntax, lookaheadRanges: SwiftParser.LookaheadRanges)
+  @available(*, deprecated, message: "Use parseIncrementally with `IncrementalParseResult` return instead")
+  @_disfavoredOverload public static func parseIncrementally(source: Swift.UnsafeBufferPointer<Swift.UInt8>, maximumNestingLevel: Swift.Int? = nil, parseTransition: SwiftParser.IncrementalParseTransition?) -> (tree: SwiftSyntax.SourceFileSyntax, lookaheadRanges: SwiftParser.LookaheadRanges)
+  public static func parseIncrementally(source: Swift.String, parseTransition: SwiftParser.IncrementalParseTransition?) -> SwiftParser.IncrementalParseResult
+  public static func parseIncrementally(source: Swift.UnsafeBufferPointer<Swift.UInt8>, maximumNestingLevel: Swift.Int? = nil, parseTransition: SwiftParser.IncrementalParseTransition?) -> SwiftParser.IncrementalParseResult
+}
+public struct IncrementalParseResult : Swift.Sendable {
+  public let tree: SwiftSyntax.SourceFileSyntax
+  public let lookaheadRanges: SwiftParser.LookaheadRanges
+  public init(tree: SwiftSyntax.SourceFileSyntax, lookaheadRanges: SwiftParser.LookaheadRanges)
+}
+@_spi(AlternateTokenIntrospection) public struct TokenSpec : Swift.Sendable {
+  @_spi(AlternateTokenIntrospection) public var synthesizedTokenKind: SwiftSyntax.TokenKind {
+    @_spi(AlternateTokenIntrospection) get
+  }
+}
+@_spi(Diagnostics) public enum AsyncEffectSpecifier {
+  @_spi(Diagnostics) case async
+  @_spi(Diagnostics) case await
+  @_spi(Diagnostics) case reasync
+  @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+  @_spi(Diagnostics) public static func == (a: SwiftParser.AsyncEffectSpecifier, b: SwiftParser.AsyncEffectSpecifier) -> Swift.Bool
+  @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+  @_spi(Diagnostics) public typealias AllCases = [SwiftParser.AsyncEffectSpecifier]
+  @_spi(Diagnostics) nonisolated public static var allCases: [SwiftParser.AsyncEffectSpecifier] {
+    @_spi(Diagnostics) get
+  }
+  @_spi(Diagnostics) public var hashValue: Swift.Int {
+    @_spi(Diagnostics) get
+  }
+}
+@_spi(Diagnostics) public enum ThrowsEffectSpecifier {
+  @_spi(Diagnostics) case `rethrows`
+  @_spi(Diagnostics) case `throw`
+  @_spi(Diagnostics) case `throws`
+  @_spi(Diagnostics) case `try`
+  @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+  @_spi(Diagnostics) public static func == (a: SwiftParser.ThrowsEffectSpecifier, b: SwiftParser.ThrowsEffectSpecifier) -> Swift.Bool
+  @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+  @_spi(Diagnostics) public typealias AllCases = [SwiftParser.ThrowsEffectSpecifier]
+  @_spi(Diagnostics) nonisolated public static var allCases: [SwiftParser.ThrowsEffectSpecifier] {
+    @_spi(Diagnostics) get
+  }
+  @_spi(Diagnostics) public var hashValue: Swift.Int {
+    @_spi(Diagnostics) get
+  }
+}
+@_spi(Diagnostics) public enum EffectSpecifier {
+  @_spi(Diagnostics) case asyncSpecifier(SwiftParser.AsyncEffectSpecifier)
+  @_spi(Diagnostics) case throwsSpecifier(SwiftParser.ThrowsEffectSpecifier)
+  @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+  @_spi(Diagnostics) public static var allCases: [SwiftParser.EffectSpecifier] {
+    @_spi(Diagnostics) get
+  }
+  @_spi(Diagnostics) public typealias AllCases = [SwiftParser.EffectSpecifier]
+}
+extension SwiftSyntax.StringLiteralExprSyntax {
+  public var representedLiteralValue: Swift.String? {
+    get
+  }
+  @_spi(Compiler) public var stringLiteralKind: SwiftParser.StringLiteralKind? {
+    get
+  }
+  @_spi(Compiler) public var delimiterLength: Swift.Int {
+    get
+  }
+}
+extension SwiftSyntax.StringSegmentSyntax {
+  @_spi(Compiler) public func appendUnescapedLiteralValue(stringLiteralKind: SwiftParser.StringLiteralKind, delimiterLength: Swift.Int, to output: inout Swift.String)
+}
+extension SwiftParser.Parser {
+  public enum SwiftVersion : Swift.Comparable, Swift.Sendable {
+    case v4
+    case v5
+    case v6
+    public static func < (a: SwiftParser.Parser.SwiftVersion, b: SwiftParser.Parser.SwiftVersion) -> Swift.Bool
+    public static func == (a: SwiftParser.Parser.SwiftVersion, b: SwiftParser.Parser.SwiftVersion) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+}
+@_spi(Testing) public struct TriviaParser {
+  @_spi(Testing) public static func parseTrivia(_ source: SwiftSyntax.SyntaxText, position: SwiftSyntax.TriviaPosition) -> [SwiftSyntax.RawTriviaPiece]
+}
+extension SwiftParser.Parser {
+  @_spi(ExperimentalLanguageFeatures) public struct ExperimentalFeatures : Swift.OptionSet, Swift.Sendable {
+    @_spi(ExperimentalLanguageFeatures) public let rawValue: Swift.UInt
+    @_spi(ExperimentalLanguageFeatures) public init(rawValue: Swift.UInt)
+    @_spi(ExperimentalLanguageFeatures) public typealias ArrayLiteralElement = SwiftParser.Parser.ExperimentalFeatures
+    @_spi(ExperimentalLanguageFeatures) public typealias Element = SwiftParser.Parser.ExperimentalFeatures
+    @_spi(ExperimentalLanguageFeatures) public typealias RawValue = Swift.UInt
+  }
+}
+@_spi(ExperimentalLanguageFeatures) extension SwiftParser.Parser.ExperimentalFeatures {
+  @_spi(ExperimentalLanguageFeatures) public static let referenceBindings: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public static let thenStatements: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public static let doExpressions: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public static let nonescapableTypes: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public static let trailingComma: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public static let coroutineAccessors: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public static let valueGenerics: SwiftParser.Parser.ExperimentalFeatures
+  @_spi(ExperimentalLanguageFeatures) public init?(name: Swift.String)
+}
+extension SwiftSyntax.TokenKind {
+  @_spi(Testing) @_spi(Diagnostics) public var isLexerClassifiedKeyword: Swift.Bool {
+    get
+  }
+}
+public protocol SyntaxParseable : SwiftSyntax.SyntaxProtocol {
+  static func parse(from parser: inout SwiftParser.Parser) -> Self
+}
+extension SwiftSyntax.AccessorBlockSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.AccessorBlockSyntax
+}
+extension SwiftSyntax.AccessorDeclSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.AccessorDeclSyntax
+}
+extension SwiftSyntax.AttributeSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.AttributeSyntax
+}
+extension SwiftSyntax.CatchClauseSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.CatchClauseSyntax
+}
+extension SwiftSyntax.ClosureParameterSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.ClosureParameterSyntax
+}
+extension SwiftSyntax.CodeBlockItemSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.CodeBlockItemSyntax
+}
+extension SwiftSyntax.CodeBlockSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.CodeBlockSyntax
+}
+extension SwiftSyntax.DeclSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.DeclSyntax
+}
+extension SwiftSyntax.EnumCaseParameterSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.EnumCaseParameterSyntax
+}
+extension SwiftSyntax.ExprSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.ExprSyntax
+}
+extension SwiftSyntax.FunctionParameterSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.FunctionParameterSyntax
+}
+extension SwiftSyntax.GenericParameterClauseSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.GenericParameterClauseSyntax
+}
+extension SwiftSyntax.MemberBlockSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.MemberBlockSyntax
+}
+extension SwiftSyntax.PatternSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.PatternSyntax
+}
+extension SwiftSyntax.SourceFileSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.SourceFileSyntax
+}
+extension SwiftSyntax.StmtSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.StmtSyntax
+}
+extension SwiftSyntax.SwitchCaseSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.SwitchCaseSyntax
+}
+extension SwiftSyntax.TypeSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.TypeSyntax
+}
+extension SwiftSyntax.VersionTupleSyntax : SwiftParser.SyntaxParseable {
+  public static func parse(from parser: inout SwiftParser.Parser) -> SwiftSyntax.VersionTupleSyntax
+}
+extension SwiftSyntax.AccessorDeclSyntax {
+  @_spi(Diagnostics) public enum AccessorSpecifierOptions {
+    @_spi(Diagnostics) case get
+    @_spi(Diagnostics) case set
+    @_spi(Diagnostics) case didSet
+    @_spi(Diagnostics) case willSet
+    @_spi(Diagnostics) case unsafeAddress
+    @_spi(Diagnostics) case addressWithOwner
+    @_spi(Diagnostics) case addressWithNativeOwner
+    @_spi(Diagnostics) case unsafeMutableAddress
+    @_spi(Diagnostics) case mutableAddressWithOwner
+    @_spi(Diagnostics) case mutableAddressWithNativeOwner
+    @_spi(Diagnostics) case _read
+    @_spi(ExperimentalLanguageFeatures) case read
+    @_spi(Diagnostics) case _modify
+    @_spi(ExperimentalLanguageFeatures) case modify
+    @_spi(Diagnostics) case `init`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions, b: SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.AsExprSyntax {
+  @_spi(Diagnostics) public enum QuestionOrExclamationMarkOptions {
+    @_spi(Diagnostics) case postfixQuestionMark
+    @_spi(Diagnostics) case exclamationMark
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions, b: SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.AvailabilityConditionSyntax {
+  @_spi(Diagnostics) public enum AvailabilityKeywordOptions {
+    @_spi(Diagnostics) case poundAvailable
+    @_spi(Diagnostics) case poundUnavailable
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions, b: SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.AvailabilityLabeledArgumentSyntax {
+  @_spi(Diagnostics) public enum LabelOptions {
+    @_spi(Diagnostics) case message
+    @_spi(Diagnostics) case renamed
+    @_spi(Diagnostics) case introduced
+    @_spi(Diagnostics) case obsoleted
+    @_spi(Diagnostics) case deprecated
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions, b: SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.BooleanLiteralExprSyntax {
+  @_spi(Diagnostics) public enum LiteralOptions {
+    @_spi(Diagnostics) case `true`
+    @_spi(Diagnostics) case `false`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions, b: SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.BorrowExprSyntax {
+  @_spi(Diagnostics) public enum BorrowKeywordOptions {
+    @_spi(Diagnostics) case _borrow
+    @_spi(Diagnostics) case borrow
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions, b: SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax._CanImportVersionInfoSyntax {
+  @_spi(Diagnostics) public enum LabelOptions {
+    @_spi(Diagnostics) case _version
+    @_spi(Diagnostics) case _underlyingVersion
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions, b: SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ClosureCaptureSpecifierSyntax {
+  @_spi(Diagnostics) public enum SpecifierOptions {
+    @_spi(Diagnostics) case weak
+    @_spi(Diagnostics) case unowned
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions, b: SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ClosureCaptureSpecifierSyntax {
+  @_spi(Diagnostics) public enum DetailOptions {
+    @_spi(Diagnostics) case safe
+    @_spi(Diagnostics) case unsafe
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions, b: SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ClosureCaptureSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case `self`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ClosureCaptureSyntax.NameOptions, b: SwiftSyntax.ClosureCaptureSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ClosureCaptureSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ClosureCaptureSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ClosureParameterSyntax {
+  @_spi(Diagnostics) public enum FirstNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ClosureParameterSyntax.FirstNameOptions, b: SwiftSyntax.ClosureParameterSyntax.FirstNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ClosureParameterSyntax.FirstNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ClosureParameterSyntax.FirstNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ClosureParameterSyntax {
+  @_spi(Diagnostics) public enum SecondNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ClosureParameterSyntax.SecondNameOptions, b: SwiftSyntax.ClosureParameterSyntax.SecondNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ClosureParameterSyntax.SecondNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ClosureParameterSyntax.SecondNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ClosureShorthandParameterSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions, b: SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ConsumeExprSyntax {
+  @_spi(Diagnostics) public enum ConsumeKeywordOptions {
+    @_spi(Diagnostics) case _move
+    @_spi(Diagnostics) case consume
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions, b: SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.DeclModifierSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case __consuming
+    @_spi(Diagnostics) case __setter_access
+    @_spi(Diagnostics) case _const
+    @_spi(Diagnostics) case _local
+    @_spi(Diagnostics) case actor
+    @_spi(Diagnostics) case async
+    @_spi(Diagnostics) case borrowing
+    @_spi(Diagnostics) case `class`
+    @_spi(Diagnostics) case consuming
+    @_spi(Diagnostics) case convenience
+    @_spi(Diagnostics) case distributed
+    @_spi(Diagnostics) case dynamic
+    @_spi(Diagnostics) case `fileprivate`
+    @_spi(Diagnostics) case final
+    @_spi(Diagnostics) case indirect
+    @_spi(Diagnostics) case infix
+    @_spi(Diagnostics) case `internal`
+    @_spi(Diagnostics) case isolated
+    @_spi(Diagnostics) case lazy
+    @_spi(Diagnostics) case mutating
+    @_spi(Diagnostics) case nonisolated
+    @_spi(Diagnostics) case nonmutating
+    @_spi(Diagnostics) case open
+    @_spi(Diagnostics) case optional
+    @_spi(Diagnostics) case override
+    @_spi(Diagnostics) case package
+    @_spi(Diagnostics) case postfix
+    @_spi(Diagnostics) case prefix
+    @_spi(Diagnostics) case `private`
+    @_spi(Diagnostics) case `public`
+    @_spi(Diagnostics) case reasync
+    @_spi(Diagnostics) case required
+    @_spi(Diagnostics) case `static`
+    @_spi(Diagnostics) case unowned
+    @_spi(Diagnostics) case weak
+    @_spi(Diagnostics) case sending
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.DeclModifierSyntax.NameOptions, b: SwiftSyntax.DeclModifierSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.DeclModifierSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.DeclModifierSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.DeclReferenceExprSyntax {
+  @_spi(Diagnostics) public enum BaseNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case `self`
+    @_spi(Diagnostics) case `Self`
+    @_spi(Diagnostics) case `init`
+    @_spi(Diagnostics) case `deinit`
+    @_spi(Diagnostics) case `subscript`
+    @_spi(Diagnostics) case dollarIdentifier
+    @_spi(Diagnostics) case binaryOperator
+    @_spi(Diagnostics) case integerLiteral
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions, b: SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.DerivativeAttributeArgumentsSyntax {
+  @_spi(Diagnostics) public enum AccessorSpecifierOptions {
+    @_spi(Diagnostics) case get
+    @_spi(Diagnostics) case set
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions, b: SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.DifferentiabilityArgumentSyntax {
+  @_spi(Diagnostics) public enum ArgumentOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case integerLiteral
+    @_spi(Diagnostics) case `self`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions, b: SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.DifferentiableAttributeArgumentsSyntax {
+  @_spi(Diagnostics) public enum KindSpecifierOptions {
+    @_spi(Diagnostics) case _forward
+    @_spi(Diagnostics) case reverse
+    @_spi(Diagnostics) case _linear
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions, b: SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.DocumentationAttributeArgumentSyntax {
+  @_spi(Diagnostics) public enum LabelOptions {
+    @_spi(Diagnostics) case visibility
+    @_spi(Diagnostics) case metadata
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions, b: SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.EnumCaseParameterSyntax {
+  @_spi(Diagnostics) public enum FirstNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions, b: SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.EnumCaseParameterSyntax {
+  @_spi(Diagnostics) public enum SecondNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions, b: SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.FunctionDeclSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case binaryOperator
+    @_spi(Diagnostics) case prefixOperator
+    @_spi(Diagnostics) case postfixOperator
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.FunctionDeclSyntax.NameOptions, b: SwiftSyntax.FunctionDeclSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.FunctionDeclSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.FunctionDeclSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.FunctionEffectSpecifiersSyntax {
+  @_spi(Diagnostics) public enum AsyncSpecifierOptions {
+    @_spi(Diagnostics) case async
+    @_spi(Diagnostics) case reasync
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions, b: SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.FunctionParameterSyntax {
+  @_spi(Diagnostics) public enum FirstNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.FunctionParameterSyntax.FirstNameOptions, b: SwiftSyntax.FunctionParameterSyntax.FirstNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.FunctionParameterSyntax.FirstNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.FunctionParameterSyntax.FirstNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.FunctionParameterSyntax {
+  @_spi(Diagnostics) public enum SecondNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.FunctionParameterSyntax.SecondNameOptions, b: SwiftSyntax.FunctionParameterSyntax.SecondNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.FunctionParameterSyntax.SecondNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.FunctionParameterSyntax.SecondNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.GenericParameterSyntax {
+  @_spi(Diagnostics) public enum SpecifierOptions {
+    @_spi(Diagnostics) case each
+    @_spi(Diagnostics) case `let`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.GenericParameterSyntax.SpecifierOptions, b: SwiftSyntax.GenericParameterSyntax.SpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.GenericParameterSyntax.SpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.GenericParameterSyntax.SpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.IdentifierPatternSyntax {
+  @_spi(Diagnostics) public enum IdentifierOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case `self`
+    @_spi(Diagnostics) case `init`
+    @_spi(Diagnostics) case `deinit`
+    @_spi(Diagnostics) case `subscript`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions, b: SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.IdentifierTypeSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case `Self`
+    @_spi(Diagnostics) case `Any`
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.IdentifierTypeSyntax.NameOptions, b: SwiftSyntax.IdentifierTypeSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.IdentifierTypeSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.IdentifierTypeSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.IfConfigClauseSyntax {
+  @_spi(Diagnostics) public enum PoundKeywordOptions {
+    @_spi(Diagnostics) case poundIf
+    @_spi(Diagnostics) case poundElseif
+    @_spi(Diagnostics) case poundElse
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions, b: SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ImportDeclSyntax {
+  @_spi(Diagnostics) public enum ImportKindSpecifierOptions {
+    @_spi(Diagnostics) case `typealias`
+    @_spi(Diagnostics) case `struct`
+    @_spi(Diagnostics) case `class`
+    @_spi(Diagnostics) case `enum`
+    @_spi(Diagnostics) case `protocol`
+    @_spi(Diagnostics) case `var`
+    @_spi(Diagnostics) case `let`
+    @_spi(Diagnostics) case `func`
+    @_spi(Diagnostics) case `inout`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions, b: SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ImportPathComponentSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case binaryOperator
+    @_spi(Diagnostics) case prefixOperator
+    @_spi(Diagnostics) case postfixOperator
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ImportPathComponentSyntax.NameOptions, b: SwiftSyntax.ImportPathComponentSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ImportPathComponentSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ImportPathComponentSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.InitializerDeclSyntax {
+  @_spi(Diagnostics) public enum OptionalMarkOptions {
+    @_spi(Diagnostics) case postfixQuestionMark
+    @_spi(Diagnostics) case exclamationMark
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions, b: SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.KeyPathOptionalComponentSyntax {
+  @_spi(Diagnostics) public enum QuestionOrExclamationMarkOptions {
+    @_spi(Diagnostics) case postfixQuestionMark
+    @_spi(Diagnostics) case exclamationMark
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions, b: SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.LabeledExprSyntax {
+  @_spi(Diagnostics) public enum LabelOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.LabeledExprSyntax.LabelOptions, b: SwiftSyntax.LabeledExprSyntax.LabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.LabeledExprSyntax.LabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.LabeledExprSyntax.LabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.LabeledSpecializeArgumentSyntax {
+  @_spi(Diagnostics) public enum LabelOptions {
+    @_spi(Diagnostics) case target
+    @_spi(Diagnostics) case availability
+    @_spi(Diagnostics) case exported
+    @_spi(Diagnostics) case kind
+    @_spi(Diagnostics) case spi
+    @_spi(Diagnostics) case spiModule
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions, b: SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.LayoutRequirementSyntax {
+  @_spi(Diagnostics) public enum LayoutSpecifierOptions {
+    @_spi(Diagnostics) case _Trivial
+    @_spi(Diagnostics) case _TrivialAtMost
+    @_spi(Diagnostics) case _UnknownLayout
+    @_spi(Diagnostics) case _RefCountedObject
+    @_spi(Diagnostics) case _NativeRefCountedObject
+    @_spi(Diagnostics) case _Class
+    @_spi(Diagnostics) case _NativeClass
+    @_spi(Diagnostics) case _BridgeObject
+    @_spi(Diagnostics) case _TrivialStride
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions, b: SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+@_spi(ExperimentalLanguageFeatures) extension SwiftSyntax.LifetimeSpecifierArgumentSyntax {
+  @_spi(Diagnostics) public enum ParameterOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case `self`
+    @_spi(Diagnostics) case integerLiteral
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions, b: SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.MemberTypeSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case `self`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.MemberTypeSyntax.NameOptions, b: SwiftSyntax.MemberTypeSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.MemberTypeSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.MemberTypeSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.MetatypeTypeSyntax {
+  @_spi(Diagnostics) public enum MetatypeSpecifierOptions {
+    @_spi(Diagnostics) case `Type`
+    @_spi(Diagnostics) case `Protocol`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions, b: SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.MultipleTrailingClosureElementSyntax {
+  @_spi(Diagnostics) public enum LabelOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions, b: SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.OperatorDeclSyntax {
+  @_spi(Diagnostics) public enum FixitySpecifierOptions {
+    @_spi(Diagnostics) case prefix
+    @_spi(Diagnostics) case postfix
+    @_spi(Diagnostics) case infix
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions, b: SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.OperatorDeclSyntax {
+  @_spi(Diagnostics) public enum NameOptions {
+    @_spi(Diagnostics) case binaryOperator
+    @_spi(Diagnostics) case prefixOperator
+    @_spi(Diagnostics) case postfixOperator
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.OperatorDeclSyntax.NameOptions, b: SwiftSyntax.OperatorDeclSyntax.NameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.OperatorDeclSyntax.NameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.OperatorDeclSyntax.NameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.OptionalBindingConditionSyntax {
+  @_spi(Diagnostics) public enum BindingSpecifierOptions {
+    @_spi(Diagnostics) case `let`
+    @_spi(Diagnostics) case `var`
+    @_spi(Diagnostics) case `inout`
+    @_spi(ExperimentalLanguageFeatures) case _mutating
+    @_spi(Diagnostics) case _borrowing
+    @_spi(ExperimentalLanguageFeatures) case _consuming
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions, b: SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.PrecedenceGroupAssignmentSyntax {
+  @_spi(Diagnostics) public enum ValueOptions {
+    @_spi(Diagnostics) case `true`
+    @_spi(Diagnostics) case `false`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions, b: SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.PrecedenceGroupAssociativitySyntax {
+  @_spi(Diagnostics) public enum ValueOptions {
+    @_spi(Diagnostics) case left
+    @_spi(Diagnostics) case right
+    @_spi(Diagnostics) case none
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions, b: SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.PrecedenceGroupRelationSyntax {
+  @_spi(Diagnostics) public enum HigherThanOrLowerThanLabelOptions {
+    @_spi(Diagnostics) case higherThan
+    @_spi(Diagnostics) case lowerThan
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions, b: SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.SameTypeRequirementSyntax {
+  @_spi(Diagnostics) public enum EqualOptions {
+    @_spi(Diagnostics) case binaryOperator
+    @_spi(Diagnostics) case prefixOperator
+    @_spi(Diagnostics) case postfixOperator
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.SameTypeRequirementSyntax.EqualOptions, b: SwiftSyntax.SameTypeRequirementSyntax.EqualOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.SameTypeRequirementSyntax.EqualOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.SameTypeRequirementSyntax.EqualOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.SimpleStringLiteralExprSyntax {
+  @_spi(Diagnostics) public enum OpeningQuoteOptions {
+    @_spi(Diagnostics) case stringQuote
+    @_spi(Diagnostics) case multilineStringQuote
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions, b: SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.SimpleStringLiteralExprSyntax {
+  @_spi(Diagnostics) public enum ClosingQuoteOptions {
+    @_spi(Diagnostics) case stringQuote
+    @_spi(Diagnostics) case multilineStringQuote
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions, b: SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.SimpleTypeSpecifierSyntax {
+  @_spi(Diagnostics) public enum SpecifierOptions {
+    @_spi(Diagnostics) case `inout`
+    @_spi(Diagnostics) case __shared
+    @_spi(Diagnostics) case __owned
+    @_spi(Diagnostics) case isolated
+    @_spi(Diagnostics) case _const
+    @_spi(Diagnostics) case borrowing
+    @_spi(Diagnostics) case consuming
+    @_spi(Diagnostics) case sending
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions, b: SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.SomeOrAnyTypeSyntax {
+  @_spi(Diagnostics) public enum SomeOrAnySpecifierOptions {
+    @_spi(Diagnostics) case some
+    @_spi(Diagnostics) case any
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions, b: SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.StringLiteralExprSyntax {
+  @_spi(Diagnostics) public enum OpeningQuoteOptions {
+    @_spi(Diagnostics) case stringQuote
+    @_spi(Diagnostics) case multilineStringQuote
+    @_spi(Diagnostics) case singleQuote
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions, b: SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.StringLiteralExprSyntax {
+  @_spi(Diagnostics) public enum ClosingQuoteOptions {
+    @_spi(Diagnostics) case stringQuote
+    @_spi(Diagnostics) case multilineStringQuote
+    @_spi(Diagnostics) case singleQuote
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions, b: SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ThrowsClauseSyntax {
+  @_spi(Diagnostics) public enum ThrowsSpecifierOptions {
+    @_spi(Diagnostics) case `throws`
+    @_spi(Diagnostics) case `rethrows`
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions, b: SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.TryExprSyntax {
+  @_spi(Diagnostics) public enum QuestionOrExclamationMarkOptions {
+    @_spi(Diagnostics) case postfixQuestionMark
+    @_spi(Diagnostics) case exclamationMark
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions, b: SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.TupleTypeElementSyntax {
+  @_spi(Diagnostics) public enum FirstNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions, b: SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.TupleTypeElementSyntax {
+  @_spi(Diagnostics) public enum SecondNameOptions {
+    @_spi(Diagnostics) case identifier
+    @_spi(Diagnostics) case wildcard
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions, b: SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.UnresolvedAsExprSyntax {
+  @_spi(Diagnostics) public enum QuestionOrExclamationMarkOptions {
+    @_spi(Diagnostics) case postfixQuestionMark
+    @_spi(Diagnostics) case exclamationMark
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions, b: SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.ValueBindingPatternSyntax {
+  @_spi(Diagnostics) public enum BindingSpecifierOptions {
+    @_spi(Diagnostics) case `let`
+    @_spi(Diagnostics) case `var`
+    @_spi(Diagnostics) case `inout`
+    @_spi(ExperimentalLanguageFeatures) case _mutating
+    @_spi(Diagnostics) case _borrowing
+    @_spi(ExperimentalLanguageFeatures) case _consuming
+    @_spi(Diagnostics) case borrowing
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions, b: SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+extension SwiftSyntax.VariableDeclSyntax {
+  @_spi(Diagnostics) public enum BindingSpecifierOptions {
+    @_spi(Diagnostics) case `let`
+    @_spi(Diagnostics) case `var`
+    @_spi(Diagnostics) case `inout`
+    @_spi(ExperimentalLanguageFeatures) case _mutating
+    @_spi(Diagnostics) case _borrowing
+    @_spi(ExperimentalLanguageFeatures) case _consuming
+    @_spi(Diagnostics) public init?(token: SwiftSyntax.TokenSyntax)
+    @_spi(Diagnostics) public var tokenSyntax: SwiftSyntax.TokenSyntax {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public static func == (a: SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions, b: SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions) -> Swift.Bool
+    @_spi(Diagnostics) public func hash(into hasher: inout Swift.Hasher)
+    @_spi(Diagnostics) public typealias AllCases = [SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions]
+    @_spi(Diagnostics) nonisolated public static var allCases: [SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions] {
+      @_spi(Diagnostics) get
+    }
+    @_spi(Diagnostics) public var hashValue: Swift.Int {
+      @_spi(Diagnostics) get
+    }
+  }
+}
+@_spi(Compiler) public enum StringLiteralKind : Swift.Equatable {
+  @_spi(Compiler) case singleLine
+  @_spi(Compiler) case multiLine
+  @_spi(Compiler) case singleQuote
+  @_spi(Compiler) public func hash(into hasher: inout Swift.Hasher)
+  @_spi(Compiler) public static func == (a: SwiftParser.StringLiteralKind, b: SwiftParser.StringLiteralKind) -> Swift.Bool
+  @_spi(Compiler) public var hashValue: Swift.Int {
+    @_spi(Compiler) get
+  }
+}
+@_spi(Testing) extension SwiftParser.Lexer {
+  @_spi(Testing) public struct Lexeme : Swift.CustomDebugStringConvertible {
+    @_spi(Testing) public struct Flags : Swift.OptionSet, Swift.CustomDebugStringConvertible, Swift.Sendable {
+      @_spi(Testing) public var rawValue: Swift.UInt8
+      @_spi(Testing) public init(rawValue: Swift.UInt8)
+      @_spi(Testing) public static let isAtStartOfLine: SwiftParser.Lexer.Lexeme.Flags
+      @_spi(Testing) public var debugDescription: Swift.String {
+        @_spi(Testing) get
+      }
+      @_spi(Testing) public typealias ArrayLiteralElement = SwiftParser.Lexer.Lexeme.Flags
+      @_spi(Testing) public typealias Element = SwiftParser.Lexer.Lexeme.Flags
+      @_spi(Testing) public typealias RawValue = Swift.UInt8
+    }
+    @_spi(Testing) public var rawTokenKind: SwiftSyntax.RawTokenKind
+    @_spi(Testing) public var flags: SwiftParser.Lexer.Lexeme.Flags
+    @_spi(Testing) public var diagnostic: SwiftSyntax.TokenDiagnostic?
+    @_spi(Testing) public var byteLength: Swift.Int {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public var wholeText: SwiftSyntax.SyntaxText {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public var textRange: Swift.Range<SwiftSyntax.SyntaxText.Index> {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public var tokenText: SwiftSyntax.SyntaxText {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public var leadingTriviaText: SwiftSyntax.SyntaxText {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public var trailingTriviaText: SwiftSyntax.SyntaxText {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public var debugDescription: Swift.String {
+      @_spi(Testing) get
+    }
+  }
+}
+@_spi(Testing) extension SwiftParser.Lexer {
+  @_spi(Testing) public struct LexemeSequence : Swift.IteratorProtocol, Swift.Sequence, Swift.CustomDebugStringConvertible {
+    @_spi(Testing) public mutating func next() -> SwiftParser.Lexer.Lexeme?
+    @_spi(Testing) public var debugDescription: Swift.String {
+      @_spi(Testing) get
+    }
+    @_spi(Testing) public typealias Element = SwiftParser.Lexer.Lexeme
+    @_spi(Testing) public typealias Iterator = SwiftParser.Lexer.LexemeSequence
+  }
+  @_spi(Testing) public static func tokenize(_ input: Swift.UnsafeBufferPointer<Swift.UInt8>, from startIndex: Swift.Int = 0, lookaheadTracker: Swift.UnsafeMutablePointer<SwiftParser.LookaheadTracker>) -> SwiftParser.Lexer.LexemeSequence
+}
+@_spi(Testing) public enum Lexer {
+}
+extension Swift.Unicode.Scalar {
+  @_spi(Diagnostics) public static func lexing(from byteSequence: some Collection<UInt8>) -> Swift.Unicode.Scalar?
+}
+extension SwiftParser.IdentifierCheckContext : Swift.Equatable {}
+extension SwiftParser.IdentifierCheckContext : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftParser.AsyncEffectSpecifier : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftParser.AsyncEffectSpecifier : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftParser.AsyncEffectSpecifier : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftParser.ThrowsEffectSpecifier : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftParser.ThrowsEffectSpecifier : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftParser.ThrowsEffectSpecifier : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftParser.EffectSpecifier : Swift.CaseIterable {}
+extension SwiftParser.Parser.SwiftVersion : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.AccessorDeclSyntax.AccessorSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.AsExprSyntax.QuestionOrExclamationMarkOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.AvailabilityConditionSyntax.AvailabilityKeywordOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.AvailabilityLabeledArgumentSyntax.LabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.BooleanLiteralExprSyntax.LiteralOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.BorrowExprSyntax.BorrowKeywordOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax._CanImportVersionInfoSyntax.LabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSpecifierSyntax.SpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSpecifierSyntax.DetailOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureCaptureSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureParameterSyntax.FirstNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureParameterSyntax.FirstNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureParameterSyntax.FirstNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureParameterSyntax.SecondNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureParameterSyntax.SecondNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureParameterSyntax.SecondNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ClosureShorthandParameterSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ConsumeExprSyntax.ConsumeKeywordOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.DeclModifierSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.DeclModifierSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.DeclModifierSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.DeclReferenceExprSyntax.BaseNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.DerivativeAttributeArgumentsSyntax.AccessorSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.DifferentiabilityArgumentSyntax.ArgumentOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.DifferentiableAttributeArgumentsSyntax.KindSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.DocumentationAttributeArgumentSyntax.LabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.EnumCaseParameterSyntax.FirstNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.EnumCaseParameterSyntax.SecondNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionDeclSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionDeclSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionDeclSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionEffectSpecifiersSyntax.AsyncSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionParameterSyntax.FirstNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionParameterSyntax.FirstNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionParameterSyntax.FirstNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionParameterSyntax.SecondNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionParameterSyntax.SecondNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.FunctionParameterSyntax.SecondNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.GenericParameterSyntax.SpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.GenericParameterSyntax.SpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.GenericParameterSyntax.SpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.IdentifierPatternSyntax.IdentifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.IdentifierTypeSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.IdentifierTypeSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.IdentifierTypeSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.IfConfigClauseSyntax.PoundKeywordOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ImportDeclSyntax.ImportKindSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ImportPathComponentSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ImportPathComponentSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ImportPathComponentSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.InitializerDeclSyntax.OptionalMarkOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.KeyPathOptionalComponentSyntax.QuestionOrExclamationMarkOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.LabeledExprSyntax.LabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.LabeledExprSyntax.LabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.LabeledExprSyntax.LabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.LabeledSpecializeArgumentSyntax.LabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.LayoutRequirementSyntax.LayoutSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.LifetimeSpecifierArgumentSyntax.ParameterOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.MemberTypeSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.MemberTypeSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.MemberTypeSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.MetatypeTypeSyntax.MetatypeSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.MultipleTrailingClosureElementSyntax.LabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.OperatorDeclSyntax.FixitySpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.OperatorDeclSyntax.NameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.OperatorDeclSyntax.NameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.OperatorDeclSyntax.NameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.OptionalBindingConditionSyntax.BindingSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupAssignmentSyntax.ValueOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupAssociativitySyntax.ValueOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.PrecedenceGroupRelationSyntax.HigherThanOrLowerThanLabelOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.SameTypeRequirementSyntax.EqualOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.SameTypeRequirementSyntax.EqualOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.SameTypeRequirementSyntax.EqualOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleStringLiteralExprSyntax.OpeningQuoteOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleStringLiteralExprSyntax.ClosingQuoteOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.SimpleTypeSpecifierSyntax.SpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.SomeOrAnyTypeSyntax.SomeOrAnySpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.StringLiteralExprSyntax.OpeningQuoteOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.StringLiteralExprSyntax.ClosingQuoteOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ThrowsClauseSyntax.ThrowsSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.TryExprSyntax.QuestionOrExclamationMarkOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.TupleTypeElementSyntax.FirstNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.TupleTypeElementSyntax.SecondNameOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.UnresolvedAsExprSyntax.QuestionOrExclamationMarkOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.ValueBindingPatternSyntax.BindingSpecifierOptions : Swift.Hashable {}
+@_spi(Diagnostics) extension SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions : Swift.CaseIterable {}
+@_spi(Diagnostics) extension SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions : Swift.Equatable {}
+@_spi(Diagnostics) extension SwiftSyntax.VariableDeclSyntax.BindingSpecifierOptions : Swift.Hashable {}
+@_spi(Compiler) extension SwiftParser.StringLiteralKind : Swift.Hashable {}

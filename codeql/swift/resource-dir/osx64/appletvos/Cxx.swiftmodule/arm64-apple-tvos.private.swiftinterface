@@ -1,0 +1,396 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.1.2 (swift-6.1.2-RELEASE)
+// swift-module-flags: -target arm64-apple-tvos9.0 -enable-objc-interop -enable-library-evolution -static -swift-version 5 -O -library-level api -enforce-exclusivity=unchecked -target-min-inlining-version min -enable-experimental-feature NoncopyableGenerics2 -enable-experimental-feature SuppressedAssociatedTypes -enable-experimental-feature SE427NoInferenceOnExtension -enable-experimental-feature AllowUnsafeAttribute -enable-experimental-feature NonescapableTypes -enable-experimental-feature LifetimeDependence -enable-experimental-feature ExtensionImportVisiblity -module-name Cxx
+// swift-module-flags-ignorable: -enable-lexical-lifetimes=false -enable-ossa-modules -interface-compiler-version 6.1.2
+import Swift
+public protocol CxxConvertibleToBool {
+  func __convertToBool() -> Swift.Bool
+}
+extension Swift.Bool {
+  @inlinable public init<B>(fromCxx convertible: __shared B) where B : Cxx.CxxConvertibleToBool {
+    self = convertible.__convertToBool()
+  }
+}
+public protocol CxxConvertibleToCollection<Element> {
+  associatedtype Element where Self.Element == Self.RawIterator.Pointee
+  associatedtype RawIterator : Cxx.UnsafeCxxInputIterator
+  func __beginUnsafe() -> Self.RawIterator
+  func __endUnsafe() -> Self.RawIterator
+}
+extension Cxx.CxxConvertibleToCollection {
+  @inlinable public func forEach(_ body: (Self.RawIterator.Pointee) throws -> Swift.Void) rethrows {
+    var rawIterator = __beginUnsafe()
+    let endIterator = __endUnsafe()
+    while rawIterator != endIterator {
+      try body(rawIterator.pointee)
+      rawIterator = rawIterator.successor()
+    }
+  }
+}
+extension Cxx.CxxConvertibleToCollection where Self : Swift.Sequence {
+  @inlinable public func forEach(_ body: (Self.Element) throws -> Swift.Void) rethrows {
+    for element in self {
+      try body(element)
+    }
+  }
+}
+extension Swift.RangeReplaceableCollection {
+  @inlinable public init<C>(_ elements: __shared C) where C : Cxx.CxxConvertibleToCollection, Self.Element == C.Element {
+
+    self.init()
+    elements.forEach { self.append($0) }
+  }
+}
+extension Swift.SetAlgebra {
+  @inlinable public init<C>(_ elements: __shared C) where C : Cxx.CxxConvertibleToCollection, Self.Element == C.Element {
+
+    self.init()
+    elements.forEach { self.insert($0) }
+  }
+}
+public protocol CxxDictionary<Key, Value> : Swift.ExpressibleByDictionaryLiteral {
+  override associatedtype Key
+  override associatedtype Value
+  associatedtype Element : Cxx.CxxPair where Self.Element == Self.RawIterator.Pointee, Self.Key == Self.Element.First, Self.Value == Self.Element.Second
+  associatedtype RawIterator : Cxx.UnsafeCxxInputIterator where Self.RawIterator.Pointee == Self.RawMutableIterator.Pointee
+  associatedtype RawMutableIterator : Cxx.UnsafeCxxMutableInputIterator
+  associatedtype Size : Swift.BinaryInteger
+  associatedtype InsertionResult
+  init()
+  func __findUnsafe(_ key: Self.Key) -> Self.RawIterator
+  mutating func __findMutatingUnsafe(_ key: Self.Key) -> Self.RawMutableIterator
+  @discardableResult
+  mutating func __insertUnsafe(_ element: Self.Element) -> Self.InsertionResult
+  @discardableResult
+  mutating func erase(_ key: Self.Key) -> Self.Size
+  func __beginUnsafe() -> Self.RawIterator
+  func __endUnsafe() -> Self.RawIterator
+  mutating func __endMutatingUnsafe() -> Self.RawMutableIterator
+}
+extension Cxx.CxxDictionary {
+  @inlinable public init(_ dictionary: Swift.Dictionary<Self.Key, Self.Value>) where Self.Key : Swift.Hashable {
+    self.init()
+    for (key, value) in dictionary {
+      self[key] = value
+    }
+  }
+  @inlinable public init(dictionaryLiteral elements: (Self.Key, Self.Value)...) {
+    self.init()
+    for (key, value) in elements {
+      self[key] = value
+    }
+  }
+  @inlinable public subscript(key: Self.Key) -> Self.Value? {
+    get {
+      let iter = __findUnsafe(key)
+      guard iter != __endUnsafe() else {
+        return nil
+      }
+      return iter.pointee.second
+    }
+    set(newValue) {
+      guard let newValue = newValue else {
+        self.erase(key)
+        return
+      }
+      var iter = self.__findMutatingUnsafe(key)
+      if iter != self.__endMutatingUnsafe() {
+         
+        iter.pointee.second = newValue
+      } else {
+         
+        let keyValuePair = Element(first: key, second: newValue)
+        self.__insertUnsafe(keyValuePair)
+      }
+    }
+  }
+  public func filter(_ isIncluded: (_ key: Self.Key, _ value: Self.Value) throws -> Swift.Bool) rethrows -> Self
+}
+public protocol CxxPair<First, Second> {
+  associatedtype First
+  associatedtype Second
+  init(first: Self.First, second: Self.Second)
+  var first: Self.First { get set }
+  var second: Self.Second { get set }
+}
+public protocol CxxOptional<Wrapped> : Swift.ExpressibleByNilLiteral {
+  associatedtype Wrapped
+  init()
+  func __convertToBool() -> Swift.Bool
+  var pointee: Self.Wrapped { get }
+}
+extension Cxx.CxxOptional {
+  public init(nilLiteral: ())
+  @inlinable public var hasValue: Swift.Bool {
+    get {
+      return __convertToBool()
+    }
+  }
+  @inlinable public var value: Self.Wrapped? {
+    get {
+      guard hasValue else { return nil }
+      return pointee
+    }
+  }
+}
+extension Swift.Optional {
+  @inlinable public init(fromCxx value: some CxxOptional<Wrapped>) {
+    guard value.__convertToBool() else {
+      self = nil
+      return
+    }
+    self = value.pointee
+  }
+}
+public protocol CxxSet<Element> : Swift.ExpressibleByArrayLiteral {
+  associatedtype Element
+  associatedtype Size : Swift.BinaryInteger
+  associatedtype InsertionResult
+  init()
+  @discardableResult
+  mutating func __insertUnsafe(_ element: Self.Element) -> Self.InsertionResult
+  func count(_ element: Self.Element) -> Self.Size
+}
+extension Cxx.CxxSet {
+  @inlinable public init<S>(_ sequence: __shared S) where S : Swift.Sequence, Self.Element == S.Element {
+    self.init()
+    for item in sequence {
+      self.__insertUnsafe(item)
+    }
+  }
+  @inlinable public init(arrayLiteral elements: Self.Element...) {
+    self.init(elements)
+  }
+  @inlinable public func contains(_ element: Self.Element) -> Swift.Bool {
+    return count(element) > 0
+  }
+}
+public protocol CxxUniqueSet<Element> : Cxx.CxxSet where Self.InsertionResult : Cxx.CxxPair, Self.InsertionResult.Second == Swift.Bool {
+  override associatedtype Element
+  override associatedtype Size
+  associatedtype RawIterator : Cxx.UnsafeCxxInputIterator where Self.Element == Self.RawIterator.Pointee, Self.RawIterator.Pointee == Self.RawMutableIterator.Pointee
+  associatedtype RawMutableIterator : Cxx.UnsafeCxxInputIterator where Self.RawMutableIterator == Self.InsertionResult.First
+  override associatedtype InsertionResult
+  @discardableResult
+  mutating func __findUnsafe(_ value: Self.Element) -> Self.RawIterator
+  @discardableResult
+  mutating func __eraseUnsafe(_ iter: Self.RawIterator) -> Self.RawMutableIterator
+  @discardableResult
+  mutating func __endUnsafe() -> Self.RawIterator
+}
+extension Cxx.CxxUniqueSet {
+  @discardableResult
+  @inlinable public mutating func insert(_ newMember: Self.Element) -> (inserted: Swift.Bool, memberAfterInsert: Self.Element) {
+    let insertionResult = self.__insertUnsafe(newMember)
+    let rawIterator: RawMutableIterator = insertionResult.first
+    let inserted: Bool = insertionResult.second
+    return (inserted, rawIterator.pointee)
+  }
+  @discardableResult
+  @inlinable public mutating func remove(_ member: Self.Element) -> Self.Element? {
+    let iter = self.__findUnsafe(member)
+    guard iter != self.__endUnsafe() else {
+      return nil
+    }
+    let value = iter.pointee
+    self.__eraseUnsafe(iter)
+    return value
+  }
+}
+public protocol CxxRandomAccessCollection<Element> : Cxx.CxxSequence, Swift.RandomAccessCollection where Self.RawIterator : Cxx.UnsafeCxxRandomAccessIterator {
+  override associatedtype Element
+  override associatedtype RawIterator
+  override associatedtype Iterator = Cxx.CxxIterator<Self>
+  override associatedtype Index = Swift.Int
+  override associatedtype Indices = Swift.Range<Swift.Int>
+  override associatedtype SubSequence = Swift.Slice<Self>
+}
+extension Cxx.CxxRandomAccessCollection {
+  @inlinable public var startIndex: Swift.Int {
+    get {
+    return 0
+  }
+  }
+  @inlinable public var endIndex: Swift.Int {
+    get {
+    return count
+  }
+  }
+  @inlinable public var count: Swift.Int {
+    get {
+    return Int(__endUnsafe() - __beginUnsafe())
+  }
+  }
+  @inlinable @inline(__always) internal func _getRawIterator(at index: Swift.Int) -> Self.RawIterator {
+    var rawIterator = self.__beginUnsafe()
+    rawIterator += RawIterator.Distance(index)
+    precondition(self.__endUnsafe() - rawIterator > 0,
+        "C++ iterator access out of bounds")
+    return rawIterator
+  }
+  @inlinable public subscript(index: Swift.Int) -> Self.Element {
+    _read {
+      yield self._getRawIterator(at: index).pointee
+    }
+  }
+}
+public protocol CxxMutableRandomAccessCollection<Element> : Cxx.CxxRandomAccessCollection, Swift.MutableCollection {
+  associatedtype RawMutableIterator : Cxx.UnsafeCxxMutableRandomAccessIterator where Self.Element == Self.RawMutableIterator.Pointee
+  mutating func __beginMutatingUnsafe() -> Self.RawMutableIterator
+  mutating func __endMutatingUnsafe() -> Self.RawMutableIterator
+}
+extension Cxx.CxxMutableRandomAccessCollection {
+  @inlinable public subscript(index: Swift.Int) -> Self.Element {
+    _read {
+      yield self._getRawIterator(at: index).pointee
+    }
+    _modify {
+      var rawIterator = self.__beginMutatingUnsafe()
+      rawIterator += RawMutableIterator.Distance(index)
+      precondition(self.__endMutatingUnsafe() - rawIterator > 0,
+          "C++ iterator access out of bounds")
+      yield &rawIterator.pointee
+    }
+  }
+}
+public protocol CxxSequence<Element> : Cxx.CxxConvertibleToCollection, Swift.Sequence {
+  override associatedtype Element
+  override associatedtype RawIterator
+  override associatedtype Iterator = Cxx.CxxIterator<Self>
+  mutating func __beginUnsafe() -> Self.RawIterator
+  mutating func __endUnsafe() -> Self.RawIterator
+}
+@usableFromInline
+final internal class CxxSequenceBox<T> where T : Cxx.CxxSequence {
+  @usableFromInline
+  final internal var sequence: T
+  @usableFromInline
+  internal init(_ sequence: __shared T)
+  @objc @usableFromInline
+  deinit
+}
+@frozen public struct CxxIterator<T> : Swift.IteratorProtocol where T : Cxx.CxxSequence {
+  public typealias Element = T.RawIterator.Pointee
+  @usableFromInline
+  internal let sequence: Cxx.CxxSequenceBox<T>
+  @usableFromInline
+  internal var rawIterator: T.RawIterator
+  @usableFromInline
+  internal let endIterator: T.RawIterator
+  @inlinable public init(sequence: __shared T) {
+    self.sequence = CxxSequenceBox<T>(sequence)
+    self.rawIterator = self.sequence.sequence.__beginUnsafe()
+    self.endIterator = self.sequence.sequence.__endUnsafe()
+  }
+  @inlinable public mutating func next() -> Cxx.CxxIterator<T>.Element? {
+    if self.rawIterator == self.endIterator {
+      return nil
+    }
+    let object = self.rawIterator.pointee
+    self.rawIterator = self.rawIterator.successor()
+    return object
+  }
+}
+extension Cxx.CxxSequence {
+  @inlinable public func makeIterator() -> Cxx.CxxIterator<Self> {
+    return CxxIterator(sequence: self)
+  }
+}
+public protocol CxxVector<Element> : Swift.ExpressibleByArrayLiteral {
+  associatedtype Element where Self.Element == Self.RawIterator.Pointee
+  associatedtype RawIterator : Cxx.UnsafeCxxRandomAccessIterator
+  init()
+  mutating func push_back(_ element: Self.Element)
+}
+extension Cxx.CxxVector {
+  @inlinable public init<S>(_ sequence: __shared S) where S : Swift.Sequence, Self.Element == S.Element {
+    self.init()
+    for item in sequence {
+      self.push_back(item)
+    }
+  }
+}
+extension Cxx.CxxVector {
+  @inlinable public init(arrayLiteral elements: Self.Element...) {
+    self.init(elements)
+  }
+}
+public protocol CxxSpan<Element> {
+  associatedtype Element
+  associatedtype Size : Swift.BinaryInteger
+  init()
+  init(_ unsafePointer: Swift.UnsafePointer<Self.Element>, _ count: Self.Size)
+}
+extension Cxx.CxxSpan {
+  @inlinable public init(_ unsafeBufferPointer: Swift.UnsafeBufferPointer<Self.Element>) {
+    precondition(unsafeBufferPointer.baseAddress != nil, 
+                  "UnsafeBufferPointer should not point to nil")
+    self.init(unsafeBufferPointer.baseAddress!, Size(unsafeBufferPointer.count))
+  }
+  @inlinable public init(_ unsafeMutableBufferPointer: Swift.UnsafeMutableBufferPointer<Self.Element>) {
+    precondition(unsafeMutableBufferPointer.baseAddress != nil, 
+                  "UnsafeMutableBufferPointer should not point to nil")
+    self.init(unsafeMutableBufferPointer.baseAddress!, Size(unsafeMutableBufferPointer.count))
+  }
+}
+public protocol CxxMutableSpan<Element> {
+  associatedtype Element
+  associatedtype Size : Swift.BinaryInteger
+  init()
+  init(_ unsafeMutablePointer: Swift.UnsafeMutablePointer<Self.Element>, _ count: Self.Size)
+}
+extension Cxx.CxxMutableSpan {
+  @inlinable public init(_ unsafeMutableBufferPointer: Swift.UnsafeMutableBufferPointer<Self.Element>) {
+    precondition(unsafeMutableBufferPointer.baseAddress != nil, 
+                  "UnsafeMutableBufferPointer should not point to nil")
+    self.init(unsafeMutableBufferPointer.baseAddress!, Size(unsafeMutableBufferPointer.count))
+  }
+}
+public protocol UnsafeCxxInputIterator : Swift.Equatable {
+  associatedtype Pointee
+  @_borrowed var pointee: Self.Pointee { get }
+  func successor() -> Self
+}
+extension Swift.UnsafePointer : Cxx.UnsafeCxxInputIterator {
+}
+extension Swift.UnsafeMutablePointer : Cxx.UnsafeCxxInputIterator {
+}
+extension Swift.Optional : Cxx.UnsafeCxxInputIterator where Wrapped : Cxx.UnsafeCxxInputIterator {
+  public typealias Pointee = Wrapped.Pointee
+  @inlinable public var pointee: Swift.Optional<Wrapped>.Pointee {
+    get {
+    if let value = self {
+      return value.pointee
+    }
+    fatalError("Could not dereference nullptr")
+  }
+  }
+  @inlinable public func successor() -> Swift.Optional<Wrapped> {
+    if let value = self {
+      return value.successor()
+    }
+    fatalError("Could not increment nullptr")
+  }
+}
+public protocol UnsafeCxxMutableInputIterator : Cxx.UnsafeCxxInputIterator {
+  @_borrowed override var pointee: Self.Pointee { get set }
+}
+extension Swift.UnsafeMutablePointer : Cxx.UnsafeCxxMutableInputIterator {
+}
+public protocol UnsafeCxxRandomAccessIterator : Cxx.UnsafeCxxInputIterator {
+  associatedtype Distance : Swift.BinaryInteger
+  static func - (lhs: Self, rhs: Self) -> Self.Distance
+  static func += (lhs: inout Self, rhs: Self.Distance)
+}
+extension Swift.UnsafePointer : Cxx.UnsafeCxxRandomAccessIterator {
+}
+extension Swift.UnsafeMutablePointer : Cxx.UnsafeCxxRandomAccessIterator {
+}
+public protocol UnsafeCxxMutableRandomAccessIterator : Cxx.UnsafeCxxMutableInputIterator, Cxx.UnsafeCxxRandomAccessIterator {
+}
+extension Swift.UnsafeMutablePointer : Cxx.UnsafeCxxMutableRandomAccessIterator {
+}
+public protocol UnsafeCxxContiguousIterator : Cxx.UnsafeCxxRandomAccessIterator {
+}
+public protocol UnsafeCxxMutableContiguousIterator : Cxx.UnsafeCxxContiguousIterator, Cxx.UnsafeCxxMutableRandomAccessIterator {
+}

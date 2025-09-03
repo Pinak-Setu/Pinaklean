@@ -1,0 +1,242 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.9 clang-1600.0.30.1)
+// swift-module-flags: -target arm64-apple-macosx13.0 -enable-objc-interop -enable-library-evolution -module-link-name SwiftCompilerPluginMessageHandling -swift-version 5 -O -module-abi-name CompilerSwiftCompilerPluginMessageHandling -module-name SwiftCompilerPluginMessageHandling -package-name Toolchain
+import Swift
+import SwiftBasicFormat
+import SwiftDiagnostics
+import SwiftOperators
+import SwiftParser
+import SwiftSyntax
+@_spi(ExperimentalLanguageFeature) @_spi(MacroExpansion) import SwiftSyntaxMacroExpansion
+@_spi(ExperimentalLanguageFeature) import SwiftSyntaxMacros
+import _Concurrency
+import _SwiftConcurrencyShims
+@_spi(PluginMessage) public enum PluginFeature : Swift.String {
+  @_spi(PluginMessage) case loadPluginLibrary
+  @_spi(PluginMessage) public init?(rawValue: Swift.String)
+  @_spi(PluginMessage) public typealias RawValue = Swift.String
+  @_spi(PluginMessage) public var rawValue: Swift.String {
+    @_spi(PluginMessage) get
+  }
+}
+@_spi(PluginMessage) public protocol PluginProvider {
+  @_spi(PluginMessage) func resolveMacro(moduleName: Swift.String, typeName: Swift.String) throws -> any SwiftSyntaxMacros.Macro.Type
+  @_spi(PluginMessage) func loadPluginLibrary(libraryPath: Swift.String, moduleName: Swift.String) throws
+  @_spi(PluginMessage) var features: [SwiftCompilerPluginMessageHandling.PluginFeature] { get }
+}
+@_spi(PluginMessage) public protocol MessageConnection {
+  @_spi(PluginMessage) func sendMessage<TX>(_ message: TX) throws where TX : Swift.Encodable
+  @_spi(PluginMessage) func waitForNextMessage<RX>(_ type: RX.Type) throws -> RX? where RX : Swift.Decodable
+}
+@_spi(PluginMessage) public class CompilerPluginMessageListener<Connection, Handler> where Connection : SwiftCompilerPluginMessageHandling.MessageConnection, Handler : SwiftCompilerPluginMessageHandling.PluginMessageHandler {
+  @_spi(PluginMessage) public init(connection: Connection, messageHandler: Handler)
+  @_spi(PluginMessage) public init<Provider>(connection: Connection, provider: Provider) where Handler == SwiftCompilerPluginMessageHandling.PluginProviderMessageHandler<Provider>, Provider : SwiftCompilerPluginMessageHandling.PluginProvider
+  @_spi(PluginMessage) public func main()
+  @_spi(PluginMessage) @objc deinit
+}
+@_spi(PluginMessage) public protocol PluginMessageHandler {
+  @_spi(PluginMessage) func handleMessage(_ message: SwiftCompilerPluginMessageHandling.HostToPluginMessage) -> SwiftCompilerPluginMessageHandling.PluginToHostMessage
+}
+@_spi(PluginMessage) public class PluginProviderMessageHandler<Provider> : SwiftCompilerPluginMessageHandling.PluginMessageHandler where Provider : SwiftCompilerPluginMessageHandling.PluginProvider {
+  @_spi(PluginMessage) public init(provider: Provider)
+  @_spi(PluginMessage) public func handleMessage(_ message: SwiftCompilerPluginMessageHandling.HostToPluginMessage) -> SwiftCompilerPluginMessageHandling.PluginToHostMessage
+  @_spi(PluginMessage) @objc deinit
+}
+@_spi(PluginMessage) @available(*, deprecated, renamed: "PluginProviderMessageHandler")
+public typealias CompilerPluginMessageHandler<Provider> = SwiftCompilerPluginMessageHandling.PluginProviderMessageHandler<Provider> where Provider : SwiftCompilerPluginMessageHandling.PluginProvider
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginProvider {
+  @_spi(PluginMessage) public var features: [SwiftCompilerPluginMessageHandling.PluginFeature] {
+    @_spi(PluginMessage) get
+  }
+  @_spi(PluginMessage) public func loadPluginLibrary(libraryPath: Swift.String, moduleName: Swift.String) throws
+}
+@_spi(Testing) public class LRUCache<Key, Value> where Key : Swift.Hashable {
+  @_spi(Testing) final public let capacity: Swift.Int
+  @_spi(Testing) public init(capacity: Swift.Int)
+  @_spi(Testing) public var count: Swift.Int {
+    @_spi(Testing) get
+  }
+  @_spi(Testing) public subscript(key: Key) -> Value? {
+    @_spi(Testing) get
+    @_spi(Testing) set
+  }
+  @_spi(Testing) @objc deinit
+}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.MacroRole {
+  @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+}
+@_spi(PluginMessage) public enum HostToPluginMessage : Swift.Codable {
+  @_spi(PluginMessage) case getCapability(capability: SwiftCompilerPluginMessageHandling.PluginMessage.HostCapability?)
+  @_spi(PluginMessage) case expandFreestandingMacro(macro: SwiftCompilerPluginMessageHandling.PluginMessage.MacroReference, macroRole: SwiftCompilerPluginMessageHandling.PluginMessage.MacroRole? = nil, discriminator: Swift.String, syntax: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax, lexicalContext: [SwiftCompilerPluginMessageHandling.PluginMessage.Syntax]? = nil)
+  @_spi(PluginMessage) case expandAttachedMacro(macro: SwiftCompilerPluginMessageHandling.PluginMessage.MacroReference, macroRole: SwiftCompilerPluginMessageHandling.PluginMessage.MacroRole, discriminator: Swift.String, attributeSyntax: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax, declSyntax: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax, parentDeclSyntax: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax?, extendedTypeSyntax: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax?, conformanceListSyntax: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax?, lexicalContext: [SwiftCompilerPluginMessageHandling.PluginMessage.Syntax]? = nil)
+  @_spi(PluginMessage) case loadPluginLibrary(libraryPath: Swift.String, moduleName: Swift.String)
+  @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+  @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+}
+@_spi(PluginMessage) public enum PluginToHostMessage : Swift.Codable {
+  @_spi(PluginMessage) case getCapabilityResult(capability: SwiftCompilerPluginMessageHandling.PluginMessage.PluginCapability)
+  @_spi(PluginMessage) case expandMacroResult(expandedSource: Swift.String?, diagnostics: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic])
+  @_spi(PluginMessage) case expandFreestandingMacroResult(expandedSource: Swift.String?, diagnostics: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic])
+  @_spi(PluginMessage) case expandAttachedMacroResult(expandedSources: [Swift.String]?, diagnostics: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic])
+  @_spi(PluginMessage) case loadPluginLibraryResult(loaded: Swift.Bool, diagnostics: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic])
+  @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+  @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+}
+@_spi(PluginMessage) public enum PluginMessage {
+  @_spi(PluginMessage) public static var PROTOCOL_VERSION_NUMBER: Swift.Int {
+    @_spi(PluginMessage) get
+  }
+  @_spi(PluginMessage) public struct HostCapability : Swift.Codable {
+    @_spi(PluginMessage) public init(protocolVersion: Swift.Int)
+    @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+    @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+  }
+  @_spi(PluginMessage) public struct PluginCapability : Swift.Codable {
+    @_spi(PluginMessage) public var protocolVersion: Swift.Int
+    @_spi(PluginMessage) public var features: [Swift.String]?
+    @_spi(PluginMessage) public init(protocolVersion: Swift.Int, features: [Swift.String]? = nil)
+    @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+    @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+  }
+  @_spi(PluginMessage) public struct MacroReference : Swift.Codable, Swift.Sendable {
+    @_spi(PluginMessage) public var moduleName: Swift.String
+    @_spi(PluginMessage) public var typeName: Swift.String
+    @_spi(PluginMessage) public var name: Swift.String
+    @_spi(PluginMessage) public init(moduleName: Swift.String, typeName: Swift.String, name: Swift.String)
+    @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+    @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+  }
+  @_spi(PluginMessage) public enum MacroRole : Swift.String, Swift.Codable, Swift.Sendable {
+    @_spi(PluginMessage) case expression
+    @_spi(PluginMessage) case declaration
+    @_spi(PluginMessage) case accessor
+    @_spi(PluginMessage) case memberAttribute
+    @_spi(PluginMessage) case member
+    @_spi(PluginMessage) case peer
+    @_spi(PluginMessage) case conformance
+    @_spi(PluginMessage) case codeItem
+    @_spi(PluginMessage) case `extension`
+    @_spi(ExperimentalLanguageFeature) case preamble
+    @_spi(ExperimentalLanguageFeature) case body
+    @_spi(PluginMessage) public init?(rawValue: Swift.String)
+    @_spi(PluginMessage) public typealias RawValue = Swift.String
+    @_spi(PluginMessage) public var rawValue: Swift.String {
+      @_spi(PluginMessage) get
+    }
+  }
+  @_spi(PluginMessage) public struct SourceLocation : Swift.Codable {
+    @_spi(PluginMessage) public var fileID: Swift.String
+    @_spi(PluginMessage) public var fileName: Swift.String
+    @_spi(PluginMessage) public var offset: Swift.Int
+    @_spi(PluginMessage) public var line: Swift.Int
+    @_spi(PluginMessage) public var column: Swift.Int
+    @_spi(PluginMessage) public init(fileID: Swift.String, fileName: Swift.String, offset: Swift.Int, line: Swift.Int, column: Swift.Int)
+    @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+    @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+  }
+  @_spi(PluginMessage) public struct Diagnostic : Swift.Codable {
+    @_spi(PluginMessage) public enum Severity : Swift.String, Swift.Codable {
+      @_spi(PluginMessage) case error
+      @_spi(PluginMessage) case warning
+      @_spi(PluginMessage) case note
+      @_spi(PluginMessage) case remark
+      @_spi(PluginMessage) public init?(rawValue: Swift.String)
+      @_spi(PluginMessage) public typealias RawValue = Swift.String
+      @_spi(PluginMessage) public var rawValue: Swift.String {
+        @_spi(PluginMessage) get
+      }
+    }
+    @_spi(PluginMessage) public struct Position : Swift.Codable {
+      @_spi(PluginMessage) public var fileName: Swift.String
+      @_spi(PluginMessage) public var offset: Swift.Int
+      @_spi(PluginMessage) public init(fileName: Swift.String, offset: Swift.Int)
+      @_spi(PluginMessage) public static var invalid: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Position {
+        @_spi(PluginMessage) get
+      }
+      @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+      @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+    }
+    @_spi(PluginMessage) public struct PositionRange : Swift.Codable {
+      @_spi(PluginMessage) public var fileName: Swift.String
+      @_spi(PluginMessage) public var startOffset: Swift.Int
+      @_spi(PluginMessage) public var endOffset: Swift.Int
+      @_spi(PluginMessage) public init(fileName: Swift.String, startOffset: Swift.Int, endOffset: Swift.Int)
+      @_spi(PluginMessage) public static var invalid: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.PositionRange {
+        @_spi(PluginMessage) get
+      }
+      @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+      @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+    }
+    @_spi(PluginMessage) public struct Note : Swift.Codable {
+      @_spi(PluginMessage) public var position: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Position
+      @_spi(PluginMessage) public var message: Swift.String
+      @_spi(PluginMessage) public init(position: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Position, message: Swift.String)
+      @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+      @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+    }
+    @_spi(PluginMessage) public struct FixIt : Swift.Codable {
+      @_spi(PluginMessage) public struct Change : Swift.Codable {
+        @_spi(PluginMessage) public var range: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.PositionRange
+        @_spi(PluginMessage) public var newText: Swift.String
+        @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+        @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+      }
+      @_spi(PluginMessage) public var message: Swift.String
+      @_spi(PluginMessage) public var changes: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.FixIt.Change]
+      @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+      @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+    }
+    @_spi(PluginMessage) public var message: Swift.String
+    @_spi(PluginMessage) public var severity: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Severity
+    @_spi(PluginMessage) public var position: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Position
+    @_spi(PluginMessage) public var highlights: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.PositionRange]
+    @_spi(PluginMessage) public var notes: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Note]
+    @_spi(PluginMessage) public var fixIts: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.FixIt]
+    @_spi(PluginMessage) public init(message: Swift.String, severity: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Severity, position: SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Position, highlights: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.PositionRange], notes: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Note], fixIts: [SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.FixIt])
+    @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+    @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+  }
+  @_spi(PluginMessage) public struct Syntax : Swift.Codable {
+    @_spi(PluginMessage) public enum Kind : Swift.String, Swift.Codable {
+      @_spi(PluginMessage) case declaration
+      @_spi(PluginMessage) case statement
+      @_spi(PluginMessage) case expression
+      @_spi(PluginMessage) case type
+      @_spi(PluginMessage) case pattern
+      @_spi(PluginMessage) case attribute
+      @_spi(PluginMessage) public init?(rawValue: Swift.String)
+      @_spi(PluginMessage) public typealias RawValue = Swift.String
+      @_spi(PluginMessage) public var rawValue: Swift.String {
+        @_spi(PluginMessage) get
+      }
+    }
+    @_spi(PluginMessage) public var kind: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax.Kind
+    @_spi(PluginMessage) public var source: Swift.String
+    @_spi(PluginMessage) public var location: SwiftCompilerPluginMessageHandling.PluginMessage.SourceLocation
+    @_spi(PluginMessage) public init(kind: SwiftCompilerPluginMessageHandling.PluginMessage.Syntax.Kind, source: Swift.String, location: SwiftCompilerPluginMessageHandling.PluginMessage.SourceLocation)
+    @_spi(PluginMessage) public func encode(to encoder: any Swift.Encoder) throws
+    @_spi(PluginMessage) public init(from decoder: any Swift.Decoder) throws
+  }
+}
+@_spi(PluginMessage) public enum JSON {
+  @_spi(PluginMessage) public static func encode<T>(_ value: T) throws -> [Swift.UInt8] where T : Swift.Encodable
+  @_spi(PluginMessage) public static func decode<T>(_ type: T.Type, from json: Swift.UnsafeBufferPointer<Swift.UInt8>) throws -> T where T : Swift.Decodable
+}
+@_spi(PluginMessage) public struct StandardIOMessageConnection : SwiftCompilerPluginMessageHandling.MessageConnection {
+  @_spi(PluginMessage) public init(inputFileDescriptor: Swift.CInt, outputFileDescriptor: Swift.CInt)
+  @_spi(PluginMessage) public init() throws
+  @_spi(PluginMessage) public func sendMessage<TX>(_ message: TX) throws where TX : Swift.Encodable
+  @_spi(PluginMessage) public func waitForNextMessage<RX>(_ type: RX.Type) throws -> RX? where RX : Swift.Decodable
+}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginFeature : Swift.Equatable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginFeature : Swift.Hashable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginFeature : Swift.RawRepresentable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Severity : Swift.Equatable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Severity : Swift.Hashable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.Diagnostic.Severity : Swift.RawRepresentable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.MacroRole : Swift.Equatable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.MacroRole : Swift.Hashable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.MacroRole : Swift.RawRepresentable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.Syntax.Kind : Swift.Equatable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.Syntax.Kind : Swift.Hashable {}
+@_spi(PluginMessage) extension SwiftCompilerPluginMessageHandling.PluginMessage.Syntax.Kind : Swift.RawRepresentable {}

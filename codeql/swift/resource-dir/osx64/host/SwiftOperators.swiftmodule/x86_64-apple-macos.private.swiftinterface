@@ -1,0 +1,138 @@
+// swift-interface-format-version: 1.0
+// swift-compiler-version: Apple Swift version 6.0.3 effective-5.10 (swiftlang-6.0.3.1.9 clang-1600.0.30.1)
+// swift-module-flags: -target x86_64-apple-macosx13.0 -enable-objc-interop -enable-library-evolution -module-link-name SwiftOperators -swift-version 5 -O -module-abi-name CompilerSwiftOperators -module-name SwiftOperators -package-name Toolchain
+import Swift
+import SwiftDiagnostics
+import SwiftParser
+import SwiftSyntax
+import _Concurrency
+import _SwiftConcurrencyShims
+public typealias OperatorName = Swift.String
+public enum OperatorKind : Swift.String, Swift.Sendable {
+  case infix
+  case prefix
+  case postfix
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct Operator : Swift.Sendable {
+  public let kind: SwiftOperators.OperatorKind
+  public let name: SwiftOperators.OperatorName
+  public let precedenceGroup: SwiftOperators.PrecedenceGroupName?
+  public let syntax: SwiftSyntax.OperatorDeclSyntax?
+  public init(kind: SwiftOperators.OperatorKind, name: SwiftOperators.OperatorName, precedenceGroup: SwiftOperators.PrecedenceGroupName? = nil, syntax: SwiftSyntax.OperatorDeclSyntax? = nil)
+}
+extension SwiftOperators.Operator : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+extension SwiftOperators.OperatorError : SwiftDiagnostics.DiagnosticMessage {
+  public var severity: SwiftDiagnostics.DiagnosticSeverity {
+    get
+  }
+  public var message: Swift.String {
+    get
+  }
+  public var diagnosticID: SwiftDiagnostics.MessageID {
+    get
+  }
+}
+extension SwiftOperators.OperatorError {
+  public var asDiagnostic: SwiftDiagnostics.Diagnostic {
+    get
+  }
+}
+public enum OperatorError : Swift.Error, Swift.Sendable {
+  case groupAlreadyExists(existing: SwiftOperators.PrecedenceGroup, new: SwiftOperators.PrecedenceGroup)
+  case missingGroup(SwiftOperators.PrecedenceGroupName, referencedFrom: SwiftSyntax.Syntax)
+  case operatorAlreadyExists(existing: SwiftOperators.Operator, new: SwiftOperators.Operator)
+  case missingOperator(SwiftOperators.OperatorName, referencedFrom: SwiftSyntax.Syntax)
+  case incomparableOperators(leftOperator: SwiftSyntax.ExprSyntax, leftPrecedenceGroup: SwiftOperators.PrecedenceGroupName, rightOperator: SwiftSyntax.ExprSyntax, rightPrecedenceGroup: SwiftOperators.PrecedenceGroupName)
+}
+public typealias OperatorErrorHandler = (SwiftOperators.OperatorError) throws -> Swift.Void
+extension SwiftOperators.OperatorTable {
+  public static var logicalOperators: SwiftOperators.OperatorTable {
+    get
+  }
+  public static let standardOperators: SwiftOperators.OperatorTable
+}
+extension SwiftOperators.OperatorTable {
+  @_spi(Testing) public static func makeBinaryOperationExpr(lhs: SwiftSyntax.ExprSyntax, op: SwiftSyntax.ExprSyntax, rhs: SwiftSyntax.ExprSyntax) -> SwiftSyntax.ExprSyntax
+  public func foldSingle(_ sequence: SwiftSyntax.SequenceExprSyntax, errorHandler: (SwiftOperators.OperatorError) throws -> Swift.Void = { throw $0 }) rethrows -> SwiftSyntax.ExprSyntax
+  public func foldAll(_ node: some SyntaxProtocol, errorHandler: (SwiftOperators.OperatorError) throws -> Swift.Void = { throw $0 }) rethrows -> SwiftSyntax.Syntax
+}
+extension SwiftOperators.OperatorTable {
+  public mutating func addSourceFile(_ sourceFile: SwiftSyntax.SourceFileSyntax, errorHandler: (SwiftOperators.OperatorError) throws -> Swift.Void = { throw $0 }) rethrows
+}
+public struct OperatorTable : Swift.Sendable {
+  public init()
+  @_optimize(none) public init(precedenceGroups: [SwiftOperators.PrecedenceGroup], operators: [SwiftOperators.Operator], errorHandler: (SwiftOperators.OperatorError) throws -> Swift.Void = { throw $0 }) rethrows
+}
+extension SwiftOperators.OperatorTable {
+  public func infixOperator(named operatorName: SwiftOperators.OperatorName) -> SwiftOperators.Operator?
+  public func prefixOperator(named operatorName: SwiftOperators.OperatorName) -> SwiftOperators.Operator?
+  public func postfixOperator(named operatorName: SwiftOperators.OperatorName) -> SwiftOperators.Operator?
+}
+extension SwiftOperators.OperatorTable : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+public typealias PrecedenceGroupName = Swift.String
+public enum Associativity : Swift.String, Swift.Sendable {
+  case none
+  case left
+  case right
+  public init?(rawValue: Swift.String)
+  public typealias RawValue = Swift.String
+  public var rawValue: Swift.String {
+    get
+  }
+}
+public struct PrecedenceRelation : Swift.Sendable {
+  public enum Kind : Swift.Sendable {
+    case higherThan
+    case lowerThan
+    public static func == (a: SwiftOperators.PrecedenceRelation.Kind, b: SwiftOperators.PrecedenceRelation.Kind) -> Swift.Bool
+    public func hash(into hasher: inout Swift.Hasher)
+    public var hashValue: Swift.Int {
+      get
+    }
+  }
+  public var kind: SwiftOperators.PrecedenceRelation.Kind
+  public var groupName: SwiftOperators.PrecedenceGroupName
+  public var syntax: SwiftSyntax.PrecedenceGroupNameSyntax?
+  public static func higherThan(_ groupName: SwiftOperators.PrecedenceGroupName, syntax: SwiftSyntax.PrecedenceGroupNameSyntax? = nil) -> SwiftOperators.PrecedenceRelation
+  public static func lowerThan(_ groupName: SwiftOperators.PrecedenceGroupName, syntax: SwiftSyntax.PrecedenceGroupNameSyntax? = nil) -> SwiftOperators.PrecedenceRelation
+}
+public struct PrecedenceGroup : Swift.Sendable {
+  public var name: SwiftOperators.PrecedenceGroupName
+  public var associativity: SwiftOperators.Associativity
+  public var assignment: Swift.Bool
+  public var relations: [SwiftOperators.PrecedenceRelation]
+  public var syntax: SwiftSyntax.PrecedenceGroupDeclSyntax?
+  public init(name: SwiftOperators.PrecedenceGroupName, associativity: SwiftOperators.Associativity = .none, assignment: Swift.Bool = false, relations: [SwiftOperators.PrecedenceRelation] = [], syntax: SwiftSyntax.PrecedenceGroupDeclSyntax? = nil)
+}
+extension SwiftOperators.PrecedenceGroup : Swift.CustomStringConvertible {
+  public var description: Swift.String {
+    get
+  }
+}
+extension SwiftOperators.Operator {
+  public func synthesizedSyntax() -> SwiftSyntax.OperatorDeclSyntax
+}
+extension SwiftOperators.PrecedenceGroup {
+  public func synthesizedSyntax(indentation: Swift.Int = 4) -> SwiftSyntax.PrecedenceGroupDeclSyntax
+}
+extension SwiftOperators.OperatorKind : Swift.Equatable {}
+extension SwiftOperators.OperatorKind : Swift.Hashable {}
+extension SwiftOperators.OperatorKind : Swift.RawRepresentable {}
+extension SwiftOperators.Associativity : Swift.Equatable {}
+extension SwiftOperators.Associativity : Swift.Hashable {}
+extension SwiftOperators.Associativity : Swift.RawRepresentable {}
+extension SwiftOperators.PrecedenceRelation.Kind : Swift.Equatable {}
+extension SwiftOperators.PrecedenceRelation.Kind : Swift.Hashable {}

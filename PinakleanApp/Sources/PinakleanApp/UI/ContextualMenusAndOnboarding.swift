@@ -30,15 +30,15 @@ struct ContextualMenuWrapper<Content: View>: View {
 struct NotificationsCenterView: View {
     @EnvironmentObject var uiState: UnifiedUIState
     var body: some View {
-        List(uiState.notifications) { n in
+        List(uiState.notifications) { notification in
             HStack {
-                Circle().fill(n.type.color).frame(width: 8, height: 8)
+                Circle().fill(notification.type.color).frame(width: 8, height: 8)
                 VStack(alignment: .leading) {
-                    Text(n.title).font(DesignSystem.fontHeadline)
-                    Text(n.message).font(DesignSystem.fontCaption).foregroundColor(DesignSystem.textTertiary)
+                    Text(notification.title).font(DesignSystem.fontHeadline)
+                    Text(notification.message).font(DesignSystem.fontCaption).foregroundColor(DesignSystem.textTertiary)
                 }
                 Spacer()
-                Text(n.timestamp, style: .time).font(DesignSystem.fontCaptionSmall).foregroundColor(DesignSystem.textTertiary)
+                Text(notification.timestamp, style: .time).font(DesignSystem.fontCaptionSmall).foregroundColor(DesignSystem.textTertiary)
             }
         }
     }

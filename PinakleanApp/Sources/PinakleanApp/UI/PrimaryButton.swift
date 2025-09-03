@@ -23,6 +23,7 @@ public enum IconButton {
 }
 
 public struct GlassTextFieldStyle: TextFieldStyle {
+    // swiftlint:disable:next identifier_name
     public func _body(configuration: TextField<_Label>) -> some View {
         configuration
             .textFieldStyle(.plain)

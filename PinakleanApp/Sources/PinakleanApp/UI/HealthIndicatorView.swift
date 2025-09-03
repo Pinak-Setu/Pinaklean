@@ -2,13 +2,13 @@ import SwiftUI
 
 // UI-052: Health indicator with retry action (pure UI; no core logic dependency)
 public enum HealthStatus {
-    case ok
+    case healthy
     case connecting
     case down
 
     var color: Color {
         switch self {
-        case .ok: return DesignSystem.success
+        case .healthy: return DesignSystem.success
         case .connecting: return DesignSystem.warning
         case .down: return DesignSystem.error
         }

@@ -77,7 +77,7 @@ public struct ToastBanner: View {
 
 // MARK: - UI-018 Modal Sheet (Glass)
 
-public let ModalSheetGlassDefaultDragDismissThreshold: CGFloat = 120
+public let modalSheetDragDismissThreshold: CGFloat = 120
 
 public struct ModalSheetGlass<Content: View>: View {
 

@@ -1,3 +1,5 @@
+// PinakleanEngine uses Combine, which is unavailable on some platforms.
+#if canImport(Combine)
 import Combine
 import Foundation
 import os.log
@@ -764,3 +766,12 @@ extension Array where Element: Hashable {
         Array(Set(self))
     }
 }
+
+#else
+import Foundation
+import Logging
+
+public class PinakleanEngine {
+    public init() {}
+}
+#endif

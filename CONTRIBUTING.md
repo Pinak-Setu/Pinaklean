@@ -34,6 +34,8 @@ swift build --product pinaklean-cli
 swift build --product Pinaklean
 ```
 
+**Note:** These setup commands require internet access to resolve Swift Package Manager dependencies. Without connectivity, `swift package resolve` and `swift test` may fail with errors such as `CONNECT tunnel failed`.
+
 ## 🧪 Testing
 
 ### Running Tests

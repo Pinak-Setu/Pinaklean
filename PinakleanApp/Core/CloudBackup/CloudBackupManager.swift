@@ -1,3 +1,6 @@
+// This file relies heavily on Apple-only frameworks.
+// Provide a stub implementation when those frameworks are unavailable.
+#if canImport(CryptoKit) && canImport(CloudKit)
 import CloudKit
 import Compression
 import CryptoKit
@@ -657,3 +660,67 @@ struct LocalStorageManager {
 
 // MARK: - Extensions
 // Note: hexString extension moved to BackupRegistry.swift
+#else
+import Foundation
+
+public actor CloudBackupManager {
+    public enum CloudProvider: String, CaseIterable {
+        case iCloudDrive = "iCloud Drive"
+        case githubGist = "GitHub Gist"
+        case githubRelease = "GitHub Release"
+        case googleDrive = "Google Drive"
+        case ipfs = "IPFS"
+        case webDAV = "WebDAV"
+        case localNAS = "Local NAS"
+
+        var isFree: Bool { true }
+        var storageLimit: Int64 { 0 }
+    }
+
+    public init() {}
+
+    public func smartBackup(_ snapshot: DiskSnapshot) async throws -> BackupResult {
+        throw BackupError.unsupportedPlatform
+    }
+}
+
+public struct BackupResult {
+    public let provider: CloudBackupManager.CloudProvider
+    public let location: String
+    public let size: Int64
+    public let timestamp: Date
+    public let isEncrypted: Bool
+    public let isFree: Bool
+
+    static let empty = BackupResult(
+        provider: .ipfs,
+        location: "",
+        size: 0,
+        timestamp: Date(),
+        isEncrypted: false,
+        isFree: true
+    )
+}
+
+public struct DiskSnapshot: Codable {
+    public let id: UUID
+    public let timestamp: Date
+    public let totalSize: Int64
+    public let fileCount: Int
+    public let metadata: [String: String]
+}
+
+public enum BackupError: LocalizedError {
+    case unsupportedPlatform
+    case backupNotFound(id: String)
+
+    public var errorDescription: String? {
+        switch self {
+        case .unsupportedPlatform:
+            return "Cloud backup is not supported on this platform."
+        case .backupNotFound(let id):
+            return "Backup not found: \(id)"
+        }
+    }
+}
+#endif

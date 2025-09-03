@@ -6,8 +6,12 @@
 //
 
 import Foundation
+#if canImport(SystemConfiguration)
 import SystemConfiguration
+#endif
+#if canImport(Security)
 import Security
+#endif
 
 /// Comprehensive security auditor for file deletion safety
 public actor SecurityAuditor {

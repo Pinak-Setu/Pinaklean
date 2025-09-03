@@ -1,4 +1,6 @@
 import Foundation
+
+#if canImport(NaturalLanguage) && canImport(CoreML)
 import NaturalLanguage
 import CoreML
 
@@ -473,3 +475,31 @@ public struct UserPreference {
 }
 
 // Note: CleaningRecommendation is defined in PinakleanEngine.swift
+#else
+public actor RAGManager {
+    public init() {}
+
+    public func generateExplanation(for item: CleanableItem) async -> String {
+        "RAG explanations are unavailable on this platform."
+    }
+
+    public func getCleaningRecommendations(for items: [CleanableItem]) async -> [CleaningRecommendation] {
+        []
+    }
+
+    public func learnFromDecision(item: CleanableItem, userKept: Bool) async {}
+
+    public func findSimilarFiles(to item: CleanableItem, in items: [CleanableItem]) async -> [CleanableItem] {
+        []
+    }
+}
+
+// Minimal placeholder types for non-Apple platforms
+public struct CleanableItem {
+    public init() {}
+}
+
+public struct CleaningRecommendation {
+    public init() {}
+}
+#endif

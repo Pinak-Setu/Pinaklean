@@ -373,6 +373,8 @@ swift run pinaklean-cli --help
 swift run Pinaklean
 ```
 
+**Note:** Running `swift package resolve` and `swift test` requires network access to fetch Swift Package Manager dependencies from GitHub. Offline or firewalled environments will produce errors such as `CONNECT tunnel failed`.
+
 ### Development Workflow
 ```bash
 # Create a feature branch

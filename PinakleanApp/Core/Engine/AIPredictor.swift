@@ -1,6 +1,9 @@
 // AIPredictor_new.swift - Minimal working version
 import Foundation
 
+#if canImport(Combine)
+import Combine
+
 @MainActor
 final class AIPredictor: ObservableObject {
     
@@ -24,3 +27,4 @@ final class AIPredictor: ObservableObject {
         return (ageScore + sizeScore) / 2.0
     }
 }
+#endif

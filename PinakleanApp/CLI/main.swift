@@ -2,7 +2,11 @@ import ArgumentParser
 import Foundation
 import Logging
 import PinakleanCore
+#if canImport(Darwin)
 import Darwin
+#elseif canImport(Glibc)
+import Glibc
+#endif
 
 /// Pinaklean CLI - Command line interface using the unified engine
 @main
@@ -33,14 +37,14 @@ struct PinakleanCLI: AsyncParsableCommand {
             print("\n⚠️  Interrupt received, cleaning up...")
             PinakleanCLI.isInterrupted = true
             PinakleanCLI.cancellationHandler?()
-            Darwin.exit(1)
+            exit(1)
         }
 
         signal(SIGTERM) { _ in
             print("\n⚠️  Termination requested, cleaning up...")
             PinakleanCLI.isInterrupted = true
             PinakleanCLI.cancellationHandler?()
-            Darwin.exit(1)
+            exit(1)
         }
     }
 

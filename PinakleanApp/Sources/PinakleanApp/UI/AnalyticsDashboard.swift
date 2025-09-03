@@ -109,6 +109,18 @@ struct AnalyticsDashboard: View {
                 }
                 .padding(.horizontal)
 
+                // Experimental Charts Section
+                if Self.isChartsEnabled(state: uiState) {
+                    FrostCardHeader(title: "Experimental Visualizations") {
+                        VStack {
+                            SunburstChart()
+                                .frame(height: 300)
+                            SankeyDiagram()
+                                .frame(height: 300)
+                        }
+                    }
+                }
+
                 Spacer()
             }
             .padding(.vertical)

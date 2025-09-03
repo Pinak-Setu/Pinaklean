@@ -64,7 +64,7 @@ jobs:
       - name: Run SwiftLint (non-blocking, default config)
         run: |
           if command -v swiftlint >/dev/null 2>&1; then
-            swiftlint --strict || echo "SwiftLint found issues (non-blocking)"
+            swiftlint || echo "SwiftLint found issues (non-blocking)"
           else
             echo "SwiftLint not available; skipping"
           fi

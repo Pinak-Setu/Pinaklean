@@ -1,3 +1,4 @@
+#if canImport(Combine)
 import AsyncAlgorithms
 import Foundation
 
@@ -332,6 +333,7 @@ public actor ParallelProcessor {
             throughputMBps: duration > 0 ? Double(totalBytesProcessed) / duration / 1024 / 1024 : 0
         )
     }
+
 }
 
 // MARK: - Supporting Types
@@ -457,3 +459,4 @@ extension String {
         return self.range(of: regexPattern, options: .regularExpression) != nil
     }
 }
+#endif

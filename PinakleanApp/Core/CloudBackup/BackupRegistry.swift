@@ -1,14 +1,16 @@
 // MARK: - SHA256 Extension
+#if canImport(CryptoKit)
 import CryptoKit
+#endif
 import Foundation
 import GRDB
-import os.log
+import Logging
 
 /// Backup Registry - Central tracking system for all backups across providers
 /// This ensures users always know where their backups are stored
 public actor BackupRegistry {
 
-    private let logger = Logger(subsystem: "com.pinaklean", category: "BackupRegistry")
+    private let logger = Logger(label: "com.pinaklean.BackupRegistry")
     private let database: DatabaseQueue
     private let registryURL: URL
     private let jsonBackupPath: URL
@@ -488,13 +490,21 @@ public actor BackupRegistry {
         if FileManager.default.fileExists(atPath: result.location) {
             let url = URL(fileURLWithPath: result.location)
             let data = try Data(contentsOf: url)
+#if canImport(CryptoKit)
             return SHA256.hash(data: data).hexString
+#else
+            return String(format: "%02x", data.hashValue)
+#endif
         }
 
         // For remote backups, use a combination of metadata
         let checksumData =
             "\(result.provider.rawValue):\(result.size):\(result.timestamp.timeIntervalSince1970)"
+#if canImport(CryptoKit)
         return SHA256.hash(data: checksumData.data(using: .utf8)!).hexString
+#else
+        return String(format: "%02x", checksumData.hashValue)
+#endif
     }
 }
 
@@ -576,8 +586,10 @@ public struct VerificationResult {
 
 // Note: BackupError is defined in CloudBackupManager.swift
 
+#if canImport(CryptoKit)
 extension SHA256.Digest {
     var hexString: String {
         map { String(format: "%02x", $0) }.joined()
     }
 }
+#endif

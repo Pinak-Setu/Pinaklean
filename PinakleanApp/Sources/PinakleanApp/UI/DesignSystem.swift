@@ -436,10 +436,18 @@ extension DesignSystem {
     }
     static func mirroredSystemImageName(_ name: String) -> String {
         guard isRightToLeft() else { return name }
-        if name.contains("arrow.right") { return name.replacingOccurrences(of: "arrow.right", with: "arrow.left") }
-        if name.contains("chevron.right") { return name.replacingOccurrences(of: "chevron.right", with: "chevron.left") }
-        if name.contains("arrow.left") { return name.replacingOccurrences(of: "arrow.left", with: "arrow.right") }
-        if name.contains("chevron.left") { return name.replacingOccurrences(of: "chevron.left", with: "chevron.right") }
+        if name.contains("arrow.right") { 
+            return name.replacingOccurrences(of: "arrow.right", with: "arrow.left") 
+        }
+        if name.contains("chevron.right") { 
+            return name.replacingOccurrences(of: "chevron.right", with: "chevron.left") 
+        }
+        if name.contains("arrow.left") { 
+            return name.replacingOccurrences(of: "arrow.left", with: "arrow.right") 
+        }
+        if name.contains("chevron.left") { 
+            return name.replacingOccurrences(of: "chevron.left", with: "chevron.right") 
+        }
         return name
     }
 

@@ -1,0 +1,205 @@
+agent_policy:
+  name: "Ironclad DevOps Rulebook"
+  version: "2.1"
+  description: >
+    Policy-as-code for modular, atomic, TDD-first development with shift-left
+    security and observability. Ships production-ready, accessible, performant,
+    and reversible software that "just works."
+
+metadata:
+  owners: ["eng@company", "sec@company", "sre@company"]
+  applies_to: ["web", "api", "mobile (React Native/Flutter)"]
+  default_branch: "main"
+  branching_model: "trunk-based with short-lived feature branches"
+  commit_convention: "Conventional Commits"
+  environments: ["dev", "staging", "prod"]
+
+definitions:
+  atomic_task: "Single local change, scoped to one concern, sized 1–4 hours."
+  green: "All required CI checks pass on default branch/target env."
+  policy_as_code: "Rules enforced via CI (OPA/Conftest, scanners, test gates)."
+
+lifecycle:
+  - plan
+  - design
+  - shift-left (security, a11y, perf budgets, observability acceptance)
+  - test-first
+  - implement
+  - verify (CI)
+  - release (flags/canary)
+  - observe (SLOs, error budget)
+  - iterate
+
+rules:
+  - id: scope_lock
+    title: "Brief Adherence & Scope Lock"
+    requirement: >
+      Extract acceptance criteria from the brief into a living checklist tied to
+      the ticket. Implement ONLY items in the checklist.
+    guardrail: "Fail CI if any acceptance criterion lacks tests or code trace."
+
+  - id: granularity
+    title: "Atomic Task Granularity"
+    requirement: >
+      100–500 atomic tasks per project; each task 1–4 hours; map to agile user
+      stories/subtasks (theme, test, button, naming, alignment, animation, etc.).
+    guardrail: "No bundling or skipping; use decomposition checklist."
+
+  - id: tdd
+    title: "TDD Red->Green->Refactor"
+    requirement: >
+      Write failing tests first. Implement minimal code to green. Refactor to
+      clarity. Cover unit + integration + acceptance where relevant.
+    guardrail: >
+      Block merge if tests added < threshold for new logic or coverage < target
+      (line >= 85%, branch >= 70% by default).
+
+  - id: cicd
+    title: "CI/CD Validation"
+    requirement: >
+      Task completes only when CI is green for lint, typecheck, unit, integration,
+      e2e/smoke, performance, security, license/SBOM, and a11y gates.
+    guardrail: "Local success is insufficient. Protected branches require checks."
+
+  - id: iac
+    title: "Infrastructure-as-Code Tests"
+    requirement: >
+      Validate Terraform/Cloud configs (fmt/validate/plan) and policy (OPA) in CI.
+    guardrail: "Block on policy violations or drift."
+
+  - id: file_safety
+    title: "File Management Safety"
+    requirement: "No hard deletes; move obsolete to /archive with reason."
+    guardrail: "CI rejects hard deletes outside /archive."
+
+  - id: pacing
+    title: "One Change • One Commit • One Check"
+    requirement: "Smallest diff; maintain strict locality of context."
+    guardrail: "Reject PRs above max changed lines (configurable)."
+
+  - id: audit
+    title: "Immutable Audit Trail"
+    requirement: "Log task id, acceptance checklist, test status, CI run id, commit hash, reviewer, key metrics."
+    guardrail: "CI publishes audit JSON artifact per PR."
+
+  - id: rollback
+    title: "Reversible by Design"
+    requirement: "Feature flags for risky code; reversible migrations; fast rollback (<=10 min)."
+    guardrail: "No irreversible changes; flags off-by-default until canary passes."
+
+  - id: security_baseline
+    title: "Shift-Left Security (DevSecOps)"
+    requirement: >
+      No secrets in repo. Parameterized queries. Input/output validation.
+      AuthN/AuthZ on sensitive paths. CSP/SSRF protection. Supply chain scans.
+    guardrail: "Secrets/SAST/DAST/SCA must be green; fail on high/critical."
+
+  - id: privacy
+    title: "Privacy & Compliance"
+    requirement: >
+      Minimum PII. Data map documented. Retention, export, and deletion flows
+      implemented (GDPR/DPDP as applicable).
+    guardrail: "CI requires presence of data map + delete/export tests."
+
+  - id: naming
+    title: "Naming Discipline"
+    requirement: "Consistent conventions (camelCase/snake_case), meaningful names."
+    guardrail: "Lint/typecheck enforce naming and API contracts."
+
+  - id: review
+    title: "Self & Peer Review"
+    requirement: "Agent self-critique for simplicity/reliability; human review on protected branches."
+    guardrail: "PR template checklist mandatory; rationale required."
+
+  - id: observability
+    title: "Logs, Metrics, Traces, Health"
+    requirement: "Structured logs; trace IDs; RED/USE metrics; /health endpoint."
+    guardrail: "Reject features without liveness checks or metrics."
+
+  - id: reliability
+    title: "SLOs & Error Budgets"
+    requirement: "Define service SLOs; track error budget; gate risky releases if exhausted."
+    guardrail: "CI blocks when error budget depleted."
+
+  - id: performance_budget
+    title: "Performance Budgets"
+    requirement: >
+      Web: LCP <= 2.5s, CLS <= 0.1 (p75 mid-tier). API: p95 <= 300ms (default).
+      Mobile: 60fps target, jank < 1%.
+    guardrail: "Lighthouse/k6/mobile perf checks must pass budgets."
+
+  - id: accessibility
+    title: "Accessibility (WCAG 2.1 AA)"
+    requirement: "Semantic structure, labels, contrast, keyboard nav, SR support."
+    guardrail: "axe/pa11y audits required; no violations."
+
+  - id: dependency_hygiene
+    title: "SBOM & Licenses"
+    requirement: "Generate SBOM (CycloneDX/SPDX); allowlist licenses; pin versions; auto-upgrades."
+    guardrail: "Fail on license violations or CVE high+."
+
+  - id: monitoring
+    title: "Feature Liveness Checks"
+    requirement: "Add ping for endpoints; synthetic click for UI; alerting tied to SLOs."
+    guardrail: "Block if synthetic check missing/not green."
+
+  - id: release_safety
+    title: "Progressive Delivery"
+    requirement: "Flags/canary + automated rollback plan and runbook."
+    guardrail: "Prod deploy requires canary success and runbook link."
+
+  - id: autonomy
+    title: "Autonomous, Local, Safe"
+    requirement: "Proceed task-by-task without approvals; keep scope local."
+    guardrail: "Verify against hallucinations; no global edits outside dedicated tasks."
+
+  - id: documentation
+    title: "Documentation Discipline"
+    requirement: "Inline docs + README/CHANGELOG updates per task; add runbook where relevant."
+    guardrail: "CI requires docs delta for non-trivial changes."
+
+  - id: resilience
+    title: "Error Resilience"
+    requirement: "Robust error handling, retries/backoff, circuit breakers where applicable."
+    guardrail: "Edge-case tests included; chaos/synthetic faults in CI nightly."
+
+  - id: scalability
+    title: "Scalability by Design"
+    requirement: "Use containers; stateless services; horizontal scale plan; cache/index strategy documented."
+    guardrail: "Load tests included; perf regression blocked."
+
+cross_platform_matrix:
+  web:
+    browsers: ["Chrome latest", "Safari latest", "Firefox ESR"]
+    a11y_checks: ["axe-core"]
+    perf_checks: ["Lighthouse CI"]
+  mobile:
+    frameworks: ["React Native", "Flutter"]
+    device_tiers: ["iPhone mid-tier", "Android mid-tier emulator"]
+    ui_tests: ["Detox/Appium (RN)", "flutter integration_test"]
+  api:
+    tests: ["unit", "integration", "contract (PACT)", "load (k6)"]
+    budgets:
+      p95_latency_ms: 300
+      error_rate: "<0.1%"
+
+acceptance_criteria:
+  must_include:
+    - tests_added: true
+    - coverage: { line: ">=85%", branch: ">=70%" }
+    - docs_updated: true
+    - a11y_pass: true
+    - perf_within_budget: true
+    - sbom_generated: true
+    - security_scans_green: true
+    - feature_flagged: true
+    - health_check: true
+
+exemptions:
+  process: "Temporary waiver via CODEOWNERS with expiry and risk note."
+  auto_expire_days: 14
+
+philosophy: >
+  Build brick by brick, test by test, commit by commit. Invest upfront in TDD
+  (red->green->refactor) to harvest long-term speed and stability. Prioritize
+  simplicity, reliability, and seamless integration so the software "just works."

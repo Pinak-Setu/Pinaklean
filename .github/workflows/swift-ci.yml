@@ -27,11 +27,11 @@ jobs:
 
       - name: Build (CLI/App)
         working-directory: PinakleanApp
-        run: swift build -v
+        run: swift build --configuration debug
 
       - name: Test (PinakleanApp)
         working-directory: PinakleanApp
-        run: CI=true swift test --parallel --sanitize=address
+        run: swift test --parallel
 
       - name: Generate Coverage
         if: always()

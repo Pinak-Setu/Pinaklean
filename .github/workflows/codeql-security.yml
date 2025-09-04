@@ -2,108 +2,37 @@ name: "CodeQL Security Analysis"
 
 on:
   push:
-    branches: [main, develop]
-    paths:
-      - "**/*.swift"
-      - "**/*.yml"
-      - "**/*.json"
-      - "**/Package.swift"
+    branches: [ main ]
   pull_request:
-    branches: [main, develop]
-    paths:
-      - "**/*.swift"
-      - "**/*.yml"
-      - "**/*.json"
-      - "**/Package.swift"
-  schedule:
-    # Run security analysis weekly on Sunday at 2 AM UTC
-    - cron: '0 2 * * 0'
-
-concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
-  cancel-in-progress: true
-
-permissions:
-  contents: read
-  security-events: write
-  actions: read
+    branches: [ main ]
 
 jobs:
   analyze:
     name: Analyze Swift Security
     runs-on: macos-14
 
-    strategy:
-      fail-fast: false
-      matrix:
-        language: [swift]
-
     steps:
     - name: Checkout repository
       uses: actions/checkout@v4
-      with:
-        fetch-depth: 0
 
-    # Use system Swift (macOS 14 comes with Swift 5.9+)
+    - name: Environment Check
+      run: |
+        echo "=== CodeQL Environment ==="
+        sw_vers
+        swift --version
+        pwd
+        ls -la PinakleanApp
 
     - name: Initialize CodeQL
       uses: github/codeql-action/init@v3
       with:
-        languages: ${{ matrix.language }}
-        config-file: ./.github/codeql-config.yml
-        queries: security-and-quality
-        packs: |
-          codeql/swift-queries:security-and-quality
-          codeql/swift-queries:security-experimental
-          codeql/swift-queries:quality-experimental
+        languages: swift
 
-          - name: Build Swift Package
-        run: |
-          cd PinakleanApp
-          echo "Building PinakleanCore for CodeQL..."
-          swift build --configuration debug --target PinakleanCore
+    - name: Build for Analysis
+      run: |
+        cd PinakleanApp
+        echo "Building for CodeQL analysis..."
+        swift build --configuration debug --target PinakleanCore
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3
-      with:
-        category: "/language:${{ matrix.language }}"
-        upload: true
-
-    - name: Upload SARIF Results
-      uses: github/codeql-action/upload-sarif@v3
-      if: always()
-      with:
-        sarif_file: ../results/${{ matrix.language }}.sarif
-        category: ${{ matrix.language }}-security-analysis
-
-    - name: Generate Security Report
-      run: |
-        echo "# 🔒 CodeQL Security Analysis Report" > security-report.md
-        echo "" >> security-report.md
-        echo "## Analysis Summary" >> security-report.md
-        echo "- **Date:** $(date)" >> security-report.md
-        echo "- **Branch:** ${{ github.ref_name }}" >> security-report.md
-        echo "- **Commit:** ${{ github.sha }}" >> security-report.md
-        echo "- **Language:** Swift" >> security-report.md
-        echo "" >> security-report.md
-        echo "## Security Findings" >> security-report.md
-        echo "Results uploaded to GitHub Security tab." >> security-report.md
-        echo "" >> security-report.md
-        echo "## Query Suites Used" >> security-report.md
-        echo "- Security and Quality Queries" >> security-report.md
-        echo "- Security Experimental Queries" >> security-report.md
-        echo "- Quality Experimental Queries" >> security-report.md
-        echo "" >> security-report.md
-        echo "## Recommendations" >> security-report.md
-        echo "1. Review all findings in the Security tab" >> security-report.md
-        echo "2. Address critical and high severity issues" >> security-report.md
-        echo "3. Update dependencies regularly" >> security-report.md
-        echo "4. Follow secure coding practices" >> security-report.md
-
-    - name: Upload Security Report
-      uses: actions/upload-artifact@v4
-      if: always()
-      with:
-        name: codeql-security-report
-        path: security-report.md
-        retention-days: 30

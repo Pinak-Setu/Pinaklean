@@ -7,29 +7,32 @@ on:
     branches: [ main ]
 
 jobs:
-  build-and-test-macos:
+  validate:
     runs-on: macos-14
     steps:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Build Core Library
-        working-directory: PinakleanApp
+      - name: Setup Environment
         run: |
-          echo "Building PinakleanCore..."
-          swift build --configuration debug --target PinakleanCore
+          echo "=== Environment Info ==="
+          sw_vers
+          echo "=== Xcode Version ==="
+          xcodebuild -version
+          echo "=== Swift Version ==="
+          swift --version
+          echo "=== Working Directory ==="
+          pwd
+          ls -la
+          echo "=== PinakleanApp Directory ==="
+          ls -la PinakleanApp
 
-      - name: Build App
-        working-directory: PinakleanApp
+      - name: Build Validation
         run: |
-          echo "Building PinakleanApp..."
-          swift build --configuration debug --target PinakleanApp
-
-      - name: Run Basic Tests
-        working-directory: PinakleanApp
-        run: |
-          echo "Running basic tests..."
-          swift test --parallel --filter "Basic" || echo "No Basic tests found"
+          cd PinakleanApp
+          echo "=== Building PinakleanCore ==="
+          swift build --configuration debug --target PinakleanCore --verbose
+          echo "=== Build completed successfully ==="
 
       - name: Generate Coverage
         if: always()

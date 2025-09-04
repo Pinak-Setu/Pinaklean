@@ -1,4 +1,5 @@
 
+import PinakleanCore
 import SwiftUI
 
 /// The view for initiating and monitoring file system scans.

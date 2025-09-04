@@ -1,4 +1,5 @@
 
+import PinakleanCore
 import SwiftUI
 
 /// A view that allows users to select which categories to include in a scan.

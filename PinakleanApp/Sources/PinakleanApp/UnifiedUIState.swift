@@ -516,56 +516,7 @@ final class UnifiedUIState: ObservableObject {
 
 // MARK: - Supporting Types
 
-/// Application tabs
-enum AppTab: CaseIterable, Identifiable {
-    case dashboard
-    case scan
-    case recommendations
-    case clean
-    case settings
-    case analytics
 
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .dashboard: return "Dashboard"
-        case .scan: return "Scan"
-        case .recommendations: return "Recommendations"
-        case .clean: return "Clean"
-        case .settings: return "Settings"
-        case .analytics: return "Analytics"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .dashboard: return "house.fill"
-        case .scan: return "magnifyingglass"
-        case .recommendations: return "lightbulb.fill"
-        case .clean: return "trash.fill"
-        case .settings: return "gear"
-        case .analytics: return "chart.bar"
-        }
-    }
-
-    /// Keyboard shortcut mapping for quick navigation (1..6)
-    var keyboardShortcut: Character {
-        switch self {
-        case .dashboard: return "1"
-        case .scan: return "2"
-        case .recommendations: return "3"
-        case .clean: return "4"
-        case .settings: return "5"
-        case .analytics: return "6"
-        }
-    }
-}
-
-// Override CaseIterable to expose only primary 5 tabs for the tab bar (tests expect 5)
-extension AppTab {
-    static var allCases: [AppTab] { [.dashboard, .scan, .clean, .settings, .analytics] }
-}
 
 /// Transition direction for animations
 enum TransitionDirection {

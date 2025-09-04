@@ -42,20 +42,7 @@ public struct SearchFieldModel {
     }
 }
 
-// UI-063: Branded header view with brand font and icon
-public struct BrandHeaderView: View {
-    public init() {}
-    public var body: some View {
-        HStack(spacing: 8) {
-            Image(systemName: "sparkles")
-                .foregroundColor(DesignSystem.primary)
-            Text(AppStrings.appTitle)
-                .font(DesignSystem.fontBrand)
-                .foregroundColor(DesignSystem.textPrimary)
-        }
-        .padding(.vertical, 8)
-    }
-}
+
 
 // UI-065: Hero metric tile component
 public struct HeroMetricTile<Content: View>: View {

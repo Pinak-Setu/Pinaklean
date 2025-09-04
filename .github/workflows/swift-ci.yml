@@ -13,10 +13,7 @@ jobs:
       - name: Checkout
         uses: actions/checkout@v4
 
-      - name: Set up Xcode
-        uses: maxim-lobanov/setup-xcode@v1
-        with:
-          xcode-version: latest-stable
+      # Use system Xcode (macOS 14 comes with compatible Xcode)
 
       - name: Cache SPM
         uses: actions/cache@v4

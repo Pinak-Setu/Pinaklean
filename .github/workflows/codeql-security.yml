@@ -57,11 +57,11 @@ jobs:
           codeql/swift-queries:security-experimental
           codeql/swift-queries:quality-experimental
 
-    - name: Build Swift Package
-      run: |
-        cd PinakleanApp
-        swift package resolve
-        swift build --configuration debug --target PinakleanCore
+          - name: Build Swift Package
+        run: |
+          cd PinakleanApp
+          echo "Building PinakleanCore for CodeQL..."
+          swift build --configuration debug --target PinakleanCore
 
     - name: Perform CodeQL Analysis
       uses: github/codeql-action/analyze@v3

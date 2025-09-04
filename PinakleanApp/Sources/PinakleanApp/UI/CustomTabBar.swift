@@ -24,24 +24,35 @@ struct CustomTabBar: View {
     @Binding var selectedTab: AppTab
     
     var body: some View {
-        HStack {
-            ForEach(AppTab.allCases, id: .self) { tab in
-                Button(action: { selectedTab = tab }) {
-                    VStack(spacing: 4) {
-                        Image(systemName: tab.systemImageName)
-                            .font(.title2)
-                        Text(tab.rawValue)
-                            .font(.caption)
-                    }
-                    .foregroundColor(selectedTab == tab ? .accentColor : .secondary)
-                }
-                .buttonStyle(.plain)
-                .frame(maxWidth: .infinity)
+        let tabViews = AppTab.allCases.map { tab in
+            tabButton(for: tab)
+        }
+
+        return HStack {
+            ForEach(Array(zip(tabViews.indices, tabViews)), id: \.0) { index, tabView in
+                tabView
             }
         }
         .padding()
         .background(.ultraThinMaterial)
         .cornerRadius(20)
         .padding(.horizontal)
+    }
+
+    private func tabButton(for tab: AppTab) -> some View {
+        let isSelected = selectedTab == tab
+        let foregroundColor = isSelected ? Color.accentColor : Color.secondary
+
+        return Button(action: { selectedTab = tab }) {
+            VStack(spacing: 4) {
+                Image(systemName: tab.systemImageName)
+                    .font(.title2)
+                Text(tab.rawValue)
+                    .font(.caption)
+            }
+            .foregroundColor(foregroundColor)
+        }
+        .buttonStyle(.plain)
+        .frame(maxWidth: .infinity)
     }
 }

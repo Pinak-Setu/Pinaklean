@@ -13,7 +13,7 @@ struct SettingsView: View {
     var body: some View {
         ScrollView {
             VStack(spacing: DesignSystem.spacingLarge) {
-                FilterSegmentedControl(selection: $selection, options: TestFilter.allCases)
+                SimpleFilterSegmentedControl(selection: $selection, options: TestFilter.allCases)
                 // Cleaning Settings
                 FrostCardHeader(title: "🧹 Cleaning Options") {
                     VStack(alignment: .leading, spacing: DesignSystem.spacingMedium) {

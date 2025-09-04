@@ -1,8 +1,8 @@
 
 import SwiftUI
 
-/// A custom segmented control for filtering.
-struct FilterSegmentedControl<T: Hashable & Identifiable & RawRepresentable>: View where T.RawValue == String {
+/// A simple segmented control for filtering with RawRepresentable options.
+struct SimpleFilterSegmentedControl<T: Hashable & Identifiable & RawRepresentable>: View where T.RawValue == String {
     @Binding var selection: T
     let options: [T]
     

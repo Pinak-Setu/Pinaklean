@@ -431,7 +431,7 @@ extension DesignSystem {
     static func setRTLOutputOverride(_ value: Bool?) { rtlOverride = value }
     static func isRightToLeft() -> Bool {
         if let override = rtlOverride { return override }
-        let lang = Locale.current.languageCode ?? "en"
+        let lang = Locale.current.language.languageCode?.identifier ?? "en"
         return Locale.Language(identifier: lang).characterDirection == .rightToLeft
     }
     static func mirroredSystemImageName(_ name: String) -> String {

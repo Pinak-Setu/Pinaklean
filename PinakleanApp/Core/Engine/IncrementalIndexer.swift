@@ -46,7 +46,7 @@ public actor IncrementalIndexer {
         }
     }
 
-    public struct ChangeFlags: OptionSet, Codable {
+    public struct ChangeFlags: OptionSet, Codable, Hashable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -123,7 +123,7 @@ public actor IncrementalIndexer {
         // Load existing index
         await loadIndexState()
 
-        logger.info("IncrementalIndexer initialized with \(fileIndex.count) cached entries")
+        logger.info("IncrementalIndexer initialized with \(self.fileIndex.count) cached entries")
     }
 
     // MARK: - Public API
@@ -391,7 +391,7 @@ public actor IncrementalIndexer {
             statistics.totalFiles = fileIndex.count
             statistics.totalSize = fileIndex.values.reduce(0) { $0 + $1.size }
 
-            logger.info("Loaded index with \(fileIndex.count) entries")
+            logger.info("Loaded index with \(self.fileIndex.count) entries")
 
         } catch {
             logger.error("Failed to load index state: \(error)")
@@ -410,7 +410,7 @@ public actor IncrementalIndexer {
             let bloomData = try bloomFilter.toData()
             try bloomData.write(to: bloomFilterFileURL, options: .atomic)
 
-            logger.debug("Index state saved: \(fileIndex.count) entries")
+            logger.debug("Index state saved: \(self.fileIndex.count) entries")
 
         } catch {
             logger.error("Failed to save index state: \(error)")
@@ -421,7 +421,7 @@ public actor IncrementalIndexer {
         indexQueue.asyncAfter(deadline: .now() + indexSaveInterval) { [weak self] in
             Task {
                 await self?.saveIndexState()
-                self?.scheduleIndexSave() // Reschedule
+                await self?.scheduleIndexSave() // Reschedule
             }
         }
     }
@@ -463,7 +463,7 @@ private func fsEventCallback(
             }
 
             // Queue change for processing
-            indexer.queuePathChange(path, flags: changeFlags)
+            await indexer.queuePathChange(path, flags: changeFlags)
         }
     }
 }

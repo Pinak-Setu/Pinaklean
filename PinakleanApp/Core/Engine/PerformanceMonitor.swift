@@ -297,7 +297,7 @@ public actor PerformanceMonitor: ObservableObject {
     
     private func getUptime() -> TimeInterval {
         // Simplified uptime calculation
-        return Date().timeIntervalSince(ProcessInfo.processInfo.systemUptime)
+        return ProcessInfo.processInfo.systemUptime
     }
     
     private func getVersion() -> String {

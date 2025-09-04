@@ -9,8 +9,8 @@ public struct IncrementalBackupManager {
         return current
     }
 
-    public func createIncrementalBackup(changes: [BackupFileChange]) throws -> CloudBackupManager.DiskSnapshot {
-        return CloudBackupManager.DiskSnapshot.incremental(changes: changes)
+    public func createIncrementalBackup(changes: [BackupFileChange]) throws -> DiskSnapshot {
+        return DiskSnapshot.incremental(changes: changes)
     }
 }
 

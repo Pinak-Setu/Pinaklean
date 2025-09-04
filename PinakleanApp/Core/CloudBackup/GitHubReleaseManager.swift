@@ -17,7 +17,7 @@ public class GitHubReleaseManager {
     }
 
     public func createBackupRelease(
-        snapshot: CloudBackupManager.DiskSnapshot,
+        snapshot: DiskSnapshot,
         backupData: Data
     ) async throws -> GitHubRelease {
         // Stub: in CI, we don't actually hit network. Return a fake release.

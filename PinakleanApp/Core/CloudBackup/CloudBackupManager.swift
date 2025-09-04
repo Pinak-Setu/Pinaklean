@@ -499,7 +499,7 @@ public actor CloudBackupManager {
         previous: BackupResult?
     ) async throws -> [BackupFileChange] {
         // Use the new IncrementalBackupManager for delta calculation
-        let incrementalManager = IncrementalBackupManager()
+        _ = IncrementalBackupManager()
         
         // For now, return empty array as we need previous file metadata
         // In a full implementation, we would load previous file metadata from backup registry

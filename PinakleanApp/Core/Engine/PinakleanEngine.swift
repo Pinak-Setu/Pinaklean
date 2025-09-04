@@ -477,8 +477,11 @@ public class PinakleanEngine: ObservableObject {
 
         // Find duplicates
         do {
-            let duplicates = try await smartDetector.findDuplicates(in: results.items)
-            enhancedResults.duplicates = duplicates
+            let smartDuplicates = try await smartDetector.findDuplicates(in: results.items)
+            // Convert SmartDetector.DuplicateGroup to PinakleanEngine.DuplicateGroup
+            enhancedResults.duplicates = smartDuplicates.map { smartGroup in
+                DuplicateGroup(checksum: smartGroup.checksum, items: smartGroup.items)
+            }
         } catch {
             logger.warning("ML duplicate detection failed: \(error)")
             // Fallback: no duplicates detected

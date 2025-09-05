@@ -13,15 +13,11 @@ jobs:
     steps:
     - name: Checkout
       uses: actions/checkout@v4
-      
-    - name: Setup Swift
-      uses: swift-actions/setup-swift@v1
-      with:
-        swift-version: '5.9'
         
     - name: Swift Build Validation
       run: |
         cd PinakleanApp
+        swift --version
         swift build --configuration release
         echo "✅ Swift build successful"
         

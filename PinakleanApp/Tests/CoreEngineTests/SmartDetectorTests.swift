@@ -304,3 +304,4 @@ extension SmartDetectorTests {
         XCTAssertGreaterThan(analysis.combinedScore, 0)
     }
 }
+

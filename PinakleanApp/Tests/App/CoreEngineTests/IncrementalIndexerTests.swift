@@ -356,3 +356,4 @@ final class IncrementalIndexerTests: XCTestCase {
         XCTAssertFalse(await indexer.isPathIndexed("/nonexistent/path"))
     }
 }
+

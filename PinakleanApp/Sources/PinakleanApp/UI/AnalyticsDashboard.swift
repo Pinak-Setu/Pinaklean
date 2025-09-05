@@ -109,14 +109,13 @@ struct AnalyticsDashboard: View {
                 }
                 .padding(.horizontal)
 
-                // Experimental Charts Section
-                if Self.isChartsEnabled(state: uiState) {
+                // Experimental Charts Section - Temporarily disabled
+                if false { // Self.isChartsEnabled(state: uiState) {
                     FrostCardHeader(title: "Experimental Visualizations") {
                         VStack {
-                            SunburstChart()
-                                .frame(height: 300)
-                            SankeyDiagram()
-                                .frame(height: 300)
+                            Text("Charts will be implemented in future updates")
+                                .font(DesignSystem.fontBody)
+                                .foregroundColor(DesignSystem.textSecondary)
                         }
                     }
                 }

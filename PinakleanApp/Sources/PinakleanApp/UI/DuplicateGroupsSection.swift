@@ -15,13 +15,13 @@ struct DuplicateGroupsSection: View {
                     .foregroundColor(.secondary)
                     .padding()
             } else {
-                ForEach(duplicateGroups) { group in
+                ForEach(duplicateGroups, id: \.id) { group in
                     VStack(alignment: .leading) {
-                        Text("Group: \(group.checksum)")
+                        Text("Group: \(group.duplicates.count) files")
                             .font(.subheadline)
                             .fontWeight(.bold)
                         
-                        ForEach(group.items) { item in
+                        ForEach(group.duplicates) { item in
                             Text(item.path)
                                 .font(.caption)
                         }

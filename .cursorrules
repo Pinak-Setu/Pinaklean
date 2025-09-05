@@ -19,9 +19,10 @@
   ],
   "disallowFiles": ["/archive/**", "node_modules/**", "build/**", "dist/**", ".next/**"],
   "rules": [
+    {"title":"Zero Tolerance Quality","content":"ABSOLUTELY NO COMPROMISES on quality standards. Code must compile, tests must pass, coverage must be >=95% lines >=70% branches. Any quality compromise is unacceptable and must be fixed immediately.","severity":"error"},
     {"title":"Scope Lock","content":"Extract acceptance criteria and create a living checklist. Implement ONLY listed items. Refuse drift.","severity":"error"},
     {"title":"Atomic Tasks","content":"Each change 1–4h. One concern per PR (theme/test/button/naming/alignment/animation). No bundling.","severity":"error"},
-    {"title":"TDD Red->Green->Refactor","content":"Write failing tests first (unit/integration/acceptance), minimal code to pass, then refactor. Coverage: lines >= 85%, branches >= 70%.","severity":"error"},
+    {"title":"TDD Red->Green->Refactor","content":"Write failing tests first (unit/integration/acceptance), minimal code to pass, then refactor. Coverage: lines >= 95%, branches >= 70%. ZERO TOLERANCE - never accept lower coverage.","severity":"error"},
     {"title":"CI Gates","content":"lint, typecheck, unit, integration, e2e/smoke, perf (Lighthouse/k6), a11y (axe/pa11y), SAST/DAST/secrets/SCA, SBOM/licenses, contract (PACT), IaC (OPA/Conftest).","severity":"error"},
     {"title":"Shift-Left Security","content":"No secrets. Param queries. Validate I/O. AuthN/AuthZ. CSP/SSRF guards. Fail on high/critical vulns.","severity":"error"},
     {"title":"Privacy","content":"Minimize PII; data map; export/delete tests (GDPR/DPDP).","severity":"error"},
@@ -37,12 +38,18 @@
   "patterns": [
     {"trigger":"create feature","instruction":"1) Checklist. 2) Failing tests. 3) Minimal code to green. 4) Refactor + self-review (security/a11y/perf/observability). 5) PR with diff, tests, reports, docs, flag."},
     {"trigger":"add endpoint","instruction":"Include validation, AuthZ, param queries, logs/trace, metrics, /health, contract tests (PACT), k6 script, OpenAPI update."},
-    {"trigger":"ui change","instruction":"Add a11y labels/contrast/keyboard nav; e2e click test; Lighthouse; snapshots; guard behind flag if risky."}
+    {"trigger":"ui change","instruction":"Add a11y labels/contrast/keyboard nav; e2e click test; Lighthouse; snapshots; guard behind flag if risky."},
+    {"trigger":"emergency quality fix","instruction":"1) IMMEDIATE: Stop all other work. 2) Fix ALL compilation errors. 3) Restore build capability. 4) Run ALL tests. 5) Verify coverage >=95% lines >=70% branches. 6) CI must be GREEN. 7) Document recovery process."}
   ],
   "forbidden": [
     "Committing secrets",
     "Bypassing tests or CI gates",
     "Bundling unrelated changes",
-    "Deleting files outside /archive"
+    "Deleting files outside /archive",
+    "Any quality compromises (compilation errors, failing tests, coverage drops)",
+    "Pushing code that doesn't compile",
+    "Merging without full test coverage (>=95% lines, >=70% branches)",
+    "Ignoring compilation errors or warnings",
+    "Skipping test execution due to compilation issues"
   ]
 }

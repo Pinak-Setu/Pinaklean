@@ -14,7 +14,7 @@ struct ScanCategorySection: View {
                 .font(.headline)
             
             LazyVGrid(columns: columns, spacing: 10) {
-                ForEach(PinakleanEngine.ScanCategories.allCases, id: \.self) { category in
+                ForEach(PinakleanEngine.ScanCategories.allCases, id: \.rawValue) { category in
                     Button(action: { toggleSelection(for: category) }) {
                         Text(category.name)
                             .font(.subheadline)

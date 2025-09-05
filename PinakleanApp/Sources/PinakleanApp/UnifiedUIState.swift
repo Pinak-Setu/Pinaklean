@@ -665,7 +665,8 @@ enum SafetyLevel: Int {
 }
 
 /// Duplicate file group data structure
-struct DuplicateGroup {
+struct DuplicateGroup: Identifiable {
+    var id = UUID()
     var duplicates: [CleanableItem]
     var wastedSpace: Int64
 

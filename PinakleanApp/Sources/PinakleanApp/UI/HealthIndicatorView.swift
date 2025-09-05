@@ -16,7 +16,7 @@ public enum HealthStatus {
 
     var label: String {
         switch self {
-        case .ok: return "Healthy"
+        case .healthy: return "Healthy"
         case .connecting: return "Connecting…"
         case .down: return "Unavailable"
         }
@@ -41,7 +41,7 @@ public struct HealthIndicatorView: View {
             Text(status.label)
                 .font(DesignSystem.fontCaption)
                 .foregroundColor(DesignSystem.textSecondary)
-            if status != .ok {
+            if status != .healthy {
                 Button("Retry") { onRetry() }
                     .font(DesignSystem.fontCaption)
                     .buttonStyle(.borderedProminent)

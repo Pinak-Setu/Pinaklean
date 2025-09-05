@@ -16,15 +16,17 @@ struct MainShellView: View {
                 Group {
                     switch selectedTab {
                     case .dashboard:
-                        DashboardView()
+                        AnyView(DashboardView())
                     case .scan:
-                        ScanView()
+                        AnyView(ScanView())
+                    case .recommendations:
+                        AnyView(RecommendationsView())
                     case .clean:
-                        CleanView()
+                        AnyView(CleanView())
                     case .settings:
-                        SettingsView()
+                        AnyView(SettingsView())
                     case .analytics:
-                        AnalyticsDashboard()
+                        AnyView(AnalyticsDashboard())
                     }
                 }
                 .frame(maxWidth: .infinity, maxHeight: .infinity)

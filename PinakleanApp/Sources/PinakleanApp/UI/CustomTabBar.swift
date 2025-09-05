@@ -4,6 +4,7 @@ import SwiftUI
 enum AppTab: String, CaseIterable {
     case dashboard = "Dashboard"
     case scan = "Scan"
+    case recommendations = "Recommendations"
     case clean = "Clean"
     case settings = "Settings"
     case analytics = "Analytics"
@@ -12,9 +13,21 @@ enum AppTab: String, CaseIterable {
         switch self {
         case .dashboard: return "chart.pie.fill"
         case .scan: return "magnifyingglass"
+        case .recommendations: return "lightbulb.fill"
         case .clean: return "sparkles"
         case .settings: return "gearshape.fill"
         case .analytics: return "chart.bar.xaxis"
+        }
+    }
+
+    var keyboardShortcut: Character {
+        switch self {
+        case .dashboard: return "1"
+        case .scan: return "2"
+        case .recommendations: return "3"
+        case .clean: return "4"
+        case .settings: return "5"
+        case .analytics: return "6"
         }
     }
 }

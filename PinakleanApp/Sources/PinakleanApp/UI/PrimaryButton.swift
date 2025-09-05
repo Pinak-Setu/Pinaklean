@@ -73,3 +73,38 @@ public struct HeroMetricTile<Content: View>: View {
     }
 }
 
+// UI-066: Primary button component
+public struct PrimaryButton: View {
+    let title: String
+    let isLoading: Bool
+    let action: () -> Void
+
+    public init(title: String, isLoading: Bool = false, action: @escaping () -> Void) {
+        self.title = title
+        self.isLoading = isLoading
+        self.action = action
+    }
+
+    public var body: some View {
+        Button(action: action) {
+            HStack {
+                if isLoading {
+                    ProgressView()
+                        .scaleEffect(0.8)
+                }
+                Text(title)
+                    .font(DesignSystem.fontBody)
+                    .fontWeight(.semibold)
+            }
+            .foregroundColor(.white)
+            .padding(.horizontal, 20)
+            .padding(.vertical, 12)
+            .background(DesignSystem.primary)
+            .cornerRadius(8)
+            .opacity(isLoading ? 0.7 : 1.0)
+        }
+        .buttonStyle(PlainButtonStyle())
+        .disabled(isLoading)
+    }
+}
+

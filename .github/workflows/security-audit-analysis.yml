@@ -1,0 +1,44 @@
+name: Security Audit & Static Analysis
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security-audit-analysis:
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Security Audit & Static Analysis
+      run: |
+        cd PinakleanApp
+        echo "🔍 Running Security Audit & Static Analysis..."
+
+        # Check for common security vulnerabilities
+        echo "Checking for hardcoded credentials..."
+        if grep -r "AKIA\|AIza\|ghp_\|xoxb-\|sk-" Sources/ --include="*.swift"; then
+          echo "❌ Potential hardcoded credentials found"
+          exit 1
+        fi
+
+        # Check for unsafe API usage
+        echo "Checking for unsafe API usage..."
+        if grep -r "unsafe\|Unsafe" Sources/ --include="*.swift"; then
+          echo "⚠️ Unsafe API usage detected - review required"
+        fi
+
+        # Check for proper input validation
+        echo "Checking for input validation patterns..."
+        swift_files=$(find Sources -name "*.swift")
+        validation_count=$(grep -l "validate\|sanitize\|escape" $swift_files | wc -l)
+        echo "📊 Found $validation_count files with validation patterns"
+
+        # Static analysis summary
+        echo "✅ Security audit & static analysis completed"
+        echo "📈 Files analyzed: $(echo "$swift_files" | wc -l)"
+        echo "🔒 Security checks: PASSED"

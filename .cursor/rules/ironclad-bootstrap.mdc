@@ -591,6 +591,32 @@ apply: |
   - **Scripts**: `scripts/enforce-coverage.js`, `scripts/assert-k6-p95.js`
   - **PR template**: `.github/pull_request_template.md`
 
+  ## Live CI Monitoring & Testing Protocol
+
+  **MANDATORY REQUIREMENT:** Always live monitor CI pipeline and test live on terminal.
+
+  ### Continuous Monitoring Rules:
+  1. **Real-time Status Tracking**: Monitor CI workflows continuously with live terminal updates
+  2. **Immediate Issue Resolution**: Fix any failing workflows immediately with live debugging
+  3. **Zero Tolerance for Failures**: Never allow failed workflows - fix until green
+  4. **Live Progress Updates**: Provide real-time status updates every workflow completion
+  5. **Terminal-first Debugging**: Use terminal commands for all CI debugging and fixes
+  6. **Completion Confirmation**: Only proceed when ALL workflows are confirmed green
+
+  ### Terminal Testing Protocol:
+  - `make ci/status` - Real-time CI status monitoring
+  - `swift build` - Live build testing
+  - `swift test` - Live test execution
+  - Background monitoring loops for continuous status
+  - Immediate error detection and resolution
+
+  ### Success Criteria:
+  - ✅ All workflows green (success/completed)
+  - ✅ Zero failed workflows
+  - ✅ Live confirmation in terminal
+  - ✅ Real-time progress tracking
+  - ✅ Immediate issue resolution
+
   ## Quick Start
   1. Mark CI jobs as **required** in branch protection.
   2. Use **feature flags** and **canary** for risky changes.

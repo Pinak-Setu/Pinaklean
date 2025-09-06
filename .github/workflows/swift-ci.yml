@@ -59,3 +59,53 @@ jobs:
           name: coverage-macos
           path: PinakleanApp/coverage
 
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: |
+          cd PinakleanApp
+          swiftlint --strict --reporter github-actions-logging
+
+      - name: Run Tests with Coverage
+        working-directory: PinakleanApp
+        run: |
+          swift test --enable-code-coverage --parallel
+          xcrun llvm-cov report             .build/debug/PinakleanCorePackageTests.xctest/Contents/MacOS/PinakleanCorePackageTests             -instr-profile .build/debug/codecov/default.profdata             -ignore-filename-regex=".build|Tests" > coverage/lcov.info || true
+
+      - name: Validate Coverage Thresholds
+        working-directory: PinakleanApp
+        run: |
+          if [ -f coverage/lcov.info ]; then
+            COVERAGE=
+            if ((  )); then
+              echo "Coverage % is below 95% threshold"
+              exit 1
+            fi
+            echo "Coverage: % ✅"
+          else
+            echo "Coverage file not found"
+            exit 1
+          fi
+
+      - name: Install SwiftLint
+        run: brew install swiftlint
+
+      - name: Run SwiftLint
+        run: |
+          cd PinakleanApp
+          swiftlint --strict --reporter github-actions-logging
+
+      - name: Run Tests with Coverage
+        working-directory: PinakleanApp
+        run: swift test --enable-code-coverage --parallel
+
+      - name: Validate Test Results
+        working-directory: PinakleanApp
+        run: |
+          if [ $? -ne 0 ]; then
+            echo "Tests failed"
+            exit 1
+          fi
+          echo "All tests passed ✅"

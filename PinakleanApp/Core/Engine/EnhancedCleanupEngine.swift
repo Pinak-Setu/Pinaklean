@@ -68,41 +68,25 @@ public class EnhancedCleanupEngine {
             for command in sw.cleanupCommands {
                 let startTime = Date()
                 
-                do {
-                    let result = try await executeCommand(command, for: sw.name)
-                    let duration = Date().timeIntervalSince(startTime)
-                    
-                    let operationResult = CleanupOperationResult(
-                        softwareName: sw.name,
-                        operationType: .nativeCommand,
-                        success: result.success,
-                        spaceFreed: estimateSpaceFreed(from: command),
-                        filesProcessed: 0, // Native commands don't report file count
-                        duration: duration,
-                        details: result.output
-                    )
-                    
-                    results.append(operationResult)
-                    
-                    if result.success {
-                        logger.info("✅ \(sw.name): \(command.description) - SUCCESS")
-                    } else {
-                        logger.warning("❌ \(sw.name): \(command.description) - FAILED: \(result.output)")
-                    }
-                } catch {
-                    let duration = Date().timeIntervalSince(startTime)
-                    let operationResult = CleanupOperationResult(
-                        softwareName: sw.name,
-                        operationType: .nativeCommand,
-                        success: false,
-                        spaceFreed: 0,
-                        filesProcessed: 0,
-                        duration: duration,
-                        details: error.localizedDescription
-                    )
-                    
-                    results.append(operationResult)
-                    logger.error("❌ \(sw.name): \(command.description) - ERROR: \(error)")
+                let result = await executeCommand(command, for: sw.name)
+                let duration = Date().timeIntervalSince(startTime)
+                
+                let operationResult = CleanupOperationResult(
+                    softwareName: sw.name,
+                    operationType: .nativeCommand,
+                    success: result.success,
+                    spaceFreed: estimateSpaceFreed(from: command),
+                    filesProcessed: 0, // Native commands don't report file count
+                    duration: duration,
+                    details: result.output
+                )
+                
+                results.append(operationResult)
+                
+                if result.success {
+                    logger.info("✅ \(sw.name): \(command.description) - SUCCESS")
+                } else {
+                    logger.warning("❌ \(sw.name): \(command.description) - FAILED: \(result.output)")
                 }
             }
         }

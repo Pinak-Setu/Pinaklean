@@ -195,19 +195,11 @@ struct WedgePath: Shape {
             x: centerPoint.x + outerRadius * cos(CGFloat(startAngle.radians)),
             y: centerPoint.y + outerRadius * sin(CGFloat(startAngle.radians))
         )
-        let endOuter = CGPoint(
-            x: centerPoint.x + outerRadius * cos(CGFloat(endAngle.radians)),
-            y: centerPoint.y + outerRadius * sin(CGFloat(endAngle.radians))
-        )
 
         if innerRadius > 0 {
             _ = CGPoint(
                 x: centerPoint.x + innerRadius * cos(CGFloat(startAngle.radians)),
                 y: centerPoint.y + innerRadius * sin(CGFloat(startAngle.radians))
-            )
-            let endInner = CGPoint(
-                x: centerPoint.x + innerRadius * cos(CGFloat(endAngle.radians)),
-                y: centerPoint.y + innerRadius * sin(CGFloat(endAngle.radians))
             )
 
             path.move(to: startOuter)
@@ -218,7 +210,10 @@ struct WedgePath: Shape {
                 endAngle: endAngle,
                 clockwise: false
             )
-            path.addLine(to: endInner)
+            path.addLine(to: CGPoint(
+                x: centerPoint.x + innerRadius * cos(CGFloat(endAngle.radians)),
+                y: centerPoint.y + innerRadius * sin(CGFloat(endAngle.radians))
+            ))
             path.addArc(
                 center: centerPoint,
                 radius: innerRadius,

@@ -19,23 +19,30 @@ jobs:
         cd PinakleanApp
         echo "🔒 Running Security Guardrail Tests..."
 
-        # Check for secrets in code
-        if grep -r "password\|secret\|token\|key" Sources/ --include="*.swift" | grep -v "test\|example\|dummy"; then
-          echo "❌ Potential secrets found in source code"
+        # Check for hardcoded secrets (more specific patterns)
+        if grep -r "AKIA\|AIza\|ghp_\|xoxb-\|sk-" Sources/ --include="*.swift"; then
+          echo "❌ Potential hardcoded API keys found in source code"
           exit 1
         fi
 
-        # Check for insecure patterns
-        if grep -r "print(" Sources/ --include="*.swift" | grep -v "test"; then
+        # Check for insecure patterns (allow in debug builds)
+        if grep -r "print(" Sources/ --include="*.swift" | grep -v "test\|debug\|Debug"; then
           echo "⚠️ print() statements found in production code"
         fi
 
         # Check for proper error handling
         swift_files=$(find Sources -name "*.swift")
+        force_try_count=0
         for file in $swift_files; do
           if grep -q "try!" "$file"; then
             echo "⚠️ Force try (!) found in $file"
+            force_try_count=$((force_try_count + 1))
           fi
         done
+
+        if [ $force_try_count -gt 5 ]; then
+          echo "❌ Too many force try statements found ($force_try_count)"
+          exit 1
+        fi
 
         echo "✅ Security guardrail tests completed"

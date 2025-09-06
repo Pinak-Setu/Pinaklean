@@ -115,6 +115,16 @@ Brief description of the changes
 - [ ] No security implications
 - [ ] Security review required
 - [ ] Breaking changes to security features
+
+## CI/CD and Quality Gates
+
+All pull requests are subject to a comprehensive suite of automated checks via GitHub Actions. Before your PR can be merged, the following must be true:
+
+- **All CI checks must pass.** This includes building, testing, linting, and security scans.
+- **Code coverage must meet the 95%+ threshold.**
+- **No new security vulnerabilities** can be introduced.
+
+You can monitor the status of these checks directly on your pull request page.
 ```
 
 ## 🎯 Areas for Contribution

@@ -253,3 +253,27 @@ The CLI provides powerful, scriptable access to the core engine for developers.
 
 ### Integration
 - The CLI is a lightweight wrapper that directly calls the `PinakleanCore` framework, ensuring 100% consistency with the GUI app's logic and safety.
+
+---
+
+## 9. CI/CD & DevOps Architecture
+
+The project is supported by a comprehensive, production-grade CI/CD pipeline designed for reliability and security.
+
+### Key Workflows
+- **`swift-ci.yml`**: The core build and test workflow. It handles:
+  - Building the project for macOS.
+  - Running the full suite of unit and integration tests.
+  - Generating code coverage reports.
+  - Enforcing code style with SwiftLint.
+- **`codeql-security.yml`**: Performs deep static analysis for security vulnerabilities using GitHub's CodeQL engine.
+- **`security-scan.yml`**: A multi-faceted security workflow that includes:
+  - **Secret Scanning** with `gitleaks`.
+  - **Dependency Analysis** to check for vulnerabilities in third-party packages.
+  - **Guardrail and Audit Tests** to ensure safety mechanisms are active.
+- **`sbom.yml` & `license-check.yml`**: These workflows generate a Software Bill of Materials (SBOM) and verify license compliance, ensuring the project meets enterprise standards.
+
+### Principles
+- **All Green Policy**: All checks must pass before a pull request can be merged into `main`.
+- **Automation**: The entire process, from testing to release, is fully automated to minimize human error.
+- **Transparency**: All workflow statuses are publicly visible, providing a clear picture of the project's health.

@@ -43,3 +43,14 @@ jobs:
         echo "✅ Security audit & static analysis completed"
         echo "📈 Files analyzed: $(echo "$swift_files" | wc -l)"
         echo "🔒 Security checks: PASSED"
+
+    - name: Report status (Security Audit & Static Analysis)
+      if: ${{ success() }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d '{"state":"success","context":"Security Audit & Static Analysis","description":"Static analysis passed","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

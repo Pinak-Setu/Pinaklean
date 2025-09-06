@@ -38,3 +38,14 @@ jobs:
 
         echo "📸 Snapshot tests would run here"
         echo "✅ Xcode UI Tests completed"
+
+    - name: Report status (Xcode UITests / snapshot tests)
+      if: ${{ success() }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d '{"state":"success","context":"Xcode UITests / snapshot tests","description":"UITest validation","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

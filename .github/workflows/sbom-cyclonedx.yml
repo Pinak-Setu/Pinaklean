@@ -54,3 +54,14 @@ jobs:
         EOF
 
         echo "✅ CycloneDX SBOM generated successfully"
+
+    - name: Report status (SBOM: CycloneDX)
+      if: ${{ success() }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d '{"state":"success","context":"SBOM: CycloneDX","description":"SBOM generated","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

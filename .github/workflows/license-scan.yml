@@ -5,10 +5,12 @@ on:
     branches: [ main, feature/* ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
 
 jobs:
   license-scan:
-    runs-on: macos-14
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
     - name: Checkout
@@ -16,20 +18,30 @@ jobs:
 
     - name: License Scan
       run: |
-        cd PinakleanApp
         echo "🔍 Scanning for license compliance..."
 
-        # Check for LICENSE file
-        if [ -f "../LICENSE" ]; then
+        # Check for LICENSE file at repo root
+        if [ -f "LICENSE" ]; then
           echo "✅ LICENSE file found"
         else
           echo "❌ LICENSE file missing"
           exit 1
         fi
 
-        # Check for license headers in Swift files
-        swift_files=$(find . -name "*.swift" | wc -l)
-        echo "📊 Found $swift_files Swift files"
+        # List licenses of dependencies (if package.json present)
+        if [ -f package.json ]; then
+          npx --yes license-checker --summary --production || true
+        fi
 
-        # Basic license compliance check
-        echo "✅ License scan completed successfully"
+        echo "✅ License scan completed"
+
+    - name: Report status (license-scan)
+      if: ${{ success() }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d '{"state":"success","context":"license-scan","description":"License scan passed","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

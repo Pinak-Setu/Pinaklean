@@ -218,6 +218,55 @@ enum DesignSystem {
 
     /// Caption small font style
     static let fontCaptionSmall = Font.system(size: 11, weight: .regular, design: .rounded)
+
+    /// Brand display font (fallback to serif if custom font unavailable)
+    static let fontBrand = Font.system(size: 28, weight: .bold, design: .serif)
+}
+
+// MARK: - Component Appearance Specs
+
+/// Elevation levels for FrostCard
+enum FrostCardElevation {
+    case compact
+    case standard
+    case elevated
+}
+
+/// Appearance contract for FrostCard
+struct FrostCardAppearance {
+    let cornerRadius: CGFloat
+    let shadow: Shadow
+    let borderWidth: CGFloat
+    let borderOpacity: Double
+}
+
+extension DesignSystem {
+    /// Provide appearance tokens for FrostCard by elevation level
+    static func frostCardAppearance(for elevation: FrostCardElevation) -> FrostCardAppearance {
+        switch elevation {
+        case .compact:
+            return FrostCardAppearance(
+                cornerRadius: cornerRadius,
+                shadow: shadowSoft,
+                borderWidth: borderWidthThin,
+                borderOpacity: 0.2
+            )
+        case .standard:
+            return FrostCardAppearance(
+                cornerRadius: cornerRadiusLarge,
+                shadow: shadow,
+                borderWidth: borderWidthThin,
+                borderOpacity: 0.2
+            )
+        case .elevated:
+            return FrostCardAppearance(
+                cornerRadius: cornerRadiusLarge,
+                shadow: shadowStrong,
+                borderWidth: borderWidthThin,
+                borderOpacity: 0.2
+            )
+        }
+    }
 }
 
 // MARK: - Extensions
@@ -333,5 +382,97 @@ extension DesignSystem {
 
     static func gradientWarningColors() -> [Color] {
         [warning.opacity(0.1), warning.opacity(0.05)]
+    }
+
+    /// Whether animated backgrounds are preferred (disabled if reduce motion is enabled)
+    static func isAnimatedBackgroundPreferred() -> Bool {
+        return !isReduceMotionEnabled()
+    }
+
+    /// Format large metric values with grouping separators (e.g., 1,234)
+    static func formatMetricValue(_ value: Int64) -> String {
+        let formatter = NumberFormatter()
+        formatter.numberStyle = .decimal
+        formatter.groupingSeparator = ","
+        return formatter.string(from: NSNumber(value: value)) ?? String(value)
+    }
+
+    /// Animated primary gradient token (Deep Indigo → Vibrant Cyan)
+    static func animatedPrimaryGradient() -> LinearGradient {
+        LinearGradient(
+            colors: [Color(hex: "#4F46E5"), Color(hex: "#22D3EE")],
+            startPoint: .topLeading,
+            endPoint: .bottomTrailing
+        )
+    }
+
+    // MARK: High Contrast Override & Tokens (UI-038)
+    private static var highContrastOverride: Bool?
+    static func setHighContrastOverride(_ value: Bool?) { highContrastOverride = value }
+    static func isHighContrastEnabled() -> Bool {
+        if let override = highContrastOverride { return override }
+        #if os(macOS)
+            return NSWorkspace.shared.accessibilityDisplayShouldIncreaseContrast
+        #else
+            return false
+        #endif
+    }
+    static var highContrastPrimary: Color { isHighContrastEnabled() ? .white : primary }
+
+    // MARK: Dynamic Type Scaling Helper (UI-039)
+    static func scaledFont(_ base: Font, for category: ContentSizeCategory) -> Font {
+        // For now return base; SwiftUI modifiers apply scaling at View level.
+        // This helper exists for compile-time contracts and future adjustments.
+        return base
+    }
+
+    // MARK: RTL Helpers (UI-040)
+    private static var rtlOverride: Bool?
+    static func setRTLOutputOverride(_ value: Bool?) { rtlOverride = value }
+    static func isRightToLeft() -> Bool {
+        if let override = rtlOverride { return override }
+        let lang = Locale.current.language.languageCode?.identifier ?? "en"
+        return Locale.Language(identifier: lang).characterDirection == .rightToLeft
+    }
+    static func mirroredSystemImageName(_ name: String) -> String {
+        guard isRightToLeft() else { return name }
+        if name.contains("arrow.right") { 
+            return name.replacingOccurrences(of: "arrow.right", with: "arrow.left") 
+        }
+        if name.contains("chevron.right") { 
+            return name.replacingOccurrences(of: "chevron.right", with: "chevron.left") 
+        }
+        if name.contains("arrow.left") { 
+            return name.replacingOccurrences(of: "arrow.left", with: "arrow.right") 
+        }
+        if name.contains("chevron.left") { 
+            return name.replacingOccurrences(of: "chevron.left", with: "chevron.right") 
+        }
+        return name
+    }
+
+    // MARK: Brand Font by Language (UI-041)
+    static func brandFont(forLanguage languageCode: String) -> Font {
+        if languageCode.lowercased().hasPrefix("hi") {
+            return Font.custom("Amita-Regular", size: 28)
+        }
+        return fontBrand
+    }
+}
+
+// MARK: - Window Size Breakpoints (UI-057)
+enum WindowSizeCategory {
+    case compact
+    case regular
+    case large
+}
+
+extension DesignSystem {
+    /// Categorize window width into compact/regular/large buckets
+    /// Defaults chosen for macOS windowed layouts, adjustable later if needed
+    static func windowSizeCategory(for width: CGFloat) -> WindowSizeCategory {
+        if width < 700 { return .compact }
+        if width < 1100 { return .regular }
+        return .large
     }
 }

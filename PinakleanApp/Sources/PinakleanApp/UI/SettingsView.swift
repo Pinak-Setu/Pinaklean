@@ -3,10 +3,17 @@ import SwiftUI
 /// Full settings view using the Liquid Crystal design system
 struct SettingsView: View {
     @EnvironmentObject var uiState: UnifiedUIState
+    @State private var selection: TestFilter = .one
+
+    enum TestFilter: String, CaseIterable, Identifiable {
+        case one, two, three
+        var id: String { self.rawValue }
+    }
 
     var body: some View {
         ScrollView {
             VStack(spacing: DesignSystem.spacingLarge) {
+                SimpleFilterSegmentedControl(selection: $selection, options: TestFilter.allCases)
                 // Cleaning Settings
                 FrostCardHeader(title: "🧹 Cleaning Options") {
                     VStack(alignment: .leading, spacing: DesignSystem.spacingMedium) {

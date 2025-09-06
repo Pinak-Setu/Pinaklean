@@ -1,0 +1,27 @@
+name: SBOM Generation
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  sbom:
+    runs-on: macos-14
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Generate SBOM
+      run: |
+        cd PinakleanApp
+        swift package show-dependencies --format json > dependencies.json
+        echo "SBOM generation completed"
+        
+    - name: Upload SBOM
+      uses: actions/upload-artifact@v4
+      with:
+        name: sbom-swift
+        path: PinakleanApp/dependencies.json

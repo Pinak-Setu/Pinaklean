@@ -3,6 +3,7 @@ import Compression
 import CryptoKit
 // swiftlint:disable file_length
 import Foundation
+import Logging
 
 // MARK: - Free Cloud Backup Strategy
 // 1. iCloud Drive (5GB free) - Primary
@@ -12,6 +13,7 @@ import Foundation
 
 /// Main cloud backup manager supporting multiple free providers
 public actor CloudBackupManager {
+    private let logger = Logger(label: "Pinaklean.CloudBackup")
 
     // MARK: - Free Tier Limits
     private enum CloudLimits {
@@ -344,16 +346,7 @@ public actor CloudBackupManager {
     }
 
     private static func getOrCreateEncryptionKey() -> SymmetricKey {
-        // Get from Keychain or create new
-        if let keyData = KeychainHelper.load(key: "PinakleanBackupKey") {
-            return SymmetricKey(data: keyData)
-        } else {
-            let newKey = SymmetricKey(size: .bits256)
-            KeychainHelper.save(
-                key: "PinakleanBackupKey",
-                data: newKey.withUnsafeBytes { Data($0) })
-            return newKey
-        }
+        return KeychainHelper.getOrCreateBackupEncryptionKey()
     }
 
     private func getGitHubToken() -> String? {
@@ -363,9 +356,7 @@ public actor CloudBackupManager {
         }
 
         // Check Keychain
-        if let tokenData = KeychainHelper.load(key: "GitHubToken"),
-            let token = String(data: tokenData, encoding: .utf8)
-        {
+        if let token = KeychainHelper.loadGitHubToken() {
             return token
         }
 
@@ -507,24 +498,40 @@ public actor CloudBackupManager {
         _ snapshot: DiskSnapshot,
         previous: BackupResult?
     ) async throws -> [BackupFileChange] {
-        // Implement delta calculation logic
-        // Compare current snapshot with previous backup metadata
+        // Use the new IncrementalBackupManager for delta calculation
+        _ = IncrementalBackupManager()
+        
+        // For now, return empty array as we need previous file metadata
+        // In a full implementation, we would load previous file metadata from backup registry
+        logger.info("Delta calculation requested for snapshot: \(snapshot.id)")
         return []
     }
 
     private func createIncrementalBackup(_ changes: [BackupFileChange]) async throws -> Data {
-        // Create backup containing only changes
-        return try await compressSnapshot(DiskSnapshot.incremental(changes: changes))
+        // Use the new IncrementalBackupManager for creating incremental backups
+        let incrementalManager = IncrementalBackupManager()
+        let incrementalSnapshot = try incrementalManager.createIncrementalBackup(changes: changes)
+        return try await compressSnapshot(incrementalSnapshot)
     }
 
     private func createGitHubRelease(data: Data, snapshot: DiskSnapshot) async throws
         -> BackupResult
     {
-        // Implementation for GitHub Release creation
-        // Would use gh CLI or GitHub API
+        // Use the new GitHubReleaseManager for creating releases
+        let releaseManager = GitHubReleaseManager()
+        
+        guard releaseManager.hasValidToken() else {
+            throw BackupError.githubTokenNotAvailable
+        }
+        
+        let release = try await releaseManager.createBackupRelease(
+            snapshot: snapshot,
+            backupData: data
+        )
+        
         return BackupResult(
             provider: .githubRelease,
-            location: "GitHub Release",
+            location: "https://github.com/releases/tag/\(release.tagName)",
             size: Int64(data.count),
             timestamp: Date(),
             isEncrypted: true,
@@ -604,6 +611,7 @@ public enum BackupError: LocalizedError {
     case backupNotFound(id: String)
     case verificationFailed
     case registryCorrupted
+    case githubTokenNotAvailable
 
     public var errorDescription: String? {
         switch self {
@@ -623,21 +631,14 @@ public enum BackupError: LocalizedError {
             return "Failed to verify backup"
         case .registryCorrupted:
             return "Backup registry is corrupted"
+        case .githubTokenNotAvailable:
+            return "GitHub token is not available. Please configure GitHub authentication."
         }
     }
 }
 
 // MARK: - Keychain Helper
-struct KeychainHelper {
-    static func save(key: String, data: Data) {
-        // Keychain save implementation
-    }
-
-    static func load(key: String) -> Data? {
-        // Keychain load implementation
-        return nil
-    }
-}
+// KeychainHelper is now implemented in PinakleanCore/Security/KeychainHelper.swift
 
 // MARK: - Local Storage Manager
 struct LocalStorageManager {

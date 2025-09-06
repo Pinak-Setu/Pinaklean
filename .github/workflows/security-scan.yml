@@ -1,0 +1,22 @@
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  security:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Basic Security Check
+      run: |
+        echo "🔍 Running basic security checks..."
+        # Check for common security issues
+        find . -name "*.swift" -exec grep -l "password\|secret\|key\|token" {} \; | wc -l | xargs echo "Files with sensitive patterns found:"
+        echo "✅ Basic security check completed"

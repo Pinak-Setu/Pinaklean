@@ -109,6 +109,17 @@ struct AnalyticsDashboard: View {
                 }
                 .padding(.horizontal)
 
+                // Experimental Charts Section - Temporarily disabled
+                if false { // Self.isChartsEnabled(state: uiState) {
+                    FrostCardHeader(title: "Experimental Visualizations") {
+                        VStack {
+                            Text("Charts will be implemented in future updates")
+                                .font(DesignSystem.fontBody)
+                                .foregroundColor(DesignSystem.textSecondary)
+                        }
+                    }
+                }
+
                 Spacer()
             }
             .padding(.vertical)
@@ -118,6 +129,22 @@ struct AnalyticsDashboard: View {
 
     private func formatFileSize(_ bytes: Int64) -> String {
         ByteCountFormatter.string(fromByteCount: bytes, countStyle: .file)
+    }
+}
+
+// MARK: - Layout Helpers
+extension AnalyticsDashboard {
+    static func gridColumns(for size: ScreenSize) -> Int {
+        switch size {
+        case .compact: return 1
+        case .regular: return 2
+        case .large: return 3
+        }
+    }
+
+    /// UI-043: Feature flag to enable/disable charts rendering
+    static func isChartsEnabled(state: UnifiedUIState) -> Bool {
+        state.showExperimentalCharts
     }
 }
 

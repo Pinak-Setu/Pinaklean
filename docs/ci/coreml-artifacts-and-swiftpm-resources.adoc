@@ -1,0 +1,41 @@
+= CoreML compiled artifacts and SwiftPM resources
+:doctype: article
+:toc:
+:icons: font
+
+This document describes our policy for CoreML compiled artifacts and the SwiftPM resources configuration that keeps CI stable and diffs small.
+
+== Rationale
+
+Compiled CoreML bundles (`.mlmodelc`) include generated `Info.plist` files that can change across Xcode/macOS versions. Committing these compiled artifacts causes constant diffs and CI churn.
+
+== Policy
+
+- Do not commit compiled `.mlmodelc/Contents/Info.plist` files
+- Keep source `.mlmodel` files under `Core/Resources/Models/`
+- Limit resource processing to the models directory
+
+== SwiftPM configuration
+
+The target resource list is narrowed to only process ML model resources:
+
+[source,swift]
+----
+resources: [
+    .process("Resources/Models")
+]
+----
+
+This mirrors the change in `PinakleanApp/Package.swift` and avoids bundling transient artifacts.
+
+== Impact
+
+- Smaller, cleaner diffs
+- More stable CI runs across environments
+- No loss of functionality at runtime
+
+== Migration checklist
+
+- Remove previously committed compiled `Info.plist` files under `*/Models/*`
+- Ensure source `.mlmodel` files remain in `Resources/Models`
+- Verify build: `swift build && swift test`

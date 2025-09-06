@@ -12,15 +12,15 @@ struct PinakleanCLI: AsyncParsableCommand {
         abstract: "🧹 Safe macOS cleanup toolkit for developers",
         version: "2.0.0",
         subcommands: [
-            PinakleanCLI.Scan.self,
-            PinakleanCLI.Clean.self,
-            PinakleanCLI.Auto.self,
-            PinakleanCLI.Backup.self,
-            PinakleanCLI.Restore.self,
-            PinakleanCLI.Config.self,
-            PinakleanCLI.Interactive.self,
+            Scan.self,
+            Clean.self,
+            Auto.self,
+            Backup.self,
+            Restore.self,
+            Config.self,
+            Interactive.self,
         ],
-        defaultSubcommand: PinakleanCLI.Interactive.self
+        defaultSubcommand: Interactive.self
     )
 
     // MARK: - Signal Handling Properties
@@ -103,6 +103,35 @@ struct PinakleanCLI: AsyncParsableCommand {
         }
     }
 
+    // Shared category parser for Scan and Clean
+    static func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
+        guard let input = input else { return .safe }
+        let parts = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
+        var categories = PinakleanEngine.ScanCategories()
+        for part in parts {
+            switch part.lowercased() {
+            case "caches", "cache":
+                categories.insert(.userCaches)
+                categories.insert(.appCaches)
+            case "dev", "developer":
+                categories.insert(.developerJunk)
+                categories.insert(.nodeModules)
+                categories.insert(.xcodeJunk)
+            case "trash":
+                categories.insert(.trash)
+            case "logs":
+                categories.insert(.logs)
+            case "duplicates":
+                categories.insert(.duplicates)
+            case "all":
+                return .all
+            default:
+                break
+            }
+        }
+        return categories.isEmpty ? .safe : categories
+    }
+
     // MARK: - Scan Command
     struct Scan: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -129,7 +158,9 @@ struct PinakleanCLI: AsyncParsableCommand {
 
     mutating func run() async throws {
         let spinner = PinakleanCLI.Spinner(text: "Initializing Pinaklean Engine...")
-        spinner.start()
+        if !json {
+            spinner.start()
+        }
 
         let engine = try await PinakleanEngine()
 
@@ -143,15 +174,19 @@ struct PinakleanCLI: AsyncParsableCommand {
         config.verboseLogging = verbose
         engine.configure(config)
 
-        spinner.update(text: "Scanning for cleanable files...")
+        if !json {
+            spinner.update(text: "Scanning for cleanable files...")
+        }
 
         // Parse categories
-        let scanCategories = parseCategories(categories)
+        let scanCategories = PinakleanCLI.parseCategories(categories)
 
         // Perform scan
         let results = try await engine.scan(categories: scanCategories)
 
-        spinner.stop()
+        if !json {
+            spinner.stop()
+        }
 
         // Display results
         if json {
@@ -159,37 +194,6 @@ struct PinakleanCLI: AsyncParsableCommand {
         } else {
             displayResults(results, showDuplicates: duplicates)
         }
-    }
-
-    private func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
-        guard let input = input else { return .safe }
-
-        let parts = input.split(separator: ",").map { $0.trimmingCharacters(in: .whitespaces) }
-        var categories = PinakleanEngine.ScanCategories()
-
-        for part in parts {
-            switch part.lowercased() {
-            case "caches", "cache":
-                categories.insert(.userCaches)
-                categories.insert(.appCaches)
-            case "dev", "developer":
-                categories.insert(.developerJunk)
-                categories.insert(.nodeModules)
-                categories.insert(.xcodeJunk)
-            case "trash":
-                categories.insert(.trash)
-            case "logs":
-                categories.insert(.logs)
-            case "duplicates":
-                categories.insert(.duplicates)
-            case "all":
-                return .all
-            default:
-                break
-            }
-        }
-
-        return categories.isEmpty ? .safe : categories
     }
 
     private func displayResults(_ results: ScanResults, showDuplicates: Bool) {
@@ -248,6 +252,7 @@ struct PinakleanCLI: AsyncParsableCommand {
         print(String(data: data, encoding: .utf8) ?? "{}")
     }
 }
+}
 
     // MARK: - Clean Command
     struct Clean: AsyncParsableCommand {
@@ -298,7 +303,7 @@ struct PinakleanCLI: AsyncParsableCommand {
 
         // Scan first with timeout
         print("🔍 Scanning for cleanable files...")
-        let scanCategories = parseCategories(categories)
+        let scanCategories = PinakleanCLI.parseCategories(categories)
         let scanResults: ScanResults
 
         do {
@@ -383,14 +388,6 @@ struct PinakleanCLI: AsyncParsableCommand {
         }
     }
 
-    private func parseCategories(_ input: String?) -> PinakleanEngine.ScanCategories {
-        // Reuse from Scan command
-        guard input != nil else { return .safe }
-        // ... same implementation
-        return .safe
-    }
-}
-
     // MARK: - Auto Command
     struct Auto: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -436,11 +433,10 @@ struct PinakleanCLI: AsyncParsableCommand {
         let spinner = PinakleanCLI.Spinner(text: "Analyzing your system...")
         spinner.start()
 
-        let results: ScanResults
         let recommendations: [CleaningRecommendation]
 
         do {
-            results = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
+            _ = try await PinakleanCLI.withTimeout(300.0) {  // 5 minutes
                 try await engine.scan(categories: .safe)
             }
             recommendations = try await PinakleanCLI.withTimeout(60.0) {  // 1 minute
@@ -519,8 +515,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             print("  Failed: \(cleanResults.failedItems.count) items (check permissions)")
         }
     }
-}
-
     // MARK: - Backup Command
     struct Backup: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -654,8 +648,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             )
         }
     }
-}
-
     // MARK: - Restore Command
     struct Restore: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -682,8 +674,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             throw ExitCode.failure
         }
     }
-}
-
     // MARK: - Config Command
     struct Config: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -742,8 +732,6 @@ struct PinakleanCLI: AsyncParsableCommand {
             print("Use --show to display config or --set key=value to set.")
         }
     }
-}
-
     // MARK: - Interactive Command (Default)
     struct Interactive: AsyncParsableCommand {
     static let configuration = CommandConfiguration(
@@ -835,5 +823,4 @@ struct PinakleanCLI: AsyncParsableCommand {
 
             """)
     }
-}
 }

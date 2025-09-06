@@ -1,0 +1,74 @@
+graph TB
+  A["PinakleanApp"] --> B["MainShellView"]
+  B --> BG["LiquidGlass (background)"]
+  B --> H["BrandHeaderView"]
+  B --> C{"AppTab"}
+  B --> T["CustomTabBar"]
+
+  C --> D["Dashboard"]
+  C --> S["Scan"]
+  C --> CL["Clean"]
+  C --> ST["Settings"]
+  C --> AN["Analytics"]
+
+  subgraph "Dashboard"
+    D --> AD["AnalyticsDashboard"]
+    D --> RA["RecentActivityView"]
+    D --> MT["HeroMetricTiles"]
+  end
+
+  subgraph "Scan"
+    S --> SV["ScanView"]
+    SV --> DG["DuplicateGroupsSection"]
+    SV --> SC["ScanCategorySection"]
+    SV --> PR["ProgressRing"]
+    SV --> ESB["EnhancedSafetyBadge"]
+  end
+
+  subgraph "Clean"
+    CL --> CV["CleanView"]
+    CV --> FC["FrostCard (Options)"]
+    CV --> TOG["Toggles (Dry Run, Backup)"]
+    CV --> PB["PrimaryButton"]
+  end
+
+  subgraph "Settings"
+    ST --> SE["SettingsView"]
+    SE --> TP["TogglePill"]
+    SE --> SEG["FilterSegmentedControl"]
+    SE --> NB["Notification controls"]
+  end
+
+  subgraph "Analytics"
+    AN --> AD2["AnalyticsDashboard"]
+    AD2 --> CH1["SunburstChart"]
+    AD2 --> CH2["SankeyDiagram"]
+  end
+
+  subgraph "Components"
+    FC --> CF["CompactFrostCard"]
+    FC --> EF["ElevatedFrostCard"]
+    FC --> FH["FrostCardHeader"]
+    PB -.-> DS
+    SEG -.-> DS
+    TP -.-> DS
+    AD -.-> DS
+    RA -.-> DS
+    MT -.-> DS
+    PR -.-> DS
+    ESB -.-> DS
+
+    subgraph "Feedback"
+      TBn["ToastBanner"]
+      MSG["ModalSheetGlass"]
+      ES["EmptyStateView"]
+    end
+  end
+
+  subgraph "DesignSystem"
+    DS["DesignSystem tokens"] --> Colors["Colors"]
+    DS --> Typography["Typography"]
+    DS --> Shadows["Shadows"]
+    DS --> Animations["Animations"]
+    DS --> Gradients["Gradients"]
+  end

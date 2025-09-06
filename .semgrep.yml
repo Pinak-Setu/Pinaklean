@@ -1,8 +1,52 @@
 rules:
-- id: unsafe-rm-rf
-  patterns:
-  - pattern: rm -rf
-  - pattern-not: rm -rf "$file_path"
-  message: Use quoted variable and guardrails with rm -rf.
-  languages: [bash]
-  severity: WARNING
+  # Swift Security Rules
+  - id: swift-unsafe-force-unwrap
+    patterns:
+      - pattern: $X!
+      - pattern-not: Optional($X)!
+    message: Avoid force unwrapping. Use optional binding or guard statements instead.
+    languages: [swift]
+    severity: WARNING
+
+  - id: swift-insecure-random
+    patterns:
+      - pattern: arc4random()
+      - pattern: random()
+    message: Use cryptographically secure random number generation for security-sensitive operations.
+    languages: [swift]
+    severity: ERROR
+
+  - id: swift-hardcoded-secret
+    patterns:
+      - pattern-regex: (password|secret|key|token)\s*=\s*["'][^"']*["']
+      - pattern-not-regex: (password|secret|key|token)\s*=\s*["']\{\{.*\}\}["']
+    message: Hardcoded secrets detected. Use environment variables or secure key storage.
+    languages: [swift]
+    severity: ERROR
+
+  - id: swift-unsafe-url-construction
+    patterns:
+      - pattern: URL(string: ...)
+      - pattern-not: URL(string: ..., relativeTo: ...)
+    message: URL construction can fail. Use failable initializer with proper error handling.
+    languages: [swift]
+    severity: WARNING
+
+  # Shell Script Security Rules
+  - id: unsafe-rm-rf
+    patterns:
+      - pattern: rm -rf
+      - pattern-not: rm -rf "$file_path"
+    message: Use quoted variable and guardrails with rm -rf.
+    languages: [bash]
+    severity: WARNING
+
+  - id: shell-injection
+    patterns:
+      - pattern: $(...)
+      - pattern: `...`
+      - pattern-not: $(basename ...)
+      - pattern-not: $(dirname ...)
+    message: Potential shell injection vulnerability. Validate and sanitize input.
+    languages: [bash]
+    severity: ERROR

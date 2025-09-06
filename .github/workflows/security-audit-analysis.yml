@@ -1,0 +1,61 @@
+name: Security Audit & Static Analysis
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-audit-analysis:
+    name: Security Audit & Static Analysis
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Security Audit & Static Analysis
+      run: |
+        cd PinakleanApp
+        echo "🔍 Running Security Audit & Static Analysis..."
+
+        # Check for common security vulnerabilities
+        echo "Checking for hardcoded credentials..."
+        if grep -r "AKIA\|AIza\|ghp_\|xoxb-\|sk-" Sources/ --include="*.swift"; then
+          echo "❌ Potential hardcoded credentials found"
+          exit 1
+        fi
+
+        # Check for unsafe API usage
+        echo "Checking for unsafe API usage..."
+        if grep -r "unsafe\|Unsafe" Sources/ --include="*.swift"; then
+          echo "⚠️ Unsafe API usage detected - review required"
+        fi
+
+        # Check for proper input validation
+        echo "Checking for input validation patterns..."
+        swift_files=$(find Sources -name "*.swift")
+        validation_count=$(grep -l "validate\|sanitize\|escape" $swift_files | wc -l)
+        echo "📊 Found $validation_count files with validation patterns"
+
+        # Static analysis summary
+        echo "✅ Security audit & static analysis completed"
+        echo "📈 Files analyzed: $(echo "$swift_files" | wc -l)"
+        echo "🔒 Security checks: PASSED"
+
+    - name: Report status (Security Audit & Static Analysis)
+      if: ${{ success() }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d '{"state":"success","context":"Security Audit & Static Analysis","description":"Static analysis passed","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

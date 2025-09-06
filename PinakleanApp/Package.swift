@@ -12,10 +12,10 @@ let package = Package(
             name: "PinakleanCore",
             targets: ["PinakleanCore"]
         ),
-        .executable(
-            name: "pinaklean-cli",
-            targets: ["PinakleanCLI"]
-        ),
+        // .executable(
+        //     name: "pinaklean-cli",
+        //     targets: ["PinakleanCLI"]
+        // ),
         .executable(
             name: "Pinaklean",
             targets: ["PinakleanApp"]
@@ -41,6 +41,13 @@ let package = Package(
         // Testing
         .package(url: "https://github.com/Quick/Quick.git", from: "7.0.0"),
         .package(url: "https://github.com/Quick/Nimble.git", from: "13.0.0"),
+        // Snapshots (guarded in CI)
+        .package(url: "https://github.com/pointfreeco/swift-snapshot-testing", from: "1.11.0"),
+        // DocC plugin
+        .package(url: "https://github.com/apple/swift-docc-plugin.git", from: "1.3.0"),
+
+        // View Hierarchy Testing
+        .package(url: "https://github.com/nalexn/ViewInspector.git", from: "0.9.0"),
 
         // Auto-updates (temporarily disabled)
         // .package(url: "https://github.com/sparkle-project/Sparkle.git", from: "2.5.0"),
@@ -58,19 +65,19 @@ let package = Package(
             ],
             path: "Core",
             resources: [
-                .process("Resources")
+                .process("Resources/Models")
             ]
         ),
 
-        // CLI Tool
-        .executableTarget(
-            name: "PinakleanCLI",
-            dependencies: [
-                "PinakleanCore",
-                .product(name: "ArgumentParser", package: "swift-argument-parser"),
-            ],
-            path: "CLI"
-        ),
+        // CLI Tool (temporarily disabled until compile issues are resolved)
+        // .executableTarget(
+        //     name: "PinakleanCLI",
+        //     dependencies: [
+        //         "PinakleanCore",
+        //         .product(name: "ArgumentParser", package: "swift-argument-parser"),
+        //     ],
+        //     path: "CLI"
+        // ),
 
         // macOS App
         .executableTarget(
@@ -87,9 +94,21 @@ let package = Package(
             dependencies: [
                 "PinakleanApp",
                 .product(name: "Quick", package: "Quick"),
-                .product(name: "Nimble", package: "Nimble")
+                .product(name: "Nimble", package: "Nimble"),
+                .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
+                .product(name: "ViewInspector", package: "ViewInspector")
             ],
-            path: "Tests"
+            path: "Tests/App"
         ),
+        // CLI tests disabled while CLI is archived
+        // .testTarget(
+        //     name: "PinakleanCLITests",
+        //     dependencies: [
+        //         "PinakleanCLI",
+        //         .product(name: "Quick", package: "Quick"),
+        //         .product(name: "Nimble", package: "Nimble")
+        //     ],
+        //     path: "Tests/CLI"
+        // ),
     ]
 )

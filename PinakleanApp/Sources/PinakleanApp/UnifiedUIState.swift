@@ -93,6 +93,9 @@ final class UnifiedUIState: ObservableObject {
     // Internal flags for initialization
     private var isInitializing = true
 
+    // MARK: - Locale
+    @Published var selectedLocale: String = "en"
+
     // MARK: - Initialization
 
     init() {
@@ -101,6 +104,9 @@ final class UnifiedUIState: ObservableObject {
         initializeSampleData()
         isInitializing = false
     }
+
+    // First run flag for permissions/onboarding
+    @Published var isFirstRun: Bool = true
 
     // MARK: - Public Methods
 
@@ -127,6 +133,11 @@ final class UnifiedUIState: ObservableObject {
                 self.notifications.removeFirst()
             }
         }
+    }
+
+    /// Mark first run permissions completed
+    func completeFirstRunPermissions() {
+        isFirstRun = false
     }
 
     // MARK: - Derived State
@@ -184,6 +195,23 @@ final class UnifiedUIState: ObservableObject {
 
     func clearSelection() { selectedItemIds.removeAll() }
 
+    /// Select all provided identifiers
+    func selectAll(_ ids: [UUID]) { selectedItemIds = Set(ids) }
+
+    /// Select none (alias of clearSelection)
+    func selectNone() { clearSelection() }
+
+    /// Invert selection constrained to a provided set
+    func invertSelection(in ids: [UUID]) {
+        let idSet = Set(ids)
+        var next: Set<UUID> = selectedItemIds
+        for id in idSet {
+            if next.contains(id) { next.remove(id) } else { next.insert(id) }
+        }
+        // Keep only ids within provided set
+        selectedItemIds = next.intersection(idSet)
+    }
+
     // MARK: - Settings Management
     func setDryRun(_ enabled: Bool) {
         enableDryRun = enabled
@@ -215,6 +243,11 @@ final class UnifiedUIState: ObservableObject {
                 self?.simulateScanResults()
             }
         }
+    }
+
+    /// Manual refresh for dashboard metrics timestamp
+    func refreshDashboard() {
+        lastScanDate = Date()
     }
 
     // MARK: - Clean Control
@@ -389,12 +422,21 @@ final class UnifiedUIState: ObservableObject {
         }
     }
 
-    /// Navigate to specific tab with animation
+    /// Navigate to specific tab with animation (synchronous for test determinism)
     func navigateTo(_ tab: AppTab) {
-        DispatchQueue.main.async { [weak self] in
-            withAnimation(self?.accessibleAnimation(.spring)) {
-                self?.currentTab = tab
+        if let animation = accessibleAnimation(.spring) {
+            withAnimation(animation) {
+                currentTab = tab
             }
+        } else {
+            currentTab = tab
+        }
+    }
+
+    // MARK: - Keyboard Shortcuts (UI-037)
+    func handleTabShortcut(_ key: Character) {
+        if let target = [AppTab.dashboard, .scan, .recommendations, .clean, .settings, .analytics].first(where: { $0.keyboardShortcut == key }) {
+            navigateTo(target)
         }
     }
 
@@ -412,6 +454,11 @@ final class UnifiedUIState: ObservableObject {
 
         showAdvancedFeatures = defaults.object(forKey: "showAdvancedFeatures") as? Bool ?? false
         showExperimentalCharts = defaults.object(forKey: "showExperimentalCharts") as? Bool ?? false
+    }
+
+    /// Update app locale/language code (basic string tracking for tests/UI)
+    func setLocale(_ code: String) {
+        selectedLocale = code
     }
 
     private func setupAccessibilityObservers() {
@@ -469,39 +516,7 @@ final class UnifiedUIState: ObservableObject {
 
 // MARK: - Supporting Types
 
-/// Application tabs
-enum AppTab: CaseIterable, Identifiable {
-    case dashboard
-    case scan
-    case recommendations
-    case clean
-    case settings
-    case analytics
 
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .dashboard: return "Dashboard"
-        case .scan: return "Scan"
-        case .recommendations: return "Recommendations"
-        case .clean: return "Clean"
-        case .settings: return "Settings"
-        case .analytics: return "Analytics"
-        }
-    }
-
-    var systemImage: String {
-        switch self {
-        case .dashboard: return "house.fill"
-        case .scan: return "magnifyingglass"
-        case .recommendations: return "lightbulb.fill"
-        case .clean: return "trash.fill"
-        case .settings: return "gear"
-        case .analytics: return "chart.bar"
-        }
-    }
-}
 
 /// Transition direction for animations
 enum TransitionDirection {
@@ -650,7 +665,8 @@ enum SafetyLevel: Int {
 }
 
 /// Duplicate file group data structure
-struct DuplicateGroup {
+struct DuplicateGroup: Identifiable {
+    var id = UUID()
     var duplicates: [CleanableItem]
     var wastedSpace: Int64
 

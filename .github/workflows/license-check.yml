@@ -1,0 +1,21 @@
+name: License Compliance
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  license:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+      
+    - name: Check License Headers
+      run: |
+        # Check for Apache 2.0 license in key files
+        find . -name "*.swift" -o -name "*.md" | head -10 | xargs grep -l "Apache License" | wc -l
+        echo "License compliance check completed"

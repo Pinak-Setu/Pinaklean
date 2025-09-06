@@ -1,0 +1,26 @@
+title = "gitleaks config"
+
+[[rules]]
+    id = "generic-api-key"
+    description = "Generic API key"
+    regex = '''(?i)(api[_-]?key|apikey)([\'\"]?)([a-z0-9]{32,})'''
+    
+[[rules]]
+    id = "aws-access-key"
+    description = "AWS Access Key"
+    regex = '''(AWS|aws|Aws)?_?(SECRET|secret|Secret)?_?(ACCESS|access|Access)?_?(KEY|key|Key)?\s*=\s*['\"]([A-Za-z0-9+/]{40})['\"]'''
+    
+[[rules]]
+    id = "slack-token"
+    description = "Slack token"
+    regex = '''xox[baprs]-([0-9a-zA-Z]{10,48})'''
+    
+[[rules]]
+    id = "private-key"
+    description = "Private key"
+    regex = '''-----BEGIN [A-Z ]*PRIVATE KEY-----'''
+    
+[[rules]]
+    id = "github-token"
+    description = "GitHub token"
+    regex = '''ghp_[a-zA-Z0-9]{36}'''

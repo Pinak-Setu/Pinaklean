@@ -1,0 +1,38 @@
+name: "CodeQL Security Analysis"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze:
+    name: Analyze Swift Security
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout repository
+      uses: actions/checkout@v4
+
+    - name: Environment Check
+      run: |
+        echo "=== CodeQL Environment ==="
+        sw_vers
+        swift --version
+        pwd
+        ls -la PinakleanApp
+
+    - name: Initialize CodeQL
+      uses: github/codeql-action/init@v3
+      with:
+        languages: swift
+
+    - name: Build for Analysis
+      run: |
+        cd PinakleanApp
+        echo "Building for CodeQL analysis..."
+        swift build --configuration debug --target PinakleanCore
+
+    - name: Perform CodeQL Analysis
+      uses: github/codeql-action/analyze@v3

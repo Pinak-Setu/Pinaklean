@@ -1,0 +1,65 @@
+name: Security & Guardrail Tests
+
+on:
+  push:
+    branches: [ main, feature/* ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  security-guardrail-tests:
+    name: Security & Guardrail Tests
+    runs-on: macos-14
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v4
+
+    - name: Security Guardrail Tests
+      run: |
+        cd PinakleanApp
+        echo "🔒 Running Security Guardrail Tests..."
+
+        # Check for hardcoded secrets (more specific patterns)
+        if grep -r "AKIA\|AIza\|ghp_\|xoxb-\|sk-" Sources/ --include="*.swift"; then
+          echo "❌ Potential hardcoded API keys found in source code"
+          exit 1
+        fi
+
+        # Check for insecure patterns (allow in debug builds)
+        if grep -r "print(" Sources/ --include="*.swift" | grep -v "test\|debug\|Debug"; then
+          echo "⚠️ print() statements found in production code"
+        fi
+
+        # Check for proper error handling
+        swift_files=$(find Sources -name "*.swift")
+        force_try_count=0
+        for file in $swift_files; do
+          if grep -q "try!" "$file"; then
+            echo "⚠️ Force try (!) found in $file"
+            force_try_count=$((force_try_count + 1))
+          fi
+        done
+
+        if [ $force_try_count -gt 5 ]; then
+          echo "❌ Too many force try statements found ($force_try_count)"
+          exit 1
+        fi
+
+        echo "✅ Security guardrail tests completed"
+
+    - name: Report status (Security & Guardrail Tests)
+      if: ${{ success() }}
+      env:
+        GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        curl -s -X POST \
+          -H "Authorization: Bearer $GH_TOKEN" \
+          -H "Accept: application/vnd.github+json" \
+          https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
+          -d '{"state":"success","context":"Security & Guardrail Tests","description":"Guardrails passed","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

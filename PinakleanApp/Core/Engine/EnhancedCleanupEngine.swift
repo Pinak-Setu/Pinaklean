@@ -69,7 +69,7 @@ public class EnhancedCleanupEngine {
                 let startTime = Date()
                 
                 do {
-                    let result = await executeCommand(command, for: sw.name)
+                    let result = try await executeCommand(command, for: sw.name)
                     let duration = Date().timeIntervalSince(startTime)
                     
                     let operationResult = CleanupOperationResult(

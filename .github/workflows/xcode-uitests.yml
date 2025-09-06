@@ -1,10 +1,13 @@
 name: Xcode UITests
 
 on:
-  push:
-    branches: [ main, feature/* ]
   pull_request:
     branches: [ main ]
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   xcode-uitests:

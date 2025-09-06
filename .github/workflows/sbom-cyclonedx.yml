@@ -1,4 +1,4 @@
-name: SBOM: CycloneDX
+name: sbom-cyclonedx
 
 on:
   push:
@@ -17,8 +17,9 @@ concurrency:
 
 jobs:
   sbom-cyclonedx:
-    name: SBOM: CycloneDX
-    runs-on: macos-14
+    name: sbom-cyclonedx # Match the required check name
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
 
     steps:
     - name: Checkout
@@ -64,7 +65,7 @@ jobs:
 
         echo "✅ CycloneDX SBOM generated successfully"
 
-    - name: Report status (SBOM: CycloneDX)
+    - name: Report status (sbom-cyclonedx)
       if: ${{ success() }}
       env:
         GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
@@ -73,4 +74,4 @@ jobs:
           -H "Authorization: Bearer $GH_TOKEN" \
           -H "Accept: application/vnd.github+json" \
           https://api.github.com/repos/${{ github.repository }}/statuses/${{ github.sha }} \
-          -d '{"state":"success","context":"SBOM: CycloneDX","description":"SBOM generated","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'
+          -d '{"state":"success","context":"sbom-cyclonedx","description":"SBOM generated","target_url":"'"${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"'"}'

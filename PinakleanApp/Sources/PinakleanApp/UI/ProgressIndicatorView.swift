@@ -51,7 +51,7 @@ struct ProgressIndicatorView: View {
         .onAppear {
             startAnimation()
         }
-        .onChange(of: progress) { newValue in
+        .onChange(of: progress) { oldValue, newValue in
             updateProgress(newValue)
         }
         .uiLoggedAppear("ProgressIndicatorView")

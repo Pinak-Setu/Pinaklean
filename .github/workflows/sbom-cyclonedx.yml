@@ -8,6 +8,7 @@ on:
 
 jobs:
   sbom-cyclonedx:
+    name: SBOM: CycloneDX
     runs-on: macos-14
 
     steps:

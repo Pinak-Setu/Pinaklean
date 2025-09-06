@@ -1,4 +1,4 @@
-name: Xcode UITests / snapshot tests
+name: Xcode UITests
 
 on:
   push:
@@ -8,6 +8,7 @@ on:
 
 jobs:
   xcode-uitests:
+    name: snapshot tests
     runs-on: macos-14
 
     steps:

@@ -8,6 +8,7 @@ on:
 
 jobs:
   security-guardrail-tests:
+    name: Security & Guardrail Tests
     runs-on: macos-14
 
     steps:

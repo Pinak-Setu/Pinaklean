@@ -8,6 +8,7 @@ on:
 
 jobs:
   security-audit-analysis:
+    name: Security Audit & Static Analysis
     runs-on: macos-14
 
     steps:

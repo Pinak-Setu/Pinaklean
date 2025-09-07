@@ -3,7 +3,7 @@ import os.log
 
 /// Real file system scanner that performs actual file system operations
 /// Replaces simulation with production-grade file scanning
-public class RealFileScanner {
+public actor RealFileScanner {
     private let fileManager = FileManager.default
     private let securityAuditor: SecurityAuditor
     private let parallelProcessor: ParallelProcessor

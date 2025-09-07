@@ -24,7 +24,7 @@ public actor PerformanceMonitor: ObservableObject {
     private let maxHistorySize = 1000
     
     // MARK: - SLO Definitions
-    public struct SLO {
+    public struct SLO: Sendable {
         let name: String
         let target: Double
         let measurement: String

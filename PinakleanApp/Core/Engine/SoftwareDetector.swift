@@ -2,7 +2,7 @@ import Foundation
 import os.log
 
 /// SoftwareDetector - Automatically detects installed software and their cleanup commands
-public class SoftwareDetector {
+public actor SoftwareDetector {
     private let logger = Logger(subsystem: "com.pinaklean", category: "SoftwareDetector")
     private let fileManager = FileManager.default
     
@@ -715,7 +715,7 @@ extension SoftwareDetector {
 
 // MARK: - Cleanup Result
 
-public struct CleanupResult {
+public struct CleanupResult: Sendable {
     let softwareName: String
     let command: SoftwareDetector.CleanupCommand
     let success: Bool

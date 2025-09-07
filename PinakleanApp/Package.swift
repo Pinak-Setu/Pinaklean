@@ -1,4 +1,4 @@
-// swift-tools-version: 5.9
+// swift-tools-version: 6.0
 import PackageDescription
 
 let package = Package(
@@ -23,7 +23,7 @@ let package = Package(
     ],
     dependencies: [
         // Database
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.6.1"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.0"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.14.0"),
 
         // CLI
@@ -64,8 +64,9 @@ let package = Package(
                 .product(name: "Metrics", package: "swift-metrics"),
             ],
             path: "Core",
-            exclude: ["PrivacyInfo.xcprivacy"],
-            resources: [ .process("Resources/Models") ]
+            resources: [
+                .process("Resources/Models")
+            ]
         ),
 
         // CLI Tool (temporarily disabled until compile issues are resolved)
@@ -97,8 +98,7 @@ let package = Package(
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "ViewInspector", package: "ViewInspector")
             ],
-            path: "Tests/App",
-            exclude: ["PrivacyInfo.xcprivacy"]
+            path: "Tests/App"
         ),
         // CLI tests disabled while CLI is archived
         // .testTarget(

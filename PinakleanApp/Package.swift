@@ -23,7 +23,7 @@ let package = Package(
     ],
     dependencies: [
         // Database
-        .package(url: "https://github.com/groue/GRDB.swift.git", from: "6.29.0"),
+        .package(url: "https://github.com/groue/GRDB.swift.git", from: "7.6.1"),
         .package(url: "https://github.com/stephencelis/SQLite.swift.git", from: "0.14.0"),
 
         // CLI

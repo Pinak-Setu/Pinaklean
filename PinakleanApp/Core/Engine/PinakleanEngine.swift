@@ -168,11 +168,7 @@ public class PinakleanEngine: ObservableObject {
 
             // Start incremental indexer with error handling
             Task {
-                do {
-                    await self.incrementalIndexer.startMonitoring()
-                } catch {
-                    self.logger.error("Failed to start incremental indexer: \(error)")
-                }
+                await self.incrementalIndexer.startMonitoring()
             }
         }
 

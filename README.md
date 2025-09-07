@@ -2,16 +2,16 @@
 
 > **Safe macOS cleanup toolkit for developers - Where Intelligence Meets Cleanliness**
 
-[![CI/CD Pipeline](https://github.com/Pinak-Setu/Pinaklean/actions/workflows/ci.yml/badge.svg)](https://github.com/Pinak-Setu/Pinaklean/actions/workflows/ci.yml)
+[![CI/CD Pipeline](https://github.com/Pinak-Setu/Pinaklean/actions/workflows/swift-ci.yml/badge.svg)](https://github.com/Pinak-Setu/Pinaklean/actions/workflows/swift-ci.yml)
 [![Swift Version](https://img.shields.io/badge/Swift-5.9+-orange.svg)](https://swift.org)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 [![Platform](https://img.shields.io/badge/Platform-macOS%2014+-lightgrey.svg)](https://developer.apple.com/macos/)
 [![Release](https://img.shields.io/badge/Release-v1.0.0-blue.svg)](https://github.com/Pinak-Setu/Pinaklean/releases/tag/v1.0.0)
 
-**Pinaklean** is an intelligent, safe, and comprehensive disk cleanup utility designed specifically for macOS developers. It combines advanced safety mechanisms with powerful automation to help you maintain a clean and efficient development environment.
+**Pinaklean** is an intelligent, safe, and comprehensive disk cleanup utility designed specifically for macOS developers. It combines advanced safety mechanisms with powerful automation to help you maintain a clean and efficient development environment. **The project is stable, fully tested, and production-ready.**
 
 ## 🎯 **What's New in v1.0.0**
-- ✅ **Production Ready** - Full CLI and GUI applications
+- ✅ **Production Ready** - Full CLI and GUI applications with a stable, all-green CI/CD pipeline.
 - ✅ **SwiftUI GUI** - Beautiful glassmorphic macOS-native interface
 - ✅ **Smart Detection** - ML-powered file analysis with heuristic fallbacks
 - ✅ **Parallel Processing** - High-performance concurrent operations
@@ -260,19 +260,11 @@ swift test --filter UITests
 - ✅ **Documentation Coverage** (all public APIs documented)
 
 ### CI/CD Pipeline
-```yaml
-# GitHub Actions Workflow
-on: [push, pull_request]
-jobs:
-  test:
-    runs-on: macos-14
-    steps:
-      - uses: actions/checkout@v4
-      - name: Install bats
-        run: brew install bats-core
-      - name: Run tests
-        run: bats tests
-```
+Pinaklean uses a comprehensive GitHub Actions CI/CD pipeline to ensure quality and stability. Key workflows include:
+- **`swift-ci.yml`**: Core build, test, and SwiftLint validation.
+- **`codeql-security.yml`**: Static analysis for security vulnerabilities.
+- **`coverage.yml`**: Code coverage reporting.
+- **And many more**: Including license checks, SBOM generation, and UI tests.
 
 ### Manual Testing
 ```bash

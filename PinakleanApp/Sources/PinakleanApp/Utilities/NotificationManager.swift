@@ -86,10 +86,10 @@ extension NotificationManager: UNUserNotificationCenterDelegate {
 }
 
 public struct SystemNotificationPayload: Identifiable, Codable {
-    public let id = UUID()
+    public var id = UUID()
     public let title: String
     public let message: String
-    public let timestamp = Date()
+    public var timestamp = Date()
     public let type: NotificationType
     public let actionURL: String?
     

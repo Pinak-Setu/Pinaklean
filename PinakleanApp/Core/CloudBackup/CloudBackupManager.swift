@@ -31,7 +31,7 @@ public actor CloudBackupManager {
     private let localStorage = LocalStorageManager()
 
     // MARK: - Cloud Providers
-    public enum CloudProvider: String, CaseIterable {
+    public enum CloudProvider: String, CaseIterable, Sendable {
         case iCloudDrive = "iCloud Drive"
         case githubGist = "GitHub Gist"  // For small metadata (up to 100MB)
         case githubRelease = "GitHub Release"  // For larger backups
@@ -541,7 +541,7 @@ public actor CloudBackupManager {
 }
 
 // MARK: - Supporting Types
-public struct BackupResult {
+public struct BackupResult: Sendable {
     public let provider: CloudBackupManager.CloudProvider
     public let location: String
     public let size: Int64
@@ -559,7 +559,7 @@ public struct BackupResult {
     )
 }
 
-public struct DiskSnapshot: Codable {
+public struct DiskSnapshot: Codable, Sendable {
     public let id: UUID
     public let timestamp: Date
     public let totalSize: Int64
@@ -591,7 +591,7 @@ public struct DiskSnapshot: Codable {
     }
 }
 
-public struct BackupFileChange: Codable {
+public struct BackupFileChange: Codable, Sendable {
     let path: String
     let changeType: ChangeType
     let sizeDelta: Int64

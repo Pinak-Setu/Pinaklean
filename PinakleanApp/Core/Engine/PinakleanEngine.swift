@@ -4,17 +4,17 @@ import os.log
 
 /// Core Pinaklean Engine - Unified cleaning engine for both CLI and GUI
 /// This is the heart of Pinaklean, providing all cleaning operations
-public class PinakleanEngine: ObservableObject {
+public actor PinakleanEngine: ObservableObject {
 
     // MARK: - Published Properties
-    @Published public var isScanning = false
-    @Published public var isCleaning = false
-    @Published public var scanProgress: Double = 0
-    @Published public var cleanProgress: Double = 0
-    @Published public var currentOperation = ""
-    @Published public var lastError: Error?
-    @Published public var scanResults: ScanResults?
-    @Published public var cleanResults: CleanResults?
+    @MainActor @Published public var isScanning = false
+    @MainActor @Published public var isCleaning = false
+    @MainActor @Published public var scanProgress: Double = 0
+    @MainActor @Published public var cleanProgress: Double = 0
+    @MainActor @Published public var currentOperation = ""
+    @MainActor @Published public var lastError: Error?
+    @MainActor @Published public var scanResults: ScanResults?
+    @MainActor @Published public var cleanResults: CleanResults?
 
     // MARK: - Core Components
     private var securityAuditor: SecurityAuditor!
@@ -28,7 +28,7 @@ public class PinakleanEngine: ObservableObject {
     private let logger = Logger(subsystem: "com.pinaklean", category: "Engine")
 
     // MARK: - Configuration
-    public struct Configuration {
+    public struct Configuration: Sendable {
         public var dryRun: Bool = false
         public var safeMode: Bool = true
         public var aggressiveMode: Bool = false
@@ -62,7 +62,7 @@ public class PinakleanEngine: ObservableObject {
     }
 
     /// Load configuration from UserDefaults
-    private func loadPersistedConfiguration() async {
+    private func loadPersistedConfiguration() {
         // Use standard UserDefaults with prefixed keys (same as CLI)
         let defaults = UserDefaults.standard
         let keyPrefix = "pinaklean."
@@ -106,7 +106,7 @@ public class PinakleanEngine: ObservableObject {
     }
 
     // MARK: - Scan Categories
-    public struct ScanCategories: OptionSet {
+    public struct ScanCategories: OptionSet, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -164,7 +164,7 @@ public class PinakleanEngine: ObservableObject {
             logger.info("Pinaklean Engine initialized successfully")
 
             // Load persisted configuration
-            await self.loadPersistedConfiguration()
+            self.loadPersistedConfiguration()
 
             // Start incremental indexer with error handling
             Task {
@@ -188,64 +188,82 @@ public class PinakleanEngine: ObservableObject {
 
     /// Perform a scan for cleanable items
     public func scan(categories: ScanCategories = .safe) async throws -> ScanResults {
-        guard !isScanning else {
+        guard await !isScanning else {
             throw EngineError.operationInProgress
         }
 
-        isScanning = true
-        scanProgress = 0
-        currentOperation = "Initializing scan..."
-        defer { isScanning = false }
+        await MainActor.run {
+            isScanning = true
+            scanProgress = 0
+            currentOperation = "Initializing scan..."
+        }
+        defer {
+            Task { @MainActor in
+                isScanning = false
+            }
+        }
         if Task.isCancelled { throw EngineError.operationCancelled }
 
         logger.info("Starting real scan with categories: \(categories.rawValue)")
 
+        await MainActor.run {
+            self.currentOperation = "Starting scan..."
+        }
+
         // Use real file scanner instead of simulation
-        let items = try await realFileScanner.scanSystem(categories: categories) { progress in
-            self.scanProgress = progress
-            self.currentOperation = "Scanning files... \(Int(progress * 100))%"
+        let items = try await realFileScanner.scanSystem(categories: categories) { @Sendable progress in
+            Task { @MainActor in
+                self.scanProgress = progress
+            }
         }
 
         var results = ScanResults()
         results.items = items
         results.totalSize = items.reduce(0) { $0 + $1.size }
 
-        // Apply smart detection if enabled (with timeout)
-        if self.configuration.enableSmartDetection {
-            self.currentOperation = "Analyzing with ML..."
-            do {
-                results = try await withTimeout(30.0) {
-                    try await self.applySmartDetection(to: results)
-                }
-            } catch {
-                logger.warning("ML smart detection failed: \(error)")
-                // Fallback: continue without ML scoring
-            }
+        await MainActor.run {
+            self.currentOperation = "Applying smart detection..."
         }
 
-        // Perform security audit if enabled (with timeout)
-        if self.configuration.enableSecurityAudit {
-            self.currentOperation = "Running security audit..."
-            do {
-                results = try await withTimeout(60.0) {
-                    try await self.performSecurityAudit(on: results)
-                }
-            } catch {
-                logger.warning("Security audit timed out, using basic safety scores")
-            }
-        }
-
-        // Generate explanations (with timeout)
-        self.currentOperation = "Generating explanations..."
         do {
-            results = try await withTimeout(30.0) {
+            let smartResults = try await withTimeout(30.0) {
+                try await self.applySmartDetection(to: results)
+            }
+            results = smartResults
+        } catch {
+            logger.error("Smart detection timed out or failed: \(error)")
+        }
+
+        await MainActor.run {
+            self.currentOperation = "Performing security audit..."
+        }
+        do {
+            let auditedResults = try await withTimeout(60.0) {
+                try await self.performSecurityAudit(on: results)
+            }
+            results = auditedResults
+        } catch {
+            logger.error("Security audit timed out or failed: \(error)")
+        }
+
+        await MainActor.run {
+            self.currentOperation = "Adding explanations..."
+        }
+        do {
+            let explainedResults = try await withTimeout(30.0) {
                 await self.addExplanations(to: results)
             }
+            results = explainedResults
         } catch {
-            logger.warning("Explanation generation timed out")
+            logger.error("Explanations timed out or failed: \(error)")
         }
 
-        self.scanResults = results
+
+        await MainActor.run {
+            isScanning = false
+            self.currentOperation = "Scan complete"
+            self.scanResults = results
+        }
         logger.info("Scan completed: \(results.items.count) items, \(results.totalSize) bytes")
 
         return results
@@ -253,16 +271,20 @@ public class PinakleanEngine: ObservableObject {
 
     /// Clean selected items
     public func clean(_ items: [CleanableItem]) async throws -> CleanResults {
-        guard !isCleaning else {
+        guard await !isCleaning else {
             throw EngineError.operationInProgress
         }
 
-        isCleaning = true
-        cleanProgress = 0
-        currentOperation = "Preparing cleanup..."
+        await MainActor.run {
+            isCleaning = true
+            cleanProgress = 0
+            currentOperation = "Preparing cleanup..."
+        }
         defer {
-            isCleaning = false
-            currentOperation = "Idle"
+            Task { @MainActor in
+                isCleaning = false
+                currentOperation = "Idle"
+            }
         }
         if Task.isCancelled { throw EngineError.operationCancelled }
 
@@ -270,7 +292,9 @@ public class PinakleanEngine: ObservableObject {
 
         // Create backup if enabled (with timeout)
         if configuration.autoBackup && !configuration.dryRun {
-            currentOperation = "Creating backup..."
+            await MainActor.run {
+                currentOperation = "Creating backup..."
+            }
             do {
                 try await withTimeout(300.0) {  // 5 minutes for backup
                     try await self.createBackup(for: items)
@@ -287,7 +311,9 @@ public class PinakleanEngine: ObservableObject {
         // Record results
         results.timestamp = Date()
         results.isDryRun = self.configuration.dryRun
-        self.cleanResults = results
+        await MainActor.run {
+            self.cleanResults = results
+        }
 
         logger.info(
             "Cleanup completed: \(results.deletedItems.count) items, \(results.freedSpace) bytes freed"
@@ -298,11 +324,13 @@ public class PinakleanEngine: ObservableObject {
 
     /// Get smart recommendations
     public func getRecommendations() async throws -> [CleaningRecommendation] {
-        guard let scanResults = scanResults else {
+        guard let scanResults = await scanResults else {
             throw EngineError.noScanResults
         }
 
-        currentOperation = "Generating recommendations..."
+        await MainActor.run {
+            currentOperation = "Generating recommendations..."
+        }
 
         var recommendations: [CleaningRecommendation] = []
 
@@ -542,8 +570,7 @@ public class PinakleanEngine: ObservableObject {
     }
 
     // MARK: - Timeout Utility
-    private func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T)
-        async throws -> T
+    private func withTimeout<T: Sendable>(_ timeout: TimeInterval, operation: @escaping @Sendable () async throws -> T) async throws -> T
     {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask {
@@ -564,10 +591,12 @@ public class PinakleanEngine: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct ScanResults: Codable {
+/// Results of a scan operation
+public class ScanResults: Codable, Sendable {
     public var items: [CleanableItem] = []
     public var duplicates: [DuplicateGroup] = []
-    public var totalSize: Int64 = 0
+    public var recommendations: [CleaningRecommendation] = []
+    public var totalSize: UInt64 = 0
     public var timestamp = Date()
 
     public var itemsByCategory: [String: [CleanableItem]] {
@@ -579,7 +608,7 @@ public struct ScanResults: Codable {
     }
 }
 
-public struct CleanResults {
+public struct CleanResults: Sendable {
     public var deletedItems: [CleanableItem] = []
     public var failedItems: [CleanableItem] = []
     public var freedSpace: Int64 = 0
@@ -587,7 +616,7 @@ public struct CleanResults {
     public var isDryRun = false
 }
 
-public struct CleanableItem: Identifiable, Codable, Hashable {
+public struct CleanableItem: Identifiable, Codable, Hashable, Sendable {
     public static func == (lhs: CleanableItem, rhs: CleanableItem) -> Bool {
         lhs.id == rhs.id
     }
@@ -639,7 +668,7 @@ public struct CleanableItem: Identifiable, Codable, Hashable {
     }
 }
 
-public struct DuplicateGroup: Identifiable, Codable {
+public struct DuplicateGroup: Identifiable, Codable, Sendable {
     public var id = UUID()
     public let checksum: String
     public let items: [CleanableItem]
@@ -649,7 +678,7 @@ public struct DuplicateGroup: Identifiable, Codable {
     }
 }
 
-public struct CleaningRecommendation: Identifiable {
+public struct CleaningRecommendation: Identifiable, Sendable {
     public let id: UUID
     public let title: String
     public let description: String

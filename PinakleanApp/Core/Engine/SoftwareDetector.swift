@@ -2,12 +2,12 @@ import Foundation
 import os.log
 
 /// SoftwareDetector - Automatically detects installed software and their cleanup commands
-public class SoftwareDetector {
+public actor SoftwareDetector {
     private let logger = Logger(subsystem: "com.pinaklean", category: "SoftwareDetector")
     private let fileManager = FileManager.default
     
     /// Detected software with their cleanup commands
-    public struct DetectedSoftware {
+    public struct DetectedSoftware: Sendable {
         let name: String
         let version: String?
         let cleanupCommands: [CleanupCommand]
@@ -16,7 +16,7 @@ public class SoftwareDetector {
     }
     
     /// Cleanup command for a specific software
-    public struct CleanupCommand {
+    public struct CleanupCommand: Sendable {
         let command: String
         let arguments: [String]
         let description: String
@@ -25,7 +25,7 @@ public class SoftwareDetector {
     }
     
     /// Safety level for cleanup commands
-    public enum SafetyLevel: Int, CaseIterable {
+    public enum SafetyLevel: Int, CaseIterable, Sendable {
         case verySafe = 90      // Native cache cleanup commands
         case safe = 80          // Standard cleanup commands
         case moderate = 70      // User data cleanup (with confirmation)
@@ -715,7 +715,7 @@ extension SoftwareDetector {
 
 // MARK: - Cleanup Result
 
-public struct CleanupResult {
+public struct CleanupResult: Sendable {
     let softwareName: String
     let command: SoftwareDetector.CleanupCommand
     let success: Bool

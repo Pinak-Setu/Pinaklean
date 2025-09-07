@@ -5,7 +5,7 @@ import Foundation
 public class GitHubReleaseManager {
     public init() {}
 
-    public struct GitHubRelease {
+    public struct GitHubRelease: Sendable {
         public let id: Int
         public let tagName: String
         public let publishedAt: Date

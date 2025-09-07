@@ -24,7 +24,7 @@ public actor PerformanceMonitor: ObservableObject {
     private let maxHistorySize = 1000
     
     // MARK: - SLO Definitions
-    public struct SLO {
+    public struct SLO: Sendable {
         let name: String
         let target: Double
         let measurement: String
@@ -60,7 +60,7 @@ public actor PerformanceMonitor: ObservableObject {
     }
     
     // MARK: - Performance Metrics
-    public struct PerformanceMetrics: Codable {
+    public struct PerformanceMetrics: Codable, Sendable {
         public var scanLatency: TimeInterval = 0
         public var cleanLatency: TimeInterval = 0
         public var memoryUsage: UInt64 = 0
@@ -81,7 +81,7 @@ public actor PerformanceMonitor: ObservableObject {
     }
     
     // MARK: - SLO Status
-    public struct SLOStatus: Codable {
+    public struct SLOStatus: Codable, Sendable {
         public var scanLatencyStatus: SLOStatusItem = SLOStatusItem()
         public var cleanLatencyStatus: SLOStatusItem = SLOStatusItem()
         public var errorRateStatus: SLOStatusItem = SLOStatusItem()
@@ -95,7 +95,7 @@ public actor PerformanceMonitor: ObservableObject {
         }
     }
     
-    public struct SLOStatusItem: Codable {
+    public struct SLOStatusItem: Codable, Sendable {
         public var isHealthy: Bool = true
         public var currentValue: Double = 0
         public var targetValue: Double = 0
@@ -306,7 +306,7 @@ public actor PerformanceMonitor: ObservableObject {
 }
 
 // MARK: - Supporting Types
-public struct HealthCheckResult: Codable {
+public struct HealthCheckResult: Codable, Sendable {
     public let status: String
     public let timestamp: Date
     public let metrics: PerformanceMonitor.PerformanceMetrics
@@ -315,7 +315,7 @@ public struct HealthCheckResult: Codable {
     public let version: String
 }
 
-public struct PerformanceReport: Codable {
+public struct PerformanceReport: Codable, Sendable {
     public let averageScanLatency: TimeInterval
     public let averageCleanLatency: TimeInterval
     public let p95ScanLatency: TimeInterval

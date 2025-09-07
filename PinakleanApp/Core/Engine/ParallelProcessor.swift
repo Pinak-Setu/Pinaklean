@@ -57,16 +57,7 @@ public actor ParallelProcessor {
         var batch: [URL] = []
         let batchSize = 100
 
-        let stream = AsyncStream<URL> { continuation in
-            Task {
-                for case let fileURL as URL in enumerator {
-                    continuation.yield(fileURL)
-                }
-                continuation.finish()
-            }
-        }
-
-        for await fileURL in stream {
+        for case let fileURL as URL in enumerator {
             batch.append(fileURL)
             if batch.count >= batchSize {
                 let matches = await processBatch(batch, pattern: pattern)
@@ -272,16 +263,7 @@ public actor ParallelProcessor {
         }
 
         // Convert synchronous enumeration to async processing
-        let stream = AsyncStream<URL> { continuation in
-            Task {
-                for case let fileURL as URL in enumerator {
-                    continuation.yield(fileURL)
-                }
-                continuation.finish()
-            }
-        }
-
-        for await fileURL in stream {
+        for case let fileURL as URL in enumerator {
             // Yield to allow other tasks to run and prevent hanging
             await Task.yield()
 
@@ -353,7 +335,7 @@ public actor ParallelProcessor {
 
 // MARK: - Supporting Types
 
-public struct DeletionResult {
+public struct DeletionResult: Sendable {
     let item: CleanableItem
     let success: Bool
     let error: Error?
@@ -365,14 +347,14 @@ public struct DeletionResult {
     }
 }
 
-public struct FileMetadata {
+public struct FileMetadata: Sendable {
     public let size: Int64
     public let modificationDate: Date?
     public let creationDate: Date?
     public let isDirectory: Bool
 }
 
-public struct PerformanceMetrics {
+public struct PerformanceMetrics: Sendable {
     public let processedItems: Int
     public let totalBytesProcessed: Int64
     public let duration: TimeInterval

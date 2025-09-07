@@ -20,7 +20,7 @@ public actor IncrementalIndexer {
         case idle, scanning, monitoring, updating, error
     }
 
-    public struct FileIndexEntry: Codable, Hashable {
+    public struct FileIndexEntry: Codable, Hashable, Sendable {
         public let path: String
         public let size: Int64
         public let modificationDate: Date
@@ -46,7 +46,7 @@ public actor IncrementalIndexer {
         }
     }
 
-    public struct ChangeFlags: OptionSet, Codable, Hashable {
+    public struct ChangeFlags: OptionSet, Codable, Hashable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -61,7 +61,7 @@ public actor IncrementalIndexer {
         public static let sizeChanged = ChangeFlags(rawValue: 1 << 5)
     }
 
-    public struct IndexStatistics {
+    public struct IndexStatistics: Sendable {
         public var totalFiles: Int = 0
         public var totalSize: Int64 = 0
         public var indexedDirectories: Int = 0
@@ -316,16 +316,7 @@ public actor IncrementalIndexer {
             throw IndexerError.enumerationFailed(path)
         }
 
-        let stream = AsyncStream<URL> { continuation in
-            Task {
-                for case let fileURL as URL in enumerator {
-                    continuation.yield(fileURL)
-                }
-                continuation.finish()
-            }
-        }
-
-        for await fileURL in stream {
+        for case let fileURL as URL in enumerator {
             do {
                 let entry = try await createIndexEntry(for: fileURL.path)
                 fileIndex[fileURL.path] = entry
@@ -449,37 +440,17 @@ private func fsEventCallback(
     guard let indexerPtr = clientCallbackInfo else { return }
     let indexer = Unmanaged<IncrementalIndexer>.fromOpaque(indexerPtr).takeUnretainedValue()
 
-    let paths = unsafeBitCast(eventPaths, to: NSArray.self) as! [String]
-
     Task {
-        for i in 0..<numEvents {
-            let path = paths[i]
-            let flags = eventFlags[i]
-
-            var changeFlags: IncrementalIndexer.ChangeFlags = []
-
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemCreated)) != 0 {
-                changeFlags.insert(.created)
-            }
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemModified)) != 0 {
-                changeFlags.insert(.modified)
-            }
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved)) != 0 {
-                changeFlags.insert(.deleted)
-            }
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRenamed)) != 0 {
-                changeFlags.insert(.renamed)
-            }
-
-            // Queue change for processing
-            await indexer.queuePathChange(path, flags: changeFlags)
-        }
+        await indexer.handleFSEvent(
+            paths: Unmanaged.fromOpaque(eventPaths).takeUnretainedValue(),
+            flags: UnsafeBufferPointer(start: eventFlags, count: numEvents)
+        )
     }
 }
 
 // MARK: - Supporting Types
 
-public struct DirectoryInfo: Codable {
+public struct DirectoryInfo: Codable, Sendable {
     public let path: String
     public let lastScanned: Date
     public let fileCount: Int
@@ -578,5 +549,32 @@ public enum IndexerError: LocalizedError {
 extension IncrementalIndexer {
     fileprivate func queuePathChange(_ path: String, flags: ChangeFlags) {
         pendingChanges.append((path: path, flags: flags))
+    }
+
+    // New method to handle FSEvents on the actor's executor
+    func handleFSEvent(paths: NSArray, flags: UnsafeBufferPointer<FSEventStreamEventFlags>) {
+        guard let paths = paths as? [String] else { return }
+
+        for i in 0..<paths.count {
+            let path = paths[i]
+            let flag = flags[i]
+            var changeFlags: IncrementalIndexer.ChangeFlags = []
+
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemCreated)) != 0 {
+                changeFlags.insert(.created)
+            }
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemModified)) != 0 {
+                changeFlags.insert(.modified)
+            }
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved)) != 0 {
+                changeFlags.insert(.deleted)
+            }
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRenamed)) != 0 {
+                changeFlags.insert(.renamed)
+            }
+
+            // Queue change for processing
+            self.queuePathChange(path, flags: changeFlags)
+        }
     }
 }

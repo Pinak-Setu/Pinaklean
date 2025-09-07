@@ -499,7 +499,7 @@ public actor BackupRegistry {
 }
 
 // MARK: - Database Models
-public struct BackupRecord: Codable, FetchableRecord, PersistableRecord {
+public struct BackupRecord: Codable, FetchableRecord, PersistableRecord, Sendable {
     public static let databaseTableName = "backup_records"
 
     public let id: String
@@ -550,7 +550,7 @@ public struct BackupRecord: Codable, FetchableRecord, PersistableRecord {
     }
 }
 
-struct BackupHistory: Codable, PersistableRecord {
+struct BackupHistory: Codable, PersistableRecord, Sendable {
     static let databaseTableName = "backup_history"
 
     var id: Int64?
@@ -560,14 +560,14 @@ struct BackupHistory: Codable, PersistableRecord {
     let details: String?
 }
 
-public enum BackupStatus: String, Codable {
+public enum BackupStatus: String, Codable, Sendable {
     case active = "active"
     case missing = "missing"
     case corrupted = "corrupted"
     case deleted = "deleted"
 }
 
-public struct VerificationResult {
+public struct VerificationResult: Sendable {
     let exists: Bool
     let lastVerified: Date
     let provider: CloudBackupManager.CloudProvider

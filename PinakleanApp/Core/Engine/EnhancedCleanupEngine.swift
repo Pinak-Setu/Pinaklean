@@ -2,13 +2,13 @@ import Foundation
 import os.log
 
 /// Enhanced Cleanup Engine - Integrates software detection with native cleanup commands
-public class EnhancedCleanupEngine {
+public actor EnhancedCleanupEngine {
     private let logger = Logger(subsystem: "com.pinaklean", category: "EnhancedCleanupEngine")
     private let softwareDetector = SoftwareDetector()
     private let fileManager = FileManager.default
     
     /// Cleanup operation result
-    public struct CleanupOperationResult {
+    public struct CleanupOperationResult: Sendable {
         let softwareName: String
         let operationType: OperationType
         let success: Bool
@@ -19,7 +19,7 @@ public class EnhancedCleanupEngine {
     }
     
     /// Type of cleanup operation
-    public enum OperationType {
+    public enum OperationType: Sendable {
         case nativeCommand    // Using software's native cleanup command
         case cacheCleanup     // Direct cache file cleanup
         case systemCleanup    // System-level cleanup
@@ -65,7 +65,7 @@ public class EnhancedCleanupEngine {
         for sw in software {
             logger.info("Executing native cleanup commands for \(sw.name)")
             
-            for command in sw.cleanupCommands {
+            for command in await sw.cleanupCommands {
                 let startTime = Date()
                 
                 let result = await executeCommand(command, for: sw.name)
@@ -94,7 +94,7 @@ public class EnhancedCleanupEngine {
         return results
     }
     
-    private func executeCommand(_ command: SoftwareDetector.CleanupCommand, for softwareName: String) async -> CleanupResult {
+    private func executeCommand(_ command: SoftwareDetector.CleanupCommand, for softwareName: String) async -> SoftwareDetector.CleanupResult {
         return await withCheckedContinuation { continuation in
             let process = Process()
             process.executableURL = URL(fileURLWithPath: "/usr/bin/env")
@@ -111,7 +111,7 @@ public class EnhancedCleanupEngine {
                 let data = pipe.fileHandleForReading.readDataToEndOfFile()
                 let output = String(data: data, encoding: .utf8) ?? ""
                 
-                let result = CleanupResult(
+                let result = SoftwareDetector.CleanupResult(
                     softwareName: softwareName,
                     command: command,
                     success: process.terminationStatus == 0,
@@ -121,7 +121,7 @@ public class EnhancedCleanupEngine {
                 
                 continuation.resume(returning: result)
             } catch {
-                let result = CleanupResult(
+                let result = SoftwareDetector.CleanupResult(
                     softwareName: softwareName,
                     command: command,
                     success: false,
@@ -146,7 +146,7 @@ public class EnhancedCleanupEngine {
             var totalSpaceFreed: Int64 = 0
             var filesProcessed = 0
             
-            for cachePath in sw.cachePaths {
+            for cachePath in await sw.cachePaths {
                 let expandedPath = NSString(string: cachePath).expandingTildeInPath
                 
                 do {

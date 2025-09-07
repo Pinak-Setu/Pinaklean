@@ -14,6 +14,11 @@ jobs:
     - name: Checkout
       uses: actions/checkout@v5
 
+    - name: Setup Swift
+      uses: swift-actions/setup-swift@v2
+      with:
+        swift-version: '6.0'
+
     - name: Web Accessibility & Performance
       run: |
         cd PinakleanApp

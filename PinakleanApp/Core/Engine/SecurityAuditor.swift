@@ -12,7 +12,7 @@ import Security
 /// Comprehensive security auditor for file deletion safety
 /// Enhanced with CLI safety patterns and risk assessment algorithms
 public actor SecurityAuditor {
-    public enum Risk: Int, Comparable {
+    public enum Risk: Int, Comparable, Sendable {
         case critical = 100  // Never delete - system critical
         case high = 75       // Require explicit confirmation
         case medium = 50     // Warn user strongly
@@ -27,7 +27,7 @@ public actor SecurityAuditor {
     public struct AuditResult: Sendable {
         public let risk: Risk
         public let message: String?
-        public let details: [String: Any]?
+        public let details: [String: String]?
         public let timestamp = Date()
         public let riskScore: Int
 
@@ -88,7 +88,7 @@ public actor SecurityAuditor {
         let path = url.path
         var totalRiskScore = 0
         var messages: [String] = []
-        var details: [String: Any] = [:]
+        var details: [String: String] = [:]
 
         // Check critical system paths (highest priority)
         if let result = checkCriticalPaths(path) {
@@ -368,7 +368,7 @@ public actor SecurityAuditor {
                     return AuditResult(
                         risk: .low,
                         message: "File modified very recently (\(ageInDays) days ago)",
-                        details: ["age_days": ageInDays, "risk_factor": "recent_modification"],
+                        details: ["age_days": String(ageInDays), "risk_factor": "recent_modification"],
                         riskScore: 20
                     )
                 }
@@ -378,7 +378,7 @@ public actor SecurityAuditor {
                     return AuditResult(
                         risk: .minimal,
                         message: "File is very old (\(ageInDays) days)",
-                        details: ["age_days": ageInDays, "risk_factor": "old_file"],
+                        details: ["age_days": String(ageInDays), "risk_factor": "old_file"],
                         riskScore: 10
                     )
                 }
@@ -449,7 +449,7 @@ public struct ValidationResult: Sendable {
     public let warnings: [String]
     public let criticalItems: [CleanableItem]
 
-    public enum RecommendedAction {
+    public enum RecommendedAction: Sendable {
         case proceed, block, requireConfirmation
     }
 

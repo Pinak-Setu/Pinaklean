@@ -7,7 +7,7 @@ import CryptoKit
 public actor SmartDetector {
     // MARK: - Types
 
-    public struct FileAnalysis {
+    public struct FileAnalysis: Sendable {
         public let path: String
         public let importanceScore: Int
         public let accessScore: Int
@@ -17,13 +17,13 @@ public actor SmartDetector {
         public let ageCategory: AgeCategory
         public let patternMatch: String?
 
-        public enum Recommendation: String {
+        public enum Recommendation: String, Sendable {
             case safeToDelete = "safe_to_delete"
             case reviewRecommended = "review_recommended"
             case keep = "keep"
         }
 
-        public enum AgeCategory: String {
+        public enum AgeCategory: String, Sendable {
             case veryOld = "very_old"      // >365 days
             case old = "old"              // >180 days
             case medium = "medium"        // >90 days
@@ -32,19 +32,19 @@ public actor SmartDetector {
         }
     }
 
-    public struct DuplicateGroup {
+    public struct DuplicateGroup: Sendable {
         public let checksum: String
         public let items: [CleanableItem]
         public let totalSize: Int64
         public let spaceSavings: Int64
     }
 
-    public struct RecommendationResult {
+    public struct RecommendationResult: Sendable {
         public let timestamp: Date
         public let analyses: [FileAnalysis]
         public let summary: Summary
 
-        public struct Summary {
+        public struct Summary: Sendable {
             public let totalFiles: Int
             public let safeToDelete: Int
             public let riskyFiles: Int
@@ -52,7 +52,7 @@ public actor SmartDetector {
         }
     }
 
-    public enum SmartDetectionError: Error {
+    public enum SmartDetectionError: Error, Sendable {
         case fileNotFound(String)
         case analysisFailed(String)
         case duplicateDetectionFailed(String)
@@ -533,15 +533,15 @@ public actor SmartDetector {
 
 // MARK: - Supporting Types
 
-public enum ContentType {
+public enum ContentType: Sendable {
     case document, image, video, audio, archive, application, data, other, unknown
 }
 
-public enum SizeCategory {
+public enum SizeCategory: Sendable {
     case small, medium, large, huge, unknown
 }
 
-public struct SafetyFeatures {
+public struct SafetyFeatures: Sendable {
     var fileSize: Int64 = 0
     var modificationDate: Date?
     var creationDate: Date?
@@ -555,20 +555,20 @@ public struct SafetyFeatures {
     var hasCommonExtensions: Bool = false
 }
 
-public struct ContentAnalysis {
+public struct ContentAnalysis: Sendable {
     public let fileType: String
     public let contentType: ContentType
     public let textContent: String
 }
 
-public struct FileUsagePattern {
+public struct FileUsagePattern: Sendable {
     let pattern: String
     var totalEncounters: Int = 0
     var lastEncounter: Date?
     var averageScore: Double = 0
 }
 
-public struct FileLearningData: Codable {
+public struct FileLearningData: Codable, Sendable {
     let path: String
     let pattern: String
     let score: Int

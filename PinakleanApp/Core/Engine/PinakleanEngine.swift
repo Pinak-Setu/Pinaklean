@@ -28,7 +28,7 @@ public class PinakleanEngine: ObservableObject {
     private let logger = Logger(subsystem: "com.pinaklean", category: "Engine")
 
     // MARK: - Configuration
-    public struct Configuration {
+    public struct Configuration: Sendable {
         public var dryRun: Bool = false
         public var safeMode: Bool = true
         public var aggressiveMode: Bool = false
@@ -542,7 +542,7 @@ public class PinakleanEngine: ObservableObject {
     }
 
     // MARK: - Timeout Utility
-    private func withTimeout<T>(_ timeout: TimeInterval, operation: @escaping () async throws -> T)
+    private func withTimeout<T: Sendable>(_ timeout: TimeInterval, operation: @escaping () async throws -> T)
         async throws -> T
     {
         try await withThrowingTaskGroup(of: T.self) { group in

@@ -64,9 +64,8 @@ let package = Package(
                 .product(name: "Metrics", package: "swift-metrics"),
             ],
             path: "Core",
-            resources: [
-                .process("Resources/Models")
-            ]
+            exclude: ["PrivacyInfo.xcprivacy"],
+            resources: [ .process("Resources/Models") ]
         ),
 
         // CLI Tool (temporarily disabled until compile issues are resolved)
@@ -98,7 +97,8 @@ let package = Package(
                 .product(name: "SnapshotTesting", package: "swift-snapshot-testing"),
                 .product(name: "ViewInspector", package: "ViewInspector")
             ],
-            path: "Tests/App"
+            path: "Tests/App",
+            exclude: ["PrivacyInfo.xcprivacy"]
         ),
         // CLI tests disabled while CLI is archived
         // .testTarget(

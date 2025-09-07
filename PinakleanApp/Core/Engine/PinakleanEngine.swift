@@ -206,11 +206,14 @@ public actor PinakleanEngine: ObservableObject {
 
         logger.info("Starting real scan with categories: \(categories.rawValue)")
 
+        await MainActor.run {
+            self.currentOperation = "Starting scan..."
+        }
+
         // Use real file scanner instead of simulation
-        let items = try await realFileScanner.scanSystem(categories: categories) { progress in
+        let items = try await realFileScanner.scanSystem(categories: categories) { @Sendable progress in
             Task { @MainActor in
                 self.scanProgress = progress
-                self.currentOperation = "Scanning files... \(Int(progress * 100))%"
             }
         }
 
@@ -218,48 +221,47 @@ public actor PinakleanEngine: ObservableObject {
         results.items = items
         results.totalSize = items.reduce(0) { $0 + $1.size }
 
-        // Apply smart detection if enabled (with timeout)
-        if self.configuration.enableSmartDetection {
-            await MainActor.run {
-                self.currentOperation = "Analyzing with ML..."
-            }
-            do {
-                results = try await withTimeout(30.0) {
-                    try await self.applySmartDetection(to: results)
-                }
-            } catch {
-                logger.warning("ML smart detection failed: \(error)")
-                // Fallback: continue without ML scoring
-            }
-        }
-
-        // Perform security audit if enabled (with timeout)
-        if self.configuration.enableSecurityAudit {
-            await MainActor.run {
-                self.currentOperation = "Running security audit..."
-            }
-            do {
-                results = try await withTimeout(60.0) {
-                    try await self.performSecurityAudit(on: results)
-                }
-            } catch {
-                logger.warning("Security audit timed out, using basic safety scores")
-            }
-        }
-
-        // Generate explanations (with timeout)
         await MainActor.run {
-            self.currentOperation = "Generating explanations..."
+            self.currentOperation = "Applying smart detection..."
+        }
+
+        do {
+            let smartResults = try await withTimeout(30.0) {
+                try await self.applySmartDetection(to: results)
+            }
+            results = smartResults
+        } catch {
+            logger.error("Smart detection timed out or failed: \(error)")
+        }
+
+        await MainActor.run {
+            self.currentOperation = "Performing security audit..."
         }
         do {
-            results = try await withTimeout(30.0) {
-                await self.addExplanations(to: results)
+            let auditedResults = try await withTimeout(60.0) {
+                try await self.performSecurityAudit(on: results)
             }
+            results = auditedResults
         } catch {
-            logger.warning("Explanation generation timed out")
+            logger.error("Security audit timed out or failed: \(error)")
         }
 
         await MainActor.run {
+            self.currentOperation = "Adding explanations..."
+        }
+        do {
+            let explainedResults = try await withTimeout(30.0) {
+                await self.addExplanations(to: results)
+            }
+            results = explainedResults
+        } catch {
+            logger.error("Explanations timed out or failed: \(error)")
+        }
+
+
+        await MainActor.run {
+            isScanning = false
+            self.currentOperation = "Scan complete"
             self.scanResults = results
         }
         logger.info("Scan completed: \(results.items.count) items, \(results.totalSize) bytes")
@@ -568,8 +570,7 @@ public actor PinakleanEngine: ObservableObject {
     }
 
     // MARK: - Timeout Utility
-    private func withTimeout<T: Sendable>(_ timeout: TimeInterval, operation: @escaping () async throws -> T)
-        async throws -> T
+    private func withTimeout<T: Sendable>(_ timeout: TimeInterval, operation: @escaping @Sendable () async throws -> T) async throws -> T
     {
         try await withThrowingTaskGroup(of: T.self) { group in
             group.addTask {
@@ -590,10 +591,12 @@ public actor PinakleanEngine: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct ScanResults: Codable, Sendable {
+/// Results of a scan operation
+public class ScanResults: Codable, Sendable {
     public var items: [CleanableItem] = []
     public var duplicates: [DuplicateGroup] = []
-    public var totalSize: Int64 = 0
+    public var recommendations: [CleaningRecommendation] = []
+    public var totalSize: UInt64 = 0
     public var timestamp = Date()
 
     public var itemsByCategory: [String: [CleanableItem]] {

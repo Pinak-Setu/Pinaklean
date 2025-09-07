@@ -440,31 +440,11 @@ private func fsEventCallback(
     guard let indexerPtr = clientCallbackInfo else { return }
     let indexer = Unmanaged<IncrementalIndexer>.fromOpaque(indexerPtr).takeUnretainedValue()
 
-    let paths = unsafeBitCast(eventPaths, to: NSArray.self) as! [String]
-
     Task {
-        for i in 0..<numEvents {
-            let path = paths[i]
-            let flags = eventFlags[i]
-
-            var changeFlags: IncrementalIndexer.ChangeFlags = []
-
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemCreated)) != 0 {
-                changeFlags.insert(.created)
-            }
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemModified)) != 0 {
-                changeFlags.insert(.modified)
-            }
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved)) != 0 {
-                changeFlags.insert(.deleted)
-            }
-            if (flags & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRenamed)) != 0 {
-                changeFlags.insert(.renamed)
-            }
-
-            // Queue change for processing
-            await indexer.queuePathChange(path, flags: changeFlags)
-        }
+        await indexer.handleFSEvent(
+            paths: Unmanaged.fromOpaque(eventPaths).takeUnretainedValue(),
+            flags: UnsafeBufferPointer(start: eventFlags, count: numEvents)
+        )
     }
 }
 
@@ -569,5 +549,32 @@ public enum IndexerError: LocalizedError {
 extension IncrementalIndexer {
     fileprivate func queuePathChange(_ path: String, flags: ChangeFlags) {
         pendingChanges.append((path: path, flags: flags))
+    }
+
+    // New method to handle FSEvents on the actor's executor
+    func handleFSEvent(paths: NSArray, flags: UnsafeBufferPointer<FSEventStreamEventFlags>) {
+        guard let paths = paths as? [String] else { return }
+
+        for i in 0..<paths.count {
+            let path = paths[i]
+            let flag = flags[i]
+            var changeFlags: IncrementalIndexer.ChangeFlags = []
+
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemCreated)) != 0 {
+                changeFlags.insert(.created)
+            }
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemModified)) != 0 {
+                changeFlags.insert(.modified)
+            }
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRemoved)) != 0 {
+                changeFlags.insert(.deleted)
+            }
+            if (flag & FSEventStreamEventFlags(kFSEventStreamEventFlagItemRenamed)) != 0 {
+                changeFlags.insert(.renamed)
+            }
+
+            // Queue change for processing
+            self.queuePathChange(path, flags: changeFlags)
+        }
     }
 }

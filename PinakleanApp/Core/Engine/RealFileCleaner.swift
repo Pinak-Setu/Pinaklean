@@ -3,7 +3,7 @@ import os.log
 
 /// Real file cleaner that performs actual file deletion operations
 /// Replaces simulation with production-grade file cleaning
-public class RealFileCleaner {
+public actor RealFileCleaner {
     private let fileManager = FileManager.default
     private let logger = Logger(subsystem: "com.pinaklean", category: "FileCleaner")
     
@@ -59,7 +59,7 @@ public class RealFileCleaner {
 }
 
 /// File cleaner errors
-public enum FileCleanerError: Error, LocalizedError {
+public enum FileCleanerError: Error, LocalizedError, Sendable {
     case fileNotFound(String)
     case permissionDenied(String)
     case deletionFailed(String, Error)

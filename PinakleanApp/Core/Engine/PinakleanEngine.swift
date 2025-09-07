@@ -164,7 +164,7 @@ public actor PinakleanEngine: ObservableObject {
             logger.info("Pinaklean Engine initialized successfully")
 
             // Load persisted configuration
-            await self.loadPersistedConfiguration()
+            self.loadPersistedConfiguration()
 
             // Start incremental indexer with error handling
             Task {
@@ -188,7 +188,7 @@ public actor PinakleanEngine: ObservableObject {
 
     /// Perform a scan for cleanable items
     public func scan(categories: ScanCategories = .safe) async throws -> ScanResults {
-        guard !isScanning else {
+        guard await !isScanning else {
             throw EngineError.operationInProgress
         }
 
@@ -269,7 +269,7 @@ public actor PinakleanEngine: ObservableObject {
 
     /// Clean selected items
     public func clean(_ items: [CleanableItem]) async throws -> CleanResults {
-        guard !isCleaning else {
+        guard await !isCleaning else {
             throw EngineError.operationInProgress
         }
 

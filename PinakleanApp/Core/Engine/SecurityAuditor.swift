@@ -24,7 +24,7 @@ public actor SecurityAuditor {
         }
     }
 
-    public struct AuditResult {
+    public struct AuditResult: Sendable {
         public let risk: Risk
         public let message: String?
         public let details: [String: Any]?
@@ -442,7 +442,7 @@ public actor SecurityAuditor {
 }
 
 /// Validation result for cleanup operations
-public struct ValidationResult {
+public struct ValidationResult: Sendable {
     public let canProceed: Bool
     public let overallRisk: SecurityAuditor.Risk
     public let totalRiskScore: Int

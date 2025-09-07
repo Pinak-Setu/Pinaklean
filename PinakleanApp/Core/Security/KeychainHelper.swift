@@ -5,7 +5,7 @@ import os.log
 
 /// Secure keychain helper for storing sensitive data like encryption keys and API tokens
 /// Follows macOS Keychain best practices with proper error handling and logging
-public struct KeychainHelper {
+public actor KeychainHelper {
     
     private static let logger = Logger(subsystem: "com.pinaklean", category: "KeychainHelper")
     private static let serviceName = "com.pinaklean.app"

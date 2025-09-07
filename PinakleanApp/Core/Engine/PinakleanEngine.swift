@@ -106,7 +106,7 @@ public class PinakleanEngine: ObservableObject {
     }
 
     // MARK: - Scan Categories
-    public struct ScanCategories: OptionSet {
+    public struct ScanCategories: OptionSet, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -564,7 +564,7 @@ public class PinakleanEngine: ObservableObject {
 
 // MARK: - Supporting Types
 
-public struct ScanResults: Codable {
+public struct ScanResults: Codable, Sendable {
     public var items: [CleanableItem] = []
     public var duplicates: [DuplicateGroup] = []
     public var totalSize: Int64 = 0
@@ -579,7 +579,7 @@ public struct ScanResults: Codable {
     }
 }
 
-public struct CleanResults {
+public struct CleanResults: Sendable {
     public var deletedItems: [CleanableItem] = []
     public var failedItems: [CleanableItem] = []
     public var freedSpace: Int64 = 0
@@ -587,7 +587,7 @@ public struct CleanResults {
     public var isDryRun = false
 }
 
-public struct CleanableItem: Identifiable, Codable, Hashable {
+public struct CleanableItem: Identifiable, Codable, Hashable, Sendable {
     public static func == (lhs: CleanableItem, rhs: CleanableItem) -> Bool {
         lhs.id == rhs.id
     }
@@ -639,7 +639,7 @@ public struct CleanableItem: Identifiable, Codable, Hashable {
     }
 }
 
-public struct DuplicateGroup: Identifiable, Codable {
+public struct DuplicateGroup: Identifiable, Codable, Sendable {
     public var id = UUID()
     public let checksum: String
     public let items: [CleanableItem]
@@ -649,7 +649,7 @@ public struct DuplicateGroup: Identifiable, Codable {
     }
 }
 
-public struct CleaningRecommendation: Identifiable {
+public struct CleaningRecommendation: Identifiable, Sendable {
     public let id: UUID
     public let title: String
     public let description: String

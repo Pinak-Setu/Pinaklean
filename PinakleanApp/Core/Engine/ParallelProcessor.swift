@@ -57,16 +57,7 @@ public actor ParallelProcessor {
         var batch: [URL] = []
         let batchSize = 100
 
-        let stream = AsyncStream<URL> { continuation in
-            Task {
-                for case let fileURL as URL in enumerator {
-                    continuation.yield(fileURL)
-                }
-                continuation.finish()
-            }
-        }
-
-        for await fileURL in stream {
+        for case let fileURL as URL in enumerator {
             batch.append(fileURL)
             if batch.count >= batchSize {
                 let matches = await processBatch(batch, pattern: pattern)
@@ -272,16 +263,7 @@ public actor ParallelProcessor {
         }
 
         // Convert synchronous enumeration to async processing
-        let stream = AsyncStream<URL> { continuation in
-            Task {
-                for case let fileURL as URL in enumerator {
-                    continuation.yield(fileURL)
-                }
-                continuation.finish()
-            }
-        }
-
-        for await fileURL in stream {
+        for case let fileURL as URL in enumerator {
             // Yield to allow other tasks to run and prevent hanging
             await Task.yield()
 

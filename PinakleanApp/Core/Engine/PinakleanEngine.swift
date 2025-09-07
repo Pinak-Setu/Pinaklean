@@ -4,17 +4,17 @@ import os.log
 
 /// Core Pinaklean Engine - Unified cleaning engine for both CLI and GUI
 /// This is the heart of Pinaklean, providing all cleaning operations
-public class PinakleanEngine: ObservableObject {
+public actor PinakleanEngine: ObservableObject {
 
     // MARK: - Published Properties
-    @Published public var isScanning = false
-    @Published public var isCleaning = false
-    @Published public var scanProgress: Double = 0
-    @Published public var cleanProgress: Double = 0
-    @Published public var currentOperation = ""
-    @Published public var lastError: Error?
-    @Published public var scanResults: ScanResults?
-    @Published public var cleanResults: CleanResults?
+    @MainActor @Published public var isScanning = false
+    @MainActor @Published public var isCleaning = false
+    @MainActor @Published public var scanProgress: Double = 0
+    @MainActor @Published public var cleanProgress: Double = 0
+    @MainActor @Published public var currentOperation = ""
+    @MainActor @Published public var lastError: Error?
+    @MainActor @Published public var scanResults: ScanResults?
+    @MainActor @Published public var cleanResults: CleanResults?
 
     // MARK: - Core Components
     private var securityAuditor: SecurityAuditor!
@@ -62,7 +62,7 @@ public class PinakleanEngine: ObservableObject {
     }
 
     /// Load configuration from UserDefaults
-    private func loadPersistedConfiguration() async {
+    private func loadPersistedConfiguration() {
         // Use standard UserDefaults with prefixed keys (same as CLI)
         let defaults = UserDefaults.standard
         let keyPrefix = "pinaklean."
@@ -192,18 +192,26 @@ public class PinakleanEngine: ObservableObject {
             throw EngineError.operationInProgress
         }
 
-        isScanning = true
-        scanProgress = 0
-        currentOperation = "Initializing scan..."
-        defer { isScanning = false }
+        await MainActor.run {
+            isScanning = true
+            scanProgress = 0
+            currentOperation = "Initializing scan..."
+        }
+        defer {
+            Task { @MainActor in
+                isScanning = false
+            }
+        }
         if Task.isCancelled { throw EngineError.operationCancelled }
 
         logger.info("Starting real scan with categories: \(categories.rawValue)")
 
         // Use real file scanner instead of simulation
         let items = try await realFileScanner.scanSystem(categories: categories) { progress in
-            self.scanProgress = progress
-            self.currentOperation = "Scanning files... \(Int(progress * 100))%"
+            Task { @MainActor in
+                self.scanProgress = progress
+                self.currentOperation = "Scanning files... \(Int(progress * 100))%"
+            }
         }
 
         var results = ScanResults()
@@ -212,7 +220,9 @@ public class PinakleanEngine: ObservableObject {
 
         // Apply smart detection if enabled (with timeout)
         if self.configuration.enableSmartDetection {
-            self.currentOperation = "Analyzing with ML..."
+            await MainActor.run {
+                self.currentOperation = "Analyzing with ML..."
+            }
             do {
                 results = try await withTimeout(30.0) {
                     try await self.applySmartDetection(to: results)
@@ -225,7 +235,9 @@ public class PinakleanEngine: ObservableObject {
 
         // Perform security audit if enabled (with timeout)
         if self.configuration.enableSecurityAudit {
-            self.currentOperation = "Running security audit..."
+            await MainActor.run {
+                self.currentOperation = "Running security audit..."
+            }
             do {
                 results = try await withTimeout(60.0) {
                     try await self.performSecurityAudit(on: results)
@@ -236,7 +248,9 @@ public class PinakleanEngine: ObservableObject {
         }
 
         // Generate explanations (with timeout)
-        self.currentOperation = "Generating explanations..."
+        await MainActor.run {
+            self.currentOperation = "Generating explanations..."
+        }
         do {
             results = try await withTimeout(30.0) {
                 await self.addExplanations(to: results)
@@ -245,7 +259,9 @@ public class PinakleanEngine: ObservableObject {
             logger.warning("Explanation generation timed out")
         }
 
-        self.scanResults = results
+        await MainActor.run {
+            self.scanResults = results
+        }
         logger.info("Scan completed: \(results.items.count) items, \(results.totalSize) bytes")
 
         return results
@@ -257,12 +273,16 @@ public class PinakleanEngine: ObservableObject {
             throw EngineError.operationInProgress
         }
 
-        isCleaning = true
-        cleanProgress = 0
-        currentOperation = "Preparing cleanup..."
+        await MainActor.run {
+            isCleaning = true
+            cleanProgress = 0
+            currentOperation = "Preparing cleanup..."
+        }
         defer {
-            isCleaning = false
-            currentOperation = "Idle"
+            Task { @MainActor in
+                isCleaning = false
+                currentOperation = "Idle"
+            }
         }
         if Task.isCancelled { throw EngineError.operationCancelled }
 
@@ -270,7 +290,9 @@ public class PinakleanEngine: ObservableObject {
 
         // Create backup if enabled (with timeout)
         if configuration.autoBackup && !configuration.dryRun {
-            currentOperation = "Creating backup..."
+            await MainActor.run {
+                currentOperation = "Creating backup..."
+            }
             do {
                 try await withTimeout(300.0) {  // 5 minutes for backup
                     try await self.createBackup(for: items)
@@ -287,7 +309,9 @@ public class PinakleanEngine: ObservableObject {
         // Record results
         results.timestamp = Date()
         results.isDryRun = self.configuration.dryRun
-        self.cleanResults = results
+        await MainActor.run {
+            self.cleanResults = results
+        }
 
         logger.info(
             "Cleanup completed: \(results.deletedItems.count) items, \(results.freedSpace) bytes freed"
@@ -298,11 +322,13 @@ public class PinakleanEngine: ObservableObject {
 
     /// Get smart recommendations
     public func getRecommendations() async throws -> [CleaningRecommendation] {
-        guard let scanResults = scanResults else {
+        guard let scanResults = await scanResults else {
             throw EngineError.noScanResults
         }
 
-        currentOperation = "Generating recommendations..."
+        await MainActor.run {
+            currentOperation = "Generating recommendations..."
+        }
 
         var recommendations: [CleaningRecommendation] = []
 

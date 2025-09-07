@@ -7,7 +7,7 @@ public actor SoftwareDetector {
     private let fileManager = FileManager.default
     
     /// Detected software with their cleanup commands
-    public struct DetectedSoftware {
+    public struct DetectedSoftware: Sendable {
         let name: String
         let version: String?
         let cleanupCommands: [CleanupCommand]
@@ -16,7 +16,7 @@ public actor SoftwareDetector {
     }
     
     /// Cleanup command for a specific software
-    public struct CleanupCommand {
+    public struct CleanupCommand: Sendable {
         let command: String
         let arguments: [String]
         let description: String
@@ -25,7 +25,7 @@ public actor SoftwareDetector {
     }
     
     /// Safety level for cleanup commands
-    public enum SafetyLevel: Int, CaseIterable {
+    public enum SafetyLevel: Int, CaseIterable, Sendable {
         case verySafe = 90      // Native cache cleanup commands
         case safe = 80          // Standard cleanup commands
         case moderate = 70      // User data cleanup (with confirmation)

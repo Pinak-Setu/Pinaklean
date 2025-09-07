@@ -316,7 +316,16 @@ public actor IncrementalIndexer {
             throw IndexerError.enumerationFailed(path)
         }
 
-        for case let fileURL as URL in enumerator {
+        let stream = AsyncStream<URL> { continuation in
+            Task {
+                for case let fileURL as URL in enumerator {
+                    continuation.yield(fileURL)
+                }
+                continuation.finish()
+            }
+        }
+
+        for await fileURL in stream {
             do {
                 let entry = try await createIndexEntry(for: fileURL.path)
                 fileIndex[fileURL.path] = entry

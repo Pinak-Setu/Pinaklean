@@ -353,7 +353,7 @@ public actor ParallelProcessor {
 
 // MARK: - Supporting Types
 
-public struct DeletionResult {
+public struct DeletionResult: Sendable {
     let item: CleanableItem
     let success: Bool
     let error: Error?
@@ -365,14 +365,14 @@ public struct DeletionResult {
     }
 }
 
-public struct FileMetadata {
+public struct FileMetadata: Sendable {
     public let size: Int64
     public let modificationDate: Date?
     public let creationDate: Date?
     public let isDirectory: Bool
 }
 
-public struct PerformanceMetrics {
+public struct PerformanceMetrics: Sendable {
     public let processedItems: Int
     public let totalBytesProcessed: Int64
     public let duration: TimeInterval

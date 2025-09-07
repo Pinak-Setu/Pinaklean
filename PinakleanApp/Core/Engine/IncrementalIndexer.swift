@@ -20,7 +20,7 @@ public actor IncrementalIndexer {
         case idle, scanning, monitoring, updating, error
     }
 
-    public struct FileIndexEntry: Codable, Hashable {
+    public struct FileIndexEntry: Codable, Hashable, Sendable {
         public let path: String
         public let size: Int64
         public let modificationDate: Date
@@ -46,7 +46,7 @@ public actor IncrementalIndexer {
         }
     }
 
-    public struct ChangeFlags: OptionSet, Codable, Hashable {
+    public struct ChangeFlags: OptionSet, Codable, Hashable, Sendable {
         public let rawValue: Int
 
         public init(rawValue: Int) {
@@ -61,7 +61,7 @@ public actor IncrementalIndexer {
         public static let sizeChanged = ChangeFlags(rawValue: 1 << 5)
     }
 
-    public struct IndexStatistics {
+    public struct IndexStatistics: Sendable {
         public var totalFiles: Int = 0
         public var totalSize: Int64 = 0
         public var indexedDirectories: Int = 0
@@ -479,7 +479,7 @@ private func fsEventCallback(
 
 // MARK: - Supporting Types
 
-public struct DirectoryInfo: Codable {
+public struct DirectoryInfo: Codable, Sendable {
     public let path: String
     public let lastScanned: Date
     public let fileCount: Int
